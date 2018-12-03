@@ -1,0 +1,65 @@
+"*":
+  "atom-ide-ui":
+    "debugger-exceptionBreakpointsCollapsed": false
+    use: {}
+  "autocomplete-plus":
+    autoActivationDelay: 150
+    confirmCompletion: "tab always, enter when suggestion explicitly selected"
+    maxVisibleSuggestions: 8
+  "bracket-matcher": {}
+  core:
+    automaticallyUpdate: false
+    customFileTypes:
+      "source.gfm": [
+        "ronn"
+      ]
+      "source.shell": [
+        "bash_completion"
+        "inputrc"
+      ]
+      "text.generic-config": [
+        "conf"
+        "curlrc"
+        "textpack"
+      ]
+      "text.html.basic": [
+        "txp"
+      ]
+      "text.xml": [
+        "nfo"
+      ]
+    disabledPackages: [
+      "exception-reporting"
+      "background-tips"
+      "deprecation-cop"
+      "dev-live-reload"
+      "go-to-line"
+      "incompatible-packages"
+      "link"
+      "metrics"
+      "package-generator"
+      "welcome"
+      "update-package-dependencies"
+      "timecop"
+      "ide-php"
+    ]
+    reopenProjectMenuCount: 0
+    telemetryConsent: "no"
+    warnOnLargeFileLimit: 15
+  editor:
+    autoIndentOnPaste: false
+    invisibles: {}
+    softWrap: true
+  "exception-reporting": {}
+  "file-icons":
+    coloured: false
+  "git-diff":
+    showIconsInEditorGutter: true
+  "ide-php":
+    phpPath: "/usr/local/bin/php"
+  "php-debug":
+    showWelcome: false
+    xdebug:
+      pathMaps: "[{\"remotePath\":\"src/Netcarver/Textile\",\"localPath\":\"/Volumes/Mango/Projects/php-textile/src/Netcarver/Textile\"}]"
+  welcome:
+    showOnStartup: false

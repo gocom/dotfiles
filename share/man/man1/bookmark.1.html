@@ -1,0 +1,151 @@
+<!DOCTYPE html lang="" >
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+
+      <meta name="author" content="Jukka Svahn">
+  
+  
+  
+  <title>BOOKMARK(1)</title>
+
+      <link rel="stylesheet" href="../style.css" />
+  
+  </head>
+<body>
+  
+      <header>
+      <h1 class="title">BOOKMARK(1)</h1>
+      <p class="subtitle">dotfiles</p>
+
+      
+              <p class="date">October 2018</p>
+          </header>
+  
+  <div id="content">
+          <nav>
+        <ul>
+        <li><a href="#name">NAME</a></li>
+        <li><a href="#synopsis">SYNOPSIS</a></li>
+        <li><a href="#description">DESCRIPTION</a></li>
+        <li><a href="#options">OPTIONS</a></li>
+        <li><a href="#commands">COMMANDS</a></li>
+        <li><a href="#environment">ENVIRONMENT</a></li>
+        <li><a href="#files">FILES</a></li>
+        <li><a href="#examples">EXAMPLES</a></li>
+        </ul>
+      </nav>
+    
+    <main><h1 id="name">NAME</h1>
+<p>bookmark – Bookmark files and URLs</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>bookmark</strong> [<em>options</em>] [<em>command</em>] [[[<em>path</em>] [<em>url</em>]] [<em>name</em>]]</p>
+<h1 id="description">DESCRIPTION</h1>
+<p>Bookmarks URLs, files and directories. Symbolic filesystem links are created to <code>$LINKS</code> or <code>~/Links</code>, and URL shortcuts to <code>$BOOKMARKS</code> or <code>~/Bookmarks</code>.</p>
+<p>These can then be accessed through file manager, <strong>bookmark</strong> command-line interface or integrated with <code>$CDPATH</code>.</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt><code>-h</code>, <code>--help</code></dt>
+<dd>Print help.
+</dd>
+<dt><code>-v</code>, <code>--version</code></dt>
+<dd>Print version number.
+</dd>
+<dt><code>-o</code>, <code>--open</code></dt>
+<dd>Open matching printed URLs or linked files using <strong>open</strong> command, or <code>$BROWSER</code>.
+</dd>
+<dt><code>-n</code>, <code>--name</code></dt>
+<dd>List matching names, rather than columns.
+</dd>
+<dt><code>-t</code>, <code>--target</code></dt>
+<dd>List matching target paths and URLs, rather than columns.
+</dd>
+<dt><code>-k</code> <code>&lt;</code><em>keyword</em><code>&gt;</code>, <code>--keyword</code>[=]<code>&lt;</code><em>keyword</em><code>&gt;</code></dt>
+<dd>Substitute <code>%s</code> in an URL or a path with the given keyword.
+</dd>
+</dl>
+<h1 id="commands">COMMANDS</h1>
+<dl>
+<dt><code>file</code> [[<em>path</em>] [<em>name</em>]]</dt>
+<dd>Bookmark a file.
+</dd>
+<dt><code>files</code> [<em>name</em>]</dt>
+<dd>List matching linked files.
+</dd>
+<dt><code>list</code> [<em>name</em>]</dt>
+<dd>List matching linked files and URLs.
+</dd>
+<dt><code>open</code> [<em>name</em>]</dt>
+<dd>Open matching linked files with <strong>open</strong> program and URLs in <code>$BROWSER</code>.
+</dd>
+<dt><code>url</code> [[<em>url</em>] [<em>name</em>]]</dt>
+<dd>Bookmark an URL.
+</dd>
+<dt><code>urls</code> [<em>name</em>]</dt>
+<dd>List matching bookmarked URLs.
+</dd>
+</dl>
+<h1 id="environment">ENVIRONMENT</h1>
+<dl>
+<dt><code>BOOKMARKS</code></dt>
+<dd>Path to a directory where <code>.url</code> shortcuts are stored.
+</dd>
+<dt><code>BROWSER</code></dt>
+<dd>If available, is used for opening URLs with <code>--open</code> option.
+</dd>
+<dt><code>HOME</code></dt>
+<dd>Used for finding default storage locations for bookmarked items.
+</dd>
+<dt><code>LINKS</code></dt>
+<dd>Path to a directory where symbolic links are stored. This directory can be used with <code>CDPATH</code>.
+</dd>
+<dt><code>PWD</code></dt>
+<dd>Used as the current directory location when the <code>path</code> is omitted.
+</dd>
+</dl>
+<h1 id="files">FILES</h1>
+<p>Depends on external programs <code>awk</code>, <code>basename</code>, <code>head</code>, <code>mkdir</code>, <code>open</code>, <code>perl</code> and <code>sed</code>.</p>
+<h1 id="examples">EXAMPLES</h1>
+<p>Bookmark an URL:</p>
+<pre><code>$ bookmark https://example.com
+&gt; /home/user/Bookmarks/example.com.url</code></pre>
+<p>Bookmark a file:</p>
+<pre><code>$ bookmark filename.txt
+&gt; /Users/jukka/Links/filename.txt</code></pre>
+<p>Bookmark directory path as <code>myproject</code>:</p>
+<pre><code>$ bookmark file /path/to/myproject/src myproject
+&gt; /Users/jukka/Links/myproject</code></pre>
+<p>Bookmark <code>https://example.com</code> as <code>blog</code>:</p>
+<pre><code>$ bookmark url example.com blog
+&gt; /Users/jukka/Bookmarks/blog.url</code></pre>
+<p>Bookmark the current working directory:</p>
+<pre><code>$ cd &quot;path/to/directory&quot; &amp;&amp; bookmark
+&gt; /Users/jukka/Links/directory</code></pre>
+<p>Prompt for an URL:</p>
+<pre><code>$ bookmark url
+? URL:
+? Name:</code></pre>
+<p>List bookmarks that contain <code>example</code> in their name:</p>
+<pre><code>$ bookmark list &quot;example&quot;
+&gt; example               /path/to/projects/example
+&gt; example.test          https://example.test</code></pre>
+<p>Open bookmarks that contain <code>example</code> in their name:</p>
+<pre><code>$ bookmark open &quot;example&quot;
+&gt; Opening /home/projects/example/
+&gt; Opening https://example.test</code></pre>
+<p>Bookmark Google search result page with a keyword substitution:</p>
+<pre><code>$ bookmark &quot;https://www.google.com/search?q=%s&quot;
+&gt; /home/user/Bookmarks/www.google.com.url</code></pre>
+<p>And search using it with the <code>--keyword</code> option:</p>
+<pre><code>$ bookmark open google --keyword test</code></pre></main>
+  </div>
+
+  <footer>
+          <p class="date">October 2018</p>
+    
+          <p class="author">Jukka Svahn</p>
+      </footer>
+
+  </body>
+</html>

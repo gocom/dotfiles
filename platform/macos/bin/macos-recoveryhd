@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Clones Recovery partition from one physical drive to the target partition.
+
+Usage:
+  $ ${0##*/} [options] [list|clone] src-disk#s# dst-disk#s#
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} clone [source] [target]
+  Clone partition device.
+
+  $ ${0##*/} list
+  List available partitions.
+
+Example:
+  $ ${0##*/} clone /dev/disk0s3 /dev/disk1s4
+EOF
+}
+
+list () {
+  diskutil list
+}
+
+clone () {
+  local src dst dmg
+
+  src="$1"
+  dst="$2"
+
+  if ! [ "$src" ] || ! [ -e "$src" ]; then
+    echo "'$src' is not a valid identifier." >&2
+    exit 1
+  fi
+
+  if ! [ "$dst" ] || ! [ -e "$dst" ]; then
+    echo "'$dst' is not a valid identifier." >&2
+    exit 1
+  fi
+
+  read -r -p "This will erase '$dst' and replace it with '$src'. Continue (Y/n)? " option
+
+  case "$option" in
+    Y*|y*) ;;
+    *) exit 0 ;;
+  esac
+
+  dmg="$(mktemp --suffix=".dmg")" || exit 1
+  trap 'rm -f "$dmg"' EXIT
+
+  # Create temporary disk image from the current partition.
+  hdiutil create -srcdevice "$src" "$dmg" || exit 1
+
+  # Generate checksum to the image.
+  asr imagescan --source "$dmg" --filechecksum || exit 1
+
+  # Write the disk image to the new target drive partition.
+  asr restore --source "$dmg" --target "$dst" --erase || exit 1
+
+  # Unmount the new recovery partition.
+  diskutil unmount "$dst" > /dev/null 2>&1
+
+  # Set the partition type to Apple_Boot.
+  asr adjust --target "$dst" --settype Apple_Boot || exit 1
+}
+
+case "${1:-}" in
+  -v|--version) echo "0.0.0" ;;
+  clone) clone "${@:2}" ;;
+  list) list ;;
+  *) usage ;;
+esac

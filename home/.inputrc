@@ -1,0 +1,42 @@
+# UTF-8 support.
+set input-meta on
+set output-meta on
+
+set bell-style none
+set bind-tty-special-chars on
+set colored-completion-prefix on
+set colored-stats on
+set comment-begin "#"
+set completion-display-width -1
+set completion-ignore-case on
+set completion-map-case on
+set completion-prefix-display-length 0
+set completion-query-items 100
+set convert-meta on
+set echo-control-characters on
+set editing-mode emacs
+set enable-meta-key on
+set history-size -1
+
+set mark-directories off
+set mark-modified-lines off
+set mark-symlinked-directories off
+set match-hidden-files on
+
+# Completion.
+set disable-completion off
+set page-completions off
+set show-all-if-ambiguous on
+set show-all-if-unmodified on
+set show-mode-in-prompt off
+set skip-completed-text on
+set visible-stats off
+TAB: menu-complete
+
+# Bind arrow up and down to search history.
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# Make sure left and right arrows still work.
+"\e[C": forward-char
+"\e[D": backward-char

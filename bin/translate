@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+if [ "${TRANSLATE_ENGINE:-}" ]; then
+  engine="$TRANSLATE_ENGINE"
+else
+  engine="https://translate.google.com/#auto/en/%s"
+fi
+
+usage () {
+  cat <<EOF
+Quickly translate in \$BROWSER using \$TRANSLATE_ENGINE:
+  $engine
+
+Usage:
+  $ ${0##*/} [options] [query]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ ${0##*/} "hello world!"
+  $ cd "hej världen" && ${0##*/}
+EOF
+}
+
+main () {
+  local query
+
+  if [ "$#" -eq 0 ]; then
+    query="$(basename "$PWD")"
+  else
+    query="$1"
+  fi
+
+  query="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$query")"
+  browse "${engine/"%s"/$query}"
+  exit "$?"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

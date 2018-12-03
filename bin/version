@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Print a version number for the specified project directory.
+
+Usage:
+  $ $app_name [options]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ $app_name
+  > 0.0.0
+EOF
+}
+
+main () {
+  local option args OPTIND OPTARG OPTERR
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hv-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      \?) echo "Invalid option: -$OPTARG"; exit 1 ;;
+      :) echo "Option -$OPTARG requires an argument."; exit 1 ;;
+      *) echo "Unexpected: -$OPTARG"; exit 1 ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  while true; do
+    parse_json "package.json"
+    parse_json "composer.json"
+    parse_json "bower.json"
+    parse_git
+    up
+  done
+}
+
+parse_json () {
+  local version
+
+  if ! [ -f "$1" ] || ! [ -r "$1" ]; then
+    return 1
+  fi
+
+  version="$(jq -r "${2:-.version} // empty" < "$1" 2> /dev/null)" || return 1
+
+  if ! [ "$version" ]; then
+    return 1
+  fi
+
+  echo "$version"
+  exit 0
+}
+
+parse_git () {
+  local version
+
+  if ! [ -d .git ] || ! [ -r .git ]; then
+    return 1
+  fi
+
+  version="$(git describe --long --dirty --tags --always 2> /dev/null)"
+
+  if ! [ "$version" ]; then
+    return 1
+  fi
+
+  echo "$version"
+  exit 0
+}
+
+up () {
+  local cwd
+
+  cwd="$PWD"
+
+  cd ".." > /dev/null 2>&1 || exit 1
+
+  if [ "$cwd" = "$PWD" ]; then
+    exit 1
+  fi
+}
+
+main "$@"

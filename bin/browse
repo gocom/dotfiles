@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Opens a file in \$BROWSER:
+  ${BROWSER:-}
+
+Usage:
+  $ ${0##*/} [options] [uri]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ ${0##*/} https://example.com
+  $ cd path/to/project/generator-output && ${0##*/}
+  $ echo "https://example.com" | ${0##*/} -
+EOF
+}
+
+main () {
+  local url file resolved
+
+  if ! [ "${BROWSER:-}" ]; then
+    echo "\$BROWSER is not set." >&2
+    exit 1
+  fi
+
+  url="${*:$#}"
+
+  case "$url" in
+    "-") url="$(cat)" ;;
+    "?") read -r -p "URL: " url ;;
+  esac
+
+  case "$url" in
+    ""|".") url="file://$PWD" ;;
+    "./"*|".\\"*) file="$PWD${url:1}" ;;
+    "../"*|"..\\"*) file="$(dirname "$PWD")${url:2}" ;;
+    "."*|"\\"*|"/"*) file="$url" ;;
+    *"://"*) ;;
+    *"@"*) url="mailto://$url" ;;
+    *) url="https://$url" ;;
+  esac
+
+  if [ "$file" ]; then
+    resolved="$(realpath -- "$file" 2> /dev/null)" && file="$resolved"
+    url="file://$file"
+  fi
+
+  $BROWSER "${@:1:$(($#-1))}" "$url"
+  exit "$?"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

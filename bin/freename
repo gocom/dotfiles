@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Print unused filename.
+
+Usage:
+  $ ${0##*/} [options] [filename ...]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ cd path/to/project && ${0##*/}
+  $ ${0##*/} config.xml
+EOF
+}
+
+main () {
+  local f
+
+  for f in "$@"; do
+    freename "$f"
+  done
+}
+
+freename () {
+  local name index ext directory basename filename suffix normalized
+
+  name="${1:-}"
+  index=0
+
+  if [ "$name" ]; then
+    directory="$(dirname -- "$name" 2> /dev/null)"
+    basename="$(basename -- "$name" 2> /dev/null)"
+
+    case "$directory" in
+      ""|*"/") ;;
+      ".")
+        case "$name" in
+          "."*) ;;
+          *) directory="" ;;
+        esac
+        ;;
+      *) directory="$directory/"
+    esac
+
+    case "$name" in
+      *"/") suffix="/" ;;
+    esac
+
+    if [ "$suffix" ]; then
+      filename="$basename"
+    else
+      filename="${basename%.*}"
+
+      # .dotfile without extension.
+      if ! [ "$filename" ]; then
+        filename="$basename"
+      fi
+
+      ext="${basename##*.}"
+
+      if [ "$ext" ] && ! [ "$basename" = ".$ext" ]; then
+        ext=".$ext"
+      else
+        ext=""
+      fi
+    fi
+  fi
+
+  normalized="$directory$filename$ext"
+
+  while true; do
+    if ! [ -e "$name" ] && ! [ -e "$normalized" ]; then
+      break
+    fi
+
+    ((index++))
+    name="$directory$filename-$index$ext$suffix"
+    normalized="$directory$filename-$index$ext"
+  done
+
+  echo "$name"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

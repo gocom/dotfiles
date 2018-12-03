@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Recursively create multiple directories and files with a single command.
+
+Paths ending with a directory separator character ('/', '\\') will be treated as
+directories and other paths as files.
+
+Usage:
+  $ $app_name [options] [path ...]
+
+Options:
+  -h, --help         Print this message
+  -v, --version      Print version number
+  -a, --all          Print list of created paths
+  -i, --interactive  Interactive mode
+  -l, --last         Print the last created path
+  -o, --open         Open printed paths with 'open' command
+  -q, --quiet        Silent mode
+  -r, --relative     Each path is relative to the previous
+
+Examples:
+  $ $app_name example/readme.txt example/src/index.js example/test/
+  $ $app_name --open 1.txt 2.txt
+  $ $app_name -lo 1.txt 2.txt
+EOF
+}
+
+main () {
+  local path real directory option list open interactive silent relative \
+    args OPTIND OPTARG OPTERR
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvailoqsr-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          all) list="all" ;;
+          interactive) interactive=1 ;;
+          last) list="last" ;;
+          open) open=1 ;;
+          quiet|silent) silent=1 ;;
+          relative) relative=1 ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      a) list="all" ;;
+      i) interactive=1 ;;
+      l) list="last" ;;
+      o) open=1 ;;
+      q|s) silent=1 ;;
+      r) relative=1 ;;
+      \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+      :)
+        echo "Option -$OPTARG requires an argument."
+        exit 1
+        ;;
+      *)
+        echo "Unexpected: -$option"
+        exit 1
+        ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  if [ "$open" ] && ! [ "$(command -v open)" ]; then
+    open=""
+  fi
+
+  if [ "$interactive" ]; then
+    silent=1
+
+    while read -r -p "Path: " path; do
+      add
+    done
+  elif [ "$#" -eq 0 ]; then
+    while read -r path; do
+      add
+    done <<< "$(cat)"
+  fi
+
+  for path in "$@"; do
+    add || return 1
+  done
+
+  if [ "$list" = "last" ]; then
+    if ! [ "$silent" ]; then
+      echo "$real"
+    fi
+
+    if [ "$open" ]; then
+      open -- "$path"
+    fi
+  fi
+
+  return 0
+}
+
+add () {
+  if ! [ "$path" ]; then
+    return 0
+  fi
+
+  case "$path" in
+    */|*\\) directory="$path" ;;
+    *) directory="$(dirname -- "$path")" || return 1 ;;
+  esac
+
+  mkdir -p -- "$directory" || return 1
+  touch -- "$path" || return 1
+  real="$(realpath "$path" 2> /dev/null)" || real="$PWD/$path"
+
+  if [ "$list" = "all" ]; then
+    if ! [ "$silent" ]; then
+      echo "$real"
+    fi
+  fi
+
+  if [ "${list:-all}" = "all" ] && [ "$open" ]; then
+    open -- "$path"
+  fi
+
+  if [ "$relative" ]; then
+    cd -- "$directory" > /dev/null || return 1
+  fi
+}
+
+main "$@"

@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+
+usage () {
+  cat <<EOF
+Clones a disk.
+
+Usage:
+  $ ${0##*/} [options] <disk#> <disk#>
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Tips:
+  $ diskutil list    To print list of drives
+
+Example:
+  $ ${0##*/} 0 1
+EOF
+}
+
+main () {
+  if [ "$#" -lt 2 ]; then
+    usage
+    exit 1
+  fi
+
+  if ! [ "$0" ] || ! [ -e "/dev/rdisk$0" ]; then
+    echo "'/dev/rdisk$0' is not a valid disk." >&2
+    exit 1
+  fi
+
+  if ! [ "$1" ] || ! [ -e "/dev/rdisk$1" ]; then
+    echo "'/dev/rdisk$0' is not a valid disk." >&2
+    exit 1
+  fi
+
+  exec dd if="/dev/rdisk$0" of="/dev/rdisk$1" bs=512 conv=noerror,sync
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

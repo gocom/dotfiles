@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+View man pages in a \$BROWSER.
+
+Usage:
+  $ $app_name [options] [page ...]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+  -f, --force    Overwrite cached page
+  -u, --uri      Open as x-man-page scheme
+
+Example:
+  $ ${0##*/} bash test
+EOF
+}
+
+main () {
+  local status option force format args OPTIND OPTARG OPTERR
+
+  args=()
+  status=0
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvfu-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          force) force=1 ;;
+          uri) format="uri" ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      f) force=1 ;;
+      u) format="uri" ;;
+      \?) echo "Invalid option: -$OPTARG"; exit 1 ;;
+      :) echo "Option -$OPTARG requires an argument."; exit 1 ;;
+      *) echo "Unexpected: -$OPTARG"; exit 1 ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  for option in "$@"; do
+    "${format:-html}" "$option" || status=1
+  done
+
+  return "$status"
+}
+
+html () {
+  local page man path generator
+
+  page="${1:-}" || return 0
+  path="$(man -w "$page")" || return 1
+
+  if ! [ "$path" ] || ! [ -r "$path" ]; then
+    echo "'$page' does not exist." >&2
+    return 1
+  fi
+
+  directory="$(basename "$(dirname "$path")")"
+  basename="$(basename "$path")"
+  man="$HOME/.man/$directory/$basename.html"
+
+  if [ -e "$path.html" ]; then
+    $BROWSER "file://$path.html"
+    return 0
+  fi
+
+  if ! [ "$force" ] && [ -e "$man" ]; then
+    $BROWSER "file://$man" || return 1
+    return 0
+  fi
+
+  mkdir -p "$HOME/.man/$directory" || exit 1
+
+  if [ "$(command -v mandoc)" ]; then
+    generator="mandoc -Oman='../man%S/%N.%S.html' -Ostyle=../style.css"
+  else
+    generator="groff -mandoc"
+  fi
+
+  case "$path" in
+    *.gz) gunzip --to-stdout "$path" | $generator -Thtml > "$man" ;;
+    *) $generator -Thtml < "$path" > "$man" ;;
+  esac
+
+  $BROWSER "file://$man" || return 1
+}
+
+uri () {
+  open "x-man-page://${1:-}"
+}
+
+main "$@"

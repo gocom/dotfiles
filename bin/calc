@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Calculator.
+
+Usage:
+  $ ${0##*/} [options] [calculation ...]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  ${0##*/} "2 + 3.5"
+  echo "2 / 6" | ${0##*/}
+EOF
+}
+
+main () {
+  if [ "$#" -eq 0 ]; then
+    bc -q
+  else
+    echo "$*" | bc
+  fi
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

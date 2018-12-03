@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+packages="$HOME/.atom/packages.txt"
+
+if [ "${ATOM_PACKAGES_FILE:-}" ]; then
+  packages="$ATOM_PACKAGES_FILE"
+fi
+
+usage () {
+  cat <<EOF
+Manage Atom.io apm with \$ATOM_PACKAGES_FILE manifest:
+  $packages
+
+This wrapper extends apm with 'install' and 'dump' commands that allow
+installing packages with a manifest file.
+
+Usage:
+  $ $ ${0##*/} [options] [dump|install|list|lock]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} dump [filename]
+  Dumps a list of installed packages.
+
+  $ ${0##*/} install [filename]
+  Install packages from the manifest file.
+
+  $ ${0##*/} list
+  List installed packages.
+
+  $ ${0##*/} lock
+  List installed packages and versions.
+
+For more information see:
+  $ apm --help
+
+Examples:
+  ${0##*/} install
+  ${0##*/} dump
+EOF
+}
+
+list () {
+  apm list --installed --bare | awk -F '@' '/@/{print $1}' | sort -u
+}
+
+lock () {
+  apm list --installed --bare | awk -F '@' '/@/{print $0}' | sort -u
+}
+
+dump () {
+  list > "${1:-$packages}"
+}
+
+install () {
+  apm install --packages-file "${1:-$packages}"
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  dump) dump "${@:2}" ;;
+  install) install "${@:2}" ;;
+  list) list ;;
+  lock) lock ;;
+  *) exec apm "$@" ;;
+esac

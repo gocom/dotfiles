@@ -1,0 +1,286 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Compress images using MozJpeg.
+
+Allows compressing list of images files of various image formats using
+ImageMagick and MozJpeg. Processed files are saved to the target directory,
+mirroring the original relative directory layout as seen from the current
+working directory.
+
+Usage:
+  $ $app_name [options] <filename ...>
+
+Options:
+  -h, --help      Print this message
+  -v, --version   Print version number
+  -D, --dry-run   Dry-run without writing
+  -F, --force     Allow overwriting existing files
+  -S, --silent    Silent mode
+  -V, --verbose   Verbose mode
+      --color     Enable colors
+      --no-color  Disable colors
+
+  -d <path>, --directory[=]<path>
+  Directory to write processed files, defaults to 'compressed'
+
+  -e <.ext>, --extension[=]<.ext>
+  Output extension, defaults to '.jpg'
+
+  -o <path>, --out[=]<path>, --outfile[=]<path>
+  Output file to write the processed data. If ends to a slash, is treated
+  as a directory, overriding  --directory
+
+  -q <integer>, --quality[=]<integer>
+  Compression quality 0 - 100, defaults to '80'
+
+Examples:
+  $ $app_name *.jpg
+  $ $app_name < file.png > output.jpg
+  $ $app_name -d path/to/output/directory -q 90 *.jpg
+EOF
+}
+
+main () {
+  local mozjpeg magick option OPTIND OPTARG OPTERR args run force \
+    status matches latest f fd fo ext quality outfile outdir relative \
+    basename filename reset green cyan yellow tmp verbose silent color
+
+  if [ "$(command -v mozjpeg)" ]; then
+    mozjpeg="mozjpeg"
+  elif [ "$(command -v cjpeg)" ]; then
+    mozjpeg="cjpeg"
+  fi
+
+  if [ "$(command -v magick)" ]; then
+    magick="magick"
+  fi
+
+  if ! [ "$mozjpeg" ]; then
+    fatal 'mozjpeg is not installed.'
+  fi
+
+  if ! [ "$magick" ]; then
+    fatal 'ImageMagick is not installed.'
+  fi
+
+  run=1
+  status=0
+  matches=0
+  color=1
+
+  ext=".jpg"
+  quality=80
+  outfile=""
+  outdir="compressed"
+
+  if [ "${TERM:-}" = "dumb" ] || [ "${NO_COLOR:-}" ]; then
+    color=""
+  fi
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvVFDQSd:e:o:q:-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          color) color=1 ;;
+          directory) outdir="${!OPTIND}"; OPTIND=$((OPTIND + 1)) ;;
+          directory=*) outdir="${OPTARG#*=}" ;;
+          dryrun|dry-run) run="" ;;
+          no-color) color="" ;;
+          extension) ext="${!OPTIND}"; OPTIND=$((OPTIND + 1)) ;;
+          extension=*) ext="${OPTARG#*=}" ;;
+          force) force=1 ;;
+          verbose) verbose=1 ;;
+          quiet|silent) silent=1 ;;
+          out|outfile) outfile="${!OPTIND}"; OPTIND=$((OPTIND + 1)) ;;
+          out=*|outfile=*) outfile="${OPTARG#*=}" ;;
+          quality) quality="${!OPTIND}"; OPTIND=$((OPTIND + 1)) ;;
+          quality=*) quality="${OPTARG#*=}" ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              fatal "Unknown option --$OPTARG"
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      V) verbose=1 ;;
+      D) run="" ;;
+      F) force=1 ;;
+      Q|S) silent=1 ;;
+      d) outdir="$OPTARG" ;;
+      e) ext="$OPTARG" ;;
+      o) outfile="$OPTARG" ;;
+      q) quality="$OPTARG" ;;
+      \?) fatal "Invalid option: -$OPTARG" ;;
+      :) fatal "Option -$OPTARG requires an argument." ;;
+      *) fatal "Unexpected: -$OPTARG" ;;
+    esac
+  done
+
+  if [ "$color" ]; then
+    reset="$(tput sgr0)"
+    cyan="$(tput setaf 6)"
+    yellow="$(tput setaf 3)"
+    green="$(tput setaf 2)"
+  fi
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  case "$outfile" in
+    *"/"|*"\\")
+      outdir="$outfile"
+      outfile=""
+      ;;
+  esac
+
+  if [ -d "$outfile" ]; then
+    outfile=""
+    outdir="$outfile"
+  fi
+
+  if ! [ "$run" ]; then
+    log "Running with ${cyan}--dry-run${reset}, nothing will be written."
+  fi
+
+  if [ "$#" -eq 0 ]; then
+    if ! [ "$run" ]; then
+      exit 0
+    fi
+
+    if [ "$outfile" ]; then
+      "$magick" "${1:--}" -strip TGA:- | "$mozjpeg" -quality "$quality" -outfile "$outfile" -targa > /dev/null || exit 1
+    else
+      "$magick" "${1:--}" -strip TGA:- | "$mozjpeg" -quality "$quality" -targa || exit 1
+    fi
+
+    exit 0
+  fi
+
+  if ! [ "$run" ]; then
+    log "${green}The following operations would be performed:${reset}"
+  fi
+
+  for f in "$@"; do
+    latest=0
+
+    if ! [ -e "$f" ]; then
+      verbose "· $f ― does not exist"
+      continue
+    fi
+
+    if ! [ "$outdir" = "." ]; then
+      case "$f" in
+        "$outdir/"*) continue ;;
+      esac
+    fi
+
+    "$magick" identify "$f" > /dev/null 2>&1 || latest=1
+
+    if [ "$latest" -eq 1 ]; then
+      verbose "· $f ― skip unsupported"
+      continue
+    fi
+
+    relative="${f/"$PWD/"/""}"
+    directory=$(dirname "$relative")
+    basename=$(basename "$f")
+    filename="${basename%.*}"
+    fd="$outdir/"
+
+    if [ "$directory" ] && ! [ "$directory" = "." ]; then
+      fd="${fd}${directory}/"
+    fi
+
+    fo="${fd}${filename}${ext}"
+
+    if ! [ "$force" ] && [ -e "$fo" ]; then
+      log "${cyan}✓${reset} $f ${cyan}―${reset} $fo"
+      continue
+    fi
+
+    if ! [ -e "$fd" ] && [ "$run" ]; then
+      mkdir -p "$fd" > /dev/null || exit 1
+    fi
+
+    log "${cyan}⋯${reset} $f ${cyan}➝${reset} $fo"
+
+    if [ "$run" ]; then
+      tmp="$(mktemp --suffix=".jpg")" || exit 1
+      rm "$tmp" || exit 1
+
+      "$magick" "$f" -strip TGA:- \
+        | "$mozjpeg" -quality "$quality" -outfile "$tmp" -targa > /dev/null
+
+      if [ -e "$tmp" ]; then
+        mv "$tmp" "$fo" || latest=1
+      else
+        latest=1
+      fi
+
+      if [ "$latest" -eq 1 ]; then
+        rm "$tmp" > /dev/null 2>&1
+        status=1
+        error "${yellow}✘ $f ― failed${reset}"
+      fi
+    fi
+
+    if [ "$latest" -eq 0 ]; then
+      ((matches++))
+    fi
+  done
+
+  if [ "$status" -eq 0 ]; then
+    log "${green}✓ Done ― $matches processed${reset}"
+    exit 0
+  fi
+
+  fatal "${yellow}✘ Failures ― $matches processed${reset}"
+}
+
+msg () {
+  local message
+
+  for message in "$@"; do
+    echo "$message"
+  done
+}
+
+log () {
+  if ! [ "$silent" ]; then
+    msg "$@"
+  fi
+}
+
+verbose () {
+  if [ "$verbose" ]; then
+    log "$@"
+  fi
+}
+
+error () {
+  log >&2
+}
+
+fatal () {
+  error "$@"
+  exit 1
+}
+
+main "$@"

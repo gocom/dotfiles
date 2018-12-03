@@ -1,0 +1,587 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Install and manage dotfiles.
+
+Usage: $app_name [options] [command]
+
+Options:
+  -h, --help      Print this message
+  -v, --version   Print version number
+  -D, --dry-run   Dry-run without writing
+  -S, --silent    Silent mode
+  -V, --verbose   Verbose mode
+      --color     Enable colors
+      --no-color  Disable colors
+
+  -d <filename>, --directory[=]<filename>
+  Path to the dotfiles directory.
+
+Commands:
+  $app_name docs [filename ...]
+  Generate documentation.
+
+  $app_name dump
+  Dumps dependencies to lockfiles.
+
+  $app_name lint
+  Lint codebase.
+
+  $app_name prefix
+  Print dotfiles install path.
+
+  $app_name test
+  Run test suite.
+
+  $app_name unit
+  Run unit tests.
+
+  $app_name watch
+  Watch for file changes.
+
+  $app_name install
+  Install dotfiles to the user's home directory.
+
+  $apm_name install-deps
+  Install third-party dependencies through package managers.
+
+Examples:
+  $app_name install absolute/path/to/dotfiles
+EOF
+}
+
+prefix () {
+  echo "$physical"
+}
+
+main () {
+  local args OPTIND OPTARG OPTERR option options \
+    color directory dryrun force silent verbose prefix physical \
+    reset red green yellow blue magenta cyan
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  color=1
+
+  if [ "${TERM:-}" = "dumb" ] || [ "${NO_COLOR:-}" ]; then
+    color=""
+  fi
+
+  while getopts ":hvVFDQSd:-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          color) color=1 ;;
+          directory) directory="${!OPTIND}"; OPTIND=$((OPTIND + 1)) ;;
+          directory=*) directory="${OPTARG#*=}" ;;
+          dryrun|dry-run) dryrun=1 ;;
+          no-color) color="" ;;
+          force) force=1 ;;
+          verbose) verbose=1 ;;
+          quiet|silent) silent=1 ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      d) directory="$OPTARG" ;;
+      D) dryrun=1 ;;
+      F) force=1 ;;
+      Q|S) silent=1 ;;
+      V) verbose=1 ;;
+      \?) fatal "Invalid option: -$OPTARG" ;;
+      :) fatal "Option -$OPTARG requires an argument." ;;
+      *) fatal "Unexpected: -$OPTARG" ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}"
+
+  if [ "${XDG_CONFIG_HOME:-}" ]; then
+    prefix="$XDG_CONFIG_HOME/dotfiles"
+  else
+    prefix="$HOME/.dotfiles"
+  fi
+
+  if [ -h "$prefix" ]; then
+    physical="$(readlink "$prefix")"
+  else
+    physical="$prefix"
+  fi
+
+  if [ "$directory" ]; then
+    if ! [ -r "$directory/home/.bashrc" ]; then
+      fatal "Given directory '$directory' does not contain dotfiles"
+    fi
+  fi
+
+  if ! [ "$directory" ]; then
+    options=()
+
+    if [ "${DOTFILES_HOME:-}" ]; then
+      options+=("$DOTFILES_HOME")
+    fi
+
+    if [ "${XDG_CONFIG_HOME:-}" ]; then
+      options+=("$XDG_CONFIG_HOME/dotfiles")
+    fi
+
+    options+=("$HOME/.config/dotfiles")
+    options+=("$HOME/.dotfiles")
+    options+=("$PWD")
+
+    for option in "${options[@]}"; do
+      valid "$option" && directory="$option" && break
+    done
+  fi
+
+  if ! [ "$directory" ]; then
+    fatal "Could not find dotfiles."
+  fi
+
+  cd "$directory" || exit 1
+  verbose "Found: $directory"
+
+  if [ "$color" ]; then
+    reset="$(tput sgr0)"
+    red="$(tput setaf 1)"
+    green="$(tput setaf 2)"
+    yellow="$(tput setaf 3)"
+    blue="$(tput setaf 4)"
+    magenta="$(tput setaf 5)"
+    cyan="$(tput setaf 6)"
+  fi
+
+  unique="$(date +"%s")"
+
+  case "${args[0]}" in
+    #base) base "${@:2}" ;;
+    docs) docs "${@:2}" ;;
+    dump) dump ;;
+    install) install ;;
+    install-deps) install_dependencies ;;
+    lint) lint ;;
+    prefix) prefix ;;
+    test) suite ;;
+    unit) unit ;;
+    watch) watch "${@:2}" ;;
+    *) usage ;;
+  esac
+}
+
+# Install script.
+
+install () {
+  chmod +x bin/*
+
+  base "$directory"
+  link "home/.atom/config.cson"
+  link "home/.atom/packages.txt"
+  link "home/.man/style.css"
+  link "home/.rename/replacements.js"
+  link "home/.ssh/config"
+  link "home/.bash_completion"
+  link "home/.bash_profile"
+  link "home/.bashrc"
+  link "home/.curlrc"
+  link ".editorconfig"
+  link "home/.gitconfig"
+  link "home/.gitignore"
+  link "home/.hushlogin"
+  link "home/.inputrc"
+  link "home/.netrc"
+  link "home/.profile"
+  link "home/.project"
+  link "home/.tm_properties"
+  link "home/.wgetrc"
+}
+
+install_dependencies () {
+  if [ "$(command -v brew)" ]; then
+    brew install
+  else
+    error "${yellow}·${reset} brew not installed"
+  fi
+
+  if [ "$(command -v composer)" ]; then
+    composer install
+  else
+    error "${yellow}·${reset} composer not installed"
+  fi
+
+  if [ "$(command -v npm)" ]; then
+    npm install
+  else
+    error "${yellow}·${reset} npm not installed"
+  fi
+
+  if [ "$(command -v apm)" ]; then
+    apm-pkg install
+  else
+    error "${yellow}·${reset} apm not installed"
+  fi
+}
+
+valid () {
+  if [ -r "$1/home/.bashrc" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+base () {
+  local path status relative
+
+  path="${1:-}"
+
+  if ! [ "$path" ] || ! [ -r "$path" ]; then
+    fatal "'$path' is not a readable"
+  fi
+
+  relative="$(relpath "$prefix" "$HOME")"
+
+  if [ "$path" = "$prefix" ] || [ "$path" = "$physical" ]; then
+    log "${green}✓${reset} $relative"
+    return 0
+  fi
+
+  if ! [ "$dryrun" ]; then
+    backup "$path"
+    ln -s "$path" "$prefix" || fatal "${yellow}✘${reset} ― unable to link"
+  fi
+
+  log "${blue}↯${reset} $prefix ${cyan}⋯${reset} $path"
+}
+
+msg () {
+  local message
+
+  for message in "$@"; do
+    echo "$message"
+  done
+}
+
+log () {
+  if ! [ "$silent" ]; then
+    msg "$@"
+  fi
+}
+
+verbose () {
+  if [ "$verbose" ]; then
+    log "$@"
+  fi
+}
+
+error () {
+  log "$@" >&2
+}
+
+fatal () {
+  error "$@"
+  exit 1
+}
+
+relpath () {
+  perl -e 'use File::Spec; print File::Spec->abs2rel(@ARGV) . "\n"' "$@"
+  return "$?"
+}
+
+run () {
+  if ! [ "$dryrun" ]; then
+    "$1" "${@:2}" || return 1
+  fi
+}
+
+link () {
+  local name where origin directory parent path status current
+
+  name="${1:-}"
+  origin="$prefix/$name"
+  where=""
+  parent="${name%%/*}"
+  path="${name#*/}"
+
+  if ! [ "$name" ]; then
+    fatal "Origin must be given for the link."
+  fi
+
+  if [ "$parent" = "$path" ]; then
+    parent="home"
+  fi
+
+  case "$parent" in
+    home) where="$HOME/$path" ;;
+  esac
+
+  if ! [ "$where" ]; then
+    fatal "Origin directory does not have target mapping"
+  fi
+
+  directory="$(dirname -- "$where")"
+
+  case "$origin" in
+    "$HOME"*) origin="$(relpath "$origin" "$directory")" || return 1 ;;
+  esac
+
+  if [ -h "$where" ]; then
+    current="$(readlink "$where")" || fatal "Unable to readlink '$where'"
+
+    if [ "$current" = "$origin" ]; then
+      log "${green}✓${reset} $path"
+      verbose \
+        "${magenta}·${reset} $where" \
+        "${magenta}↳${reset} $origin"
+      return 0
+    else
+      log "${blue}↷${reset} $path"
+      verbose \
+        "${magenta}·${reset} $where" \
+        "${yellow}―${reset} $current" \
+        "${magenta}↳${reset} $where"
+    fi
+  fi
+
+  if ! [ "$dryrun" ]; then
+    if ! [ -e "$directory" ]; then
+      mkdir -p "$directory" || return 1
+    fi
+
+    if [ -e "$where" ]; then
+      backup "$where" || status=1
+    fi
+
+    if [ "$status" ] && ! [ "$force" ]; then
+      return 1
+    fi
+
+    ln -s "$origin" "$where" || status=1
+
+    if [ "$status" ]; then
+      error "${red}✘${reset} $path ${yellow}―${reset} unable to link"
+      verbose "${yellow}·${reset} $where" "${yellow}↳${reset} $origin"
+      return 1
+    fi
+  fi
+
+  log "${blue}↯${reset} $path"
+  verbose "${magenta}·${reset} $where" "${magenta}↳${reset} $origin"
+}
+
+backup () {
+  local backup origin parent
+
+  origin="${1:-}"
+
+  if [ "$dryrun" ] || ! [ "$origin" ] || ! [ -e "$origin" ]; then
+    return 0
+  fi
+
+  backup="backups/$unique/$origin"
+  parent="$(dirname "$backup")"
+
+  mkdir -p "$parent" || return 1
+  mv "$origin" "$backup" || return 1
+
+  log "${magenta}↺${reset} $backup"
+}
+
+# Build dotfiles into single file.
+
+build () {
+  echo "" > "dotfiles.bash"
+  cat "./lib/global.bash" >> "dotfiles.bash"
+
+  for file in ./lib/core/*.bash; do
+    if [ -f "$file" ]; then
+      echo "" >> "dotfiles.bash"
+      cat "$file" >> "dotfiles.bash"
+    fi
+  done
+
+  for file in ./lib/module/*/*.bash; do
+    if [ -f "$file" ]; then
+      echo "" >> "dotfiles.bash"
+      cat "$file" >> "dotfiles.bash"
+    fi
+  done
+}
+
+# Generate docs.
+
+docs () {
+  local f status docs
+
+  status=0
+  docs=()
+
+  if [ "$#" -gt 0 ]; then
+    for f in "$@"; do
+      doc "$f" || status=1
+    done
+
+    return "$status"
+  fi
+
+  for f in ./share/man/*/*.ronn ./share/man/*/*.md ./docs/man/*/*.md; do
+    if [ -e "$f" ]; then
+      doc "$f" || status=1
+    fi
+  done
+
+  for f in ./bin/*; do
+    doc "$f" || status=1
+  done
+
+  return "$status"
+}
+
+# Generate documentation from the given file.
+#
+# The file can be either a executable binary, or .md/.ronn document.
+
+doc () {
+  local c f d b o t c n format status option
+
+  f="${1:-}"
+  status=0
+
+  if ! [ -e "$f" ]; then
+    log "${yellow}✘${reset} $f ${yellow}―${reset} not readable document"
+    return 1
+  fi
+
+  d="$(basename "$(dirname "$f")")"
+  n="$(basename "$f")"
+
+  case "$n" in
+    *.*.*) b="${n%.*}" ;;
+    *.*) b="$n" ;;
+    *) b="$n.1" ;;
+  esac
+
+  o="share/man/$d/$b"
+  t="share/man/pandoc.html"
+  c="../style.css"
+
+  for option in "${docs[@]}"; do
+    if [ "$option" = "$b" ]; then
+      log "${blue}⋯${reset} $f ${blue}―${reset} skip already used"
+      return 0
+    fi
+  done
+
+  docs+=("$b")
+
+  case "$f" in
+    *.md)   format="pandoc" ;;
+    *.ronn) format="ronn" ;;
+    *)      format="help2man" ;;
+  esac
+
+  if [ "$format" = "ronn" ]; then
+    ronn -r "$f" || status=1
+  fi
+
+  if [ "$format" = "pandoc" ]; then
+    pandoc -s -f markdown -t man -o "$o" "$f" || status=1
+    pandoc -s -f markdown -t html --toc \
+      --template="$t" --css "$c" -o "$o.html" "$f" || status=1
+  fi
+
+  if [ "$format" = "help2man" ]; then
+    if ! [ -f "$f" ] || ! [ -x "$f" ]; then
+      log "${yellow}✘${reset} $f ${yellow}―${reset} not executable"
+      return 1
+    fi
+
+    help2man -N -S "dotfiles" -n "$n" -o "share/man/man1/$b" "$f" || status=1
+  fi
+
+  if [ "$status" -eq 1 ]; then
+    log "${yellow}✘${reset} $f ${yellow}―${reset} $format"
+    return 1
+  fi
+
+  log "${green}✔${reset} $f ${green}―${reset} $format"
+}
+
+lint () {
+  local f status bang code
+
+  code=0
+
+  for f in bin/* platform/*/bin/*; do
+    if ! [ -f "$f" ]; then
+      continue
+    fi
+
+    bang="$(head -n1 < "$f")"
+    status=0
+
+    case "$bang" in
+      *sh) shellcheck "$f" || status=1 ;;
+      *) echo "${blue}⋯${reset} $f" ;;
+    esac
+
+    if [ "$status" -eq 0 ]; then
+      echo "${green}✓${reset} $f"
+    else
+      echo "${red}✘${reset} $f"
+    fi
+
+    if [ "$status" -gt "$code" ]; then
+      code="$status"
+    fi
+  done
+
+  return "$code"
+}
+
+unit () {
+  bats test/
+}
+
+suite () {
+  echo "Lint ⬎"
+  lint
+  echo "Unit ⬎"
+  unit
+}
+
+watch () {
+  if ! [ "$(command -v entr)" ]; then
+    fatal "'entr' not installed."
+  fi
+
+  if [ "${1:-}" = "run" ]; then
+    lint
+    docs
+    return 0
+  fi
+
+  find bin/* platform/*/bin/* docs/* | entr dotfiles watch run
+}
+
+# Dump dependencies.
+
+dump () {
+  apm-pkg dump "home/.atom/packages.txt" 2> /dev/null
+  brew bundle dump --force 2> /dev/null
+  return 0
+}
+
+main "$@"

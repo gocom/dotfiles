@@ -1,0 +1,406 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Check Live Twitch.tv channels and watch broadcasts using Streamlink.
+
+Usage:
+  $ $app_name [options] [command]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ $app_name following
+  Lists followed channels.
+
+  $ $app_name live
+  Lists followed live channels.
+
+  $ $app_name open <channel>
+  Opens a channel in \$BROWSER
+
+  $ $app_name watch <channel> [<quality> [<options>]]
+  Opens a stream in a player.
+
+Configuration:
+  Configuration required for viewing your Twitch account's followed and live
+  channels is automatically prompted for when required, and then stored in:
+
+    $HOME/.twitch
+
+  If you wish to later on reset the settings, simply delete the directory:
+
+    $ rm -rf "$HOME/.twitch"
+
+  The tool does not receive or require write or read access to your account,
+  but simply uses public-facing read-only API records.
+
+Example:
+  $ $app_name live
+  > ↯  faceittv     148k  CSGO  FACEIT London Major - Challenge
+    ↯  esl_csgo     1300  CSGO  LIVE: Order vs. SurgeESC - ESL
+    ↯  dreamhackcs   336  CSGO  RERUN: Optic Gaming vs Rogue -
+  $ $app_name faceittv
+EOF
+}
+
+main () {
+  local args option OPTIND OPTARG OPTERR color reset cyan yellow green
+
+  args=()
+  color=1
+
+  if [ "${TERM:-}" = "dumb" ] || [ "${NO_COLOR:-}" ]; then
+    color=""
+  fi
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvDnsqSV-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          color) color=1 ;;
+          dryrun|dry-run) dryrun=1 ;;
+          quiet|silent) silent=1 ;;
+          verbose) verbose=1 ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              fatal "Unknown option --$OPTARG"
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      D|n) dryrun=1 ;;
+      q|S) silent=1 ;;
+      V) verbose=1 ;;
+      \?) fatal "Invalid option: -$OPTARG" ;;
+      :) fatal "Option -$OPTARG requires an argument." ;;
+      *) fatal "Unexpected: -$OPTARG" ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  if [ "$color" ]; then
+    reset="$(tput sgr0)"
+    cyan="$(tput setaf 6)"
+    yellow="$(tput setaf 3)"
+    green="$(tput setaf 2)"
+  fi
+
+  case "${1:-}" in
+    list) list "${@:2}" ;;
+    f|following) following "${@:2}" ;;
+    l|live) live "${@:2}" ;;
+    o|open) open "${@:2}" ;;
+    p|play|w|watch) watch "${@:2}" ;;
+    *) watch "$@" ;;
+  esac
+}
+
+msg () {
+  local message
+
+  for message in "$@"; do
+    echo "$message"
+  done
+}
+
+log () {
+  if ! [ "$silent" ]; then
+    msg "$@"
+  fi
+}
+
+verbose () {
+  if [ "$verbose" ]; then
+    log "$@"
+  fi
+}
+
+error () {
+  log "$@" >&2
+}
+
+fatal () {
+  error "$@"
+  exit 1
+}
+
+# Open a stream in a web browser.
+
+open () {
+  $BROWSER "https://twitch.tv/$1"
+}
+
+# Open stream in a media player.
+
+watch () {
+  exec streamlink "${@:3}" "https://twitch.tv/${1:-}" "${2:-best}"
+}
+
+# Prompt for, save and export a configuration variable.
+#
+# @param {string} name Name of the variable
+# @param {string} [title=""] Human-readable title for the variable
+
+config () {
+  local f value prefix
+
+  case "${1:-}" in
+    ""|--load)
+      config client_id "Twitch API Client ID"
+      config login_id "Your Twitch Username"
+      config user_id "Your Twitch User ID"
+      return
+      ;;
+    --silent)
+      config client_id
+      config login_id
+      config user_id
+      return
+      ;;
+    *) ;;
+  esac
+
+  flush
+
+  prefix="$HOME/.twitch"
+  endpoint="https://api.twitch.tv/helix"
+  now="$(date +'%s')"
+
+  if ! [ -e "$prefix" ]; then
+    mkdir -p "$prefix" || exit 1
+  fi
+
+  cd "$prefix" || exit 1
+  mkdir -p cache || exit 1
+
+  if [ -e "$1" ]; then
+    value="$(xargs < "$1")"
+  fi
+
+  if ! [ "$value" ]; then
+    if [ "$1" = "user_id" ] && [ "$login_id" ]; then
+      value="$(req "users?login=$login_id" 31536000 | jq -r '.data[0].id')" || exit 1
+    fi
+
+    if ! [ "$value" ] && [ "${2:-}" ]; then
+      read -r -p "$2: " value
+    fi
+
+    if ! [ "$value" ]; then
+      fatal "'$1' must be provided."
+    fi
+
+    echo "$value" > "$1"
+  fi
+
+  case "$1" in
+    client_id) client_id="$value" ;;
+    login_id) login_id="$value" ;;
+    user_id) user_id="$value" ;;
+    *) printf '%s' "$value" ;;
+  esac
+}
+
+# Flush cache.
+
+flush () {
+  for f in cache/*.expires; do
+    if [ -f "$f" ] && [ "$now" -ge "$(xargs < "$f")" ]; then
+      rm "$f"
+      rm "${f%.*}"
+    fi
+  done
+}
+
+# Request a resource from the API endpoint.
+#
+# @param {string} request The requested resource
+# @param {integer} [duration=0] Cache duration in seconds
+
+req () {
+  local cache response expires
+
+  if [ "${2:-}" -gt 0 ]; then
+    cache="cache/$(printf '%s' "$1" | md5)"
+
+    if [ -r "$cache" ] && [ -r "$cache.expires" ]; then
+      printf '%s' "$(cat "$cache")"
+      return
+    fi
+  fi
+
+  response="$(curl -H "Client-ID: $client_id" -s "$endpoint/$1")" || exit 1
+
+  if [ "$cache" ]; then
+    expires=$(("$now" + "$2"))
+    echo "$response" > "$cache"
+    echo "$expires" > "$cache.expires"
+  fi
+
+  printf '%s' "$response"
+}
+
+# Requests streams data.
+
+streams () {
+  local games q streams users stream out index r login viewer_count title game_id view_count game
+
+  q="$(req "users/follows?from_id=$user_id&first=100" 1800 | jq -j '.data[].to_id | "&id=" + .')"
+  users="$(req "users?${q:1}" 31536000 | jq -r '.data')"
+
+  q="$(echo "$users" | jq -j '.[].id | "&user_id=" + .' )"
+  streams="$(req "streams?${q:1}" 60 | jq -r '[.data[] | {id: .user_id, stream: .type, viewer_count: .viewer_count, title: .title, game_id: .game_id}]')"
+
+  q="$(echo "$streams" | jq -j 'unique_by(.game_id) | sort_by(.game_id) | .[] | .game_id | "&id=" + .')"
+  games="$(req "games?${q:1}" 604800 | jq -r '[.data[] | {game_id: .id, game_name: .name}]')"
+
+  streams="$(echo "$users $streams" | jq -r -s '[add | group_by(.id) | .[] | sort_by(.login) | reverse | .[0] + .[1]]')"
+
+  out='[]'
+  index=0
+
+  while true; do
+    r="$(echo "$streams" | jq --argjson i "$index" -r '.[$i] // ""')"
+
+    if ! [ "$r" ]; then
+      break
+    fi
+
+    login="$(echo "$r" | jq -r '.login // ""')"
+    viewer_count="$(echo "$r" | jq -r '.viewer_count // 0')"
+    title="$(echo "$r" | jq -r '.title // ""')"
+    game_id="$(echo "$r" | jq -r '.game_id // 0')"
+    stream="$(echo "$r" | jq -r '.stream // ""')"
+    view_count="$(echo "$r" | jq -r '.view_count // ""')"
+
+    if [ "$stream" = "live" ]; then
+      game="$(echo "$games" | jq -r --arg "game" "$game_id" '.[] | if .game_id == $game then .game_name else empty end')"
+    else
+      game=""
+    fi
+
+    out="$(echo "$out" | jq -j \
+      --arg sort_login "$login" \
+      --argjson sort_viewer_count "$viewer_count" \
+      --arg login "${login:0:20}" \
+      --arg viewer_count "$(views "$viewer_count")" \
+      --arg view_count "$(views "$view_count")" \
+      --arg game "$(game "$game")" \
+      --arg title "${title:0:37}" \
+      --arg stream "$stream" \
+      '. + [{sort_login: $login, sort_viewer_count: (1 * $sort_viewer_count), login: $login, viewer_count: $viewer_count, view_count: $view_count, game: $game, title: $title, stream: $stream}]')" || break
+
+    ((index++))
+  done
+
+  echo "$out"
+  return 0
+}
+
+# Formats game name, max 10 charaters wide.
+#
+# @param {string} name The game
+
+game () {
+  local value
+
+  if ! [ "${1:-}" ]; then
+    printf '%s' "⋯"
+    return 0
+  fi
+
+  if [ "${#1}" -le 10 ]; then
+    printf '%s' "$1"
+    return 0
+  fi
+
+  value="$(printf '%s' "$1" | sed 's/[^A-Z:]//g')"
+
+  if [ "${#value}" -gt 10 ]; then
+    printf '%s' "${value:0:9}…"
+    return 0
+  fi
+
+  if [ "${#value}" -le 1 ]; then
+    printf '%s' "${1:0:10}"
+    return 0
+  fi
+
+  printf '%s' "$value"
+}
+
+# Formats views to human-readable format, max 4 characters wide.
+#
+# @param {integer} views Number of views
+
+views () {
+  if [ "${#1}" -ge 13 ]; then
+    printf '%sT' "${1:0:1}"
+    return
+  fi
+
+  if [ "${#1}" -ge 11 ]; then
+    printf '%sG' "${1:0:-9}"
+    return
+  fi
+
+  if [ "${#1}" -ge 8 ]; then
+    printf '%sM' "${1:0:-6}"
+    return
+  fi
+
+  if [ "${#1}" -ge 5 ]; then
+    printf '%sk' "${1:0:-3}"
+    return
+  fi
+
+  printf '%s' "$1"
+}
+
+# Prints list of live channels.
+
+live () {
+  config
+  streams \
+    | jq -r 'sort_by(.sort_viewer_count) | reverse | .[] | select(.stream == "live") | ["↯", .login, .viewer_count, .game, .title // " "] | @tsv'\
+    | column -t -s $'\t'
+}
+
+# Prints list of followed channels.
+
+following () {
+  config
+  streams | jq -r 'sort_by(.sort_login) | .[] | if .stream == "live" then ["↯", .login, .viewer_count, .view_count] else [" ", .login, " ", .view_count] end | @tsv' | column -t -s $'\t'
+}
+
+# Plain list.
+
+list () {
+  config --silent
+  streams | jq --arg s "${1:-}" -r 'sort_by(.sort_login) | .[] | select(.stream == $s) | [.sort_login] | @tsv'
+}
+
+if [ "$#" -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+main "$@"

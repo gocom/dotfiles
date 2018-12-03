@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+_twitch () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$prev" in
+    open)
+      COMPREPLY=($(compgen -W "$(twitch list 2>/dev/null)" -- "$cur"))
+      return
+      ;;
+    watch)
+      COMPREPLY=($(compgen -W "$(twitch list live 2>/dev/null)" -- "$cur"))
+      return
+      ;;
+  esac
+
+  case "$cur" in
+    -*)
+      COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
+      return
+      ;;
+  esac
+
+  if [ "$cword" -eq 1 ]; then
+    COMPREPLY=($(compgen -W 'following live open watch' -- "$cur"))
+  fi
+} && complete -F _twitch twitch

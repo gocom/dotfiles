@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Encodes a video file using a preset profile.
+
+Usage:
+  $ $app_name [options] [<profile> <input> <output> [ffmpeg-options]]
+
+Options:
+  -h, --help      Print this message
+  -v, --version   Print version number
+  -n, --names     Lists profile names
+  -p, --profiles  Lists available preset profiles
+
+Example:
+  $ $app_name x265-medium-aac input-clip.mp4 output-clip.mkv
+EOF
+}
+
+profiles () {
+  cat <<EOF
+x264-comp        H.264 Baseline profile level 3.0 CRF 23 AAC 128kb 48000Hz  -c:v libx264 -preset medium -crf 23 -bf 2 -flags +cgop -profile:v baseline -level 3.0 -vf format=yuv420p -movflags faststart -c:a aac -b:a 128k -r:a 48000 -strict -2
+x264-medium      H.264 High profile level 4.0 CRF 23 medium preset          -c:v libx264 -preset medium -crf 23 -bf 2 -flags +cgop -profile:v high -level 4.0 -vf format=yuv420p -movflags faststart
+x264-medium-acc  H.264 High profile level 4.0 CRF 23 AAC 128kb 48000Hz      -c:v libx264 -preset medium -crf 23 -bf 2 -flags +cgop -profile:v high -level 4.0 -vf format=yuv420p -movflags faststart -c:a aac -b:a 128k -r:a 48000 -strict -2
+x264-lossless    H.264 Lossless                                             -c:v libx264 -preset veryslow -crf 0
+x264-veryfast    H.264 High profile level 4.0 CRF 23 veryfast preset        -c:v libx264 -preset veryfast -crf 23 -bf 2 -flags +cgop -profile:v high -level 4.0 -vf format=yuv420p -movflags faststart
+x265-medium      H.265 CRF 22 medium preset                                 -c:v libx265 -preset medium -crf 22
+x265-medium-acc  H.265 CRF 22 medium preset CRF 23 AAC 128kb                -c:v libx265 -preset medium -crf 22 -c:a aac -b:a 128k -r:a 48000 -strict -2
+EOF
+}
+
+main () {
+  local option line name list options description args OPTIND OPTARG OPTERR
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvnp-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          names) list="names" ;;
+          profiles) list="profiles" ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      n) list="names" ;;
+      p) list="profiles" ;;
+      \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+      :)
+        echo "Option -$OPTARG requires an argument."
+        exit 1
+        ;;
+      *)
+        echo "Unexpected: -$OPTARG"
+        exit 1
+        ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  while read -r line; do
+    name="$(echo "$line" | awk -F '[[:space:]]{2,}' '!/^[#\s]/ {print $1}')"
+
+    if ! [ "$name" ]; then
+      continue
+    fi
+
+    if [ "$list" = "names" ]; then
+      echo "$name"
+      continue
+    fi
+
+    description="$(echo "$line" | awk -F '[[:space:]]{2,}' '{print $2}')"
+
+    if [ "$list" = "profiles" ]; then
+      printf '%-16s  %s'"\\n" "$name" "${description:0:62}"
+      continue
+    fi
+
+    options="$(echo "$line" | awk -F '[[:space:]]{2,}' '{print $3}')"
+
+    if ! [ "$list" ] && [ "${1:-}" = "$name" ]; then
+      # shellcheck disable=SC2086
+      exec ffmpeg -i "${2:-}" $options "${@:3}"
+      exit "$?"
+    fi
+  done <<< "$(profiles)"
+
+  if ! [ "$list" ]; then
+    echo "Invalid profile: '${1:-}'" >&2
+    exit 1
+  fi
+}
+
+if [ "$#" -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+main "$@"

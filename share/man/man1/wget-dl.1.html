@@ -1,0 +1,91 @@
+<!DOCTYPE html lang="" >
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+
+      <meta name="author" content="Jukka Svahn">
+  
+  
+  
+  <title>WGET-DL(1)</title>
+
+      <link rel="stylesheet" href="../style.css" />
+  
+  </head>
+<body>
+  
+      <header>
+      <h1 class="title">WGET-DL(1)</h1>
+      <p class="subtitle">dotfiles</p>
+
+      
+              <p class="date">October 2018</p>
+          </header>
+  
+  <div id="content">
+          <nav>
+        <ul>
+        <li><a href="#name">NAME</a></li>
+        <li><a href="#synopsis">SYNOPSIS</a></li>
+        <li><a href="#description">DESCRIPTION</a></li>
+        <li><a href="#options">OPTIONS</a></li>
+        <li><a href="#commands">COMMANDS</a></li>
+        <li><a href="#environment">ENVIRONMENT</a></li>
+        <li><a href="#files">FILES</a></li>
+        <li><a href="#examples">EXAMPLES</a></li>
+        </ul>
+      </nav>
+    
+    <main><h1 id="name">NAME</h1>
+<p>wget-dl – Download login protected files</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>wget-dl</strong> [<em>options</em>] [<em>command</em>] <code>&lt;</code><em>url</em><code>&gt;</code></p>
+<h1 id="description">DESCRIPTION</h1>
+<p>Download files that require authentication or session cookies using <strong>wget</strong>. Allows sending login <code>POST</code> data that contains <code>{u}</code> and <code>{p}</code> variables that are substituted with prompted <em>username</em> and <em>password</em>, hiding them from terminal history. Received login cookies are stored in <code>$WGET_COOKIES</code>, or <code>~/.wget-cookies</code>.</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt><code>-h</code>, <code>--help</code></dt>
+<dd>Print help.
+</dd>
+<dt><code>-v</code>, <code>--version</code></dt>
+<dd>Print version number.
+</dd>
+</dl>
+<h1 id="commands">COMMANDS</h1>
+<dl>
+<dt><code>auth</code> [<em>options</em>] <code>&lt;</code><em>url</em><code>&gt;</code></dt>
+<dd>Prompt for username and password, download a file using basic HTTP authentication.
+</dd>
+<dt><code>download</code> [<em>options</em>] <code>&lt;</code><em>url</em><code>&gt;</code></dt>
+<dd>Download a file, using any previously established login cookies.
+</dd>
+<dt><code>login</code> [<em>options</em>] <code>&lt;</code><em>url</em>[<code>?&lt;</code><em>post-data</em><code>&gt;</code>]<code>&gt;</code></dt>
+<dd>Establish a login session and store cookies in <code>$WGET_COOKIES</code> file. The optional <em>post-data</em> can contain <code>{u}</code> and <code>{p}</code> variables that are replaced with prompted <em>username</em> and <em>password</em> respectively, if present.
+</dd>
+</dl>
+<h1 id="environment">ENVIRONMENT</h1>
+<dl>
+<dt><code>WGET_COOKIES</code></dt>
+<dd>Path to a file storing HTTP cookies.
+</dd>
+</dl>
+<h1 id="files">FILES</h1>
+<p>Depends on external programs <code>bash</code>, <code>cat</code>, <code>perl</code> and <code>wget</code>.</p>
+<h1 id="examples">EXAMPLES</h1>
+<p>Log-in to <code>example.test</code> by sending <code>user</code> and <code>pass</code> HTTP POST parameters containing prompted username <code>{u}</code> and password <code>{p}</code>:</p>
+<pre><code>$ wget-dl login &quot;https://example.test/login?user={u}&amp;pass={p}&quot;</code></pre>
+<p>Download item <code>3451</code> from <code>example.test</code>, using any previously established login cookies:</p>
+<pre><code>$ wget-dl download &quot;https://example.test/download/3451&quot;</code></pre>
+<p>Download <code>file.zip</code> protected by basic HTTP authentication:</p>
+<pre><code>$ wget-dl auth &quot;https://example.test/file.zip&quot;</code></pre></main>
+  </div>
+
+  <footer>
+          <p class="date">October 2018</p>
+    
+          <p class="author">Jukka Svahn</p>
+      </footer>
+
+  </body>
+</html>

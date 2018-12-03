@@ -1,0 +1,356 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const handlebars = require('handlebars');
+
+const app = path.basename(process.argv[1]);
+const args = process.argv.slice(2);
+let _args = Array.from(args);
+const subcommand = String(args[0]).indexOf('-') === 0 ? '' : _args.shift();
+const options = Array.from(_args);
+const optionRegex=/^--?([^=]+)=?["']?(.*)?["']?$/im;
+
+/**
+ * Publicly accessible commands.
+ */
+
+const commands = {
+  /**
+   * Usage instructions.
+   */
+
+  help () {
+    return `Parse handlebars templates.
+
+Usage:
+  $ ${app} [options] [map|parse] [--variable=value, ...]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+      --verbose  Verbose mode
+
+  -f <path>, --file=<path>
+  Path to the used handlebars template file. If not specified, defaults to
+  standard input.
+
+  -i <string>, --input=<string>
+  Handlebars template as an input string. If not specified, defaults to
+  standard input.
+
+  -o <path>, --outfile=<path>
+  Path to the created processed output file. If not specified, defaults to
+  standard output.
+
+  --<name>=<value>, --var <name> <value>, --variable <name> <value>
+  Sets a template variable.
+
+  --helper <name> <fn>
+  Sets a template helper. Note that the 'fn', the helper callback function, must
+  not contain unsanitized user-input as it is treated as executable code and is
+  evaluated.
+
+Commands:
+  $ ${app} map [--variable=value, ...]
+  Generates JSON object from given arguments.
+
+  $ ${app} parse [--variable=value, ...]
+  Parses the standard input using the given variable arguments.
+
+Example:
+  $ echo 'Hello {{name}}!' | ${app} parse --variable name "World"
+  > Hello World!
+`;
+  },
+
+  /**
+   * Maps options to variable object map.
+   */
+
+  map () {
+    let name = null, data = {variables: {}, helpers: {}}, type = null, reserved = [
+      'h',
+      'help',
+      'i',
+      'input',
+      'o',
+      'outfile',
+      'f',
+      'file',
+      'verbose',
+      'version',
+      'v'
+    ];
+
+    let push = (type, name, add) => {
+      let r = `${type}s`;
+
+      if (typeof data[r][name] === 'undefined') {
+        data[r][name] = add;
+        return;
+      }
+
+      if (!Array.isArray(data[r][name])) {
+        data[r][name] = [data[r][name]];
+      }
+
+      data[r][name].push(add);
+    };
+
+    for (let index in arguments) {
+      let match, value = arguments[index];
+
+      if (name === true) {
+        name = value;
+        continue;
+      }
+
+      if (name !== null) {
+        push(type, name, value);
+        name = null;
+        continue;
+      }
+
+      if (['--var', '--variable'].indexOf(value) !== -1) {
+        name = true;
+        type = 'variable';
+        continue;
+      }
+
+      if (value === '--helper') {
+        name = true;
+        type = 'helper';
+        continue;
+      }
+
+      match = optionRegex.exec(value);
+
+      if (match === null) {
+        continue;
+      }
+
+      if (reserved.indexOf(match[1]) !== -1) {
+        continue
+      }
+
+      if (typeof match[2] !== 'undefined') {
+        push('variable', match[1], match[2]);
+        continue;
+      }
+
+      name = match[1];
+      type = 'variable';
+    }
+
+    return data;
+  },
+
+  /**
+   * Parses standard input.
+   */
+
+  parse () {
+    let context = this.map.apply(this, arguments);
+
+    Object.entries(context.helpers).forEach(([name, fn]) => {
+      handlebars.registerHelper(name, function () {
+        let callback = eval(fn);
+        return callback.apply(this, arguments);
+      });
+    });
+
+    helper.input((error, data) => {
+      try {
+        helper.put(handlebars.compile(data)(context.variables));
+      } catch (error) {
+        helper.verbose(error);
+        process.exit(1);
+      }
+    });
+  }
+};
+
+/**
+ * Collection of helpers.
+ */
+
+const helper = {
+  /**
+   * Check an existance of a flag.
+   *
+   * @param {string} name Name of the flag
+   */
+
+  flag (name) {
+    return args.indexOf(name) >= 0;
+  },
+
+  /**
+   * Write a line to standard output.
+   *
+   * @param {string} message The message
+   */
+
+  log (message) {
+    let result = message;
+
+    if (result === undefined || result === null || result === '' || result === true) {
+      return;
+    }
+
+    if (typeof result !== 'string') {
+      result = JSON.stringify(result);
+    }
+
+    result = ('' + result).trim();
+
+    if (result !== '') {
+      process.stdout.write(result + '\n');
+    }
+  },
+
+  /**
+   * Verbose output.
+   *
+   * @param {string} message The message
+   */
+
+  verbose (message) {
+    let verbose = this.flag('--verbose');
+
+    if (arguments.length === 0) {
+      return verbose;
+    }
+
+    if (verbose) {
+      console.log(message);
+    }
+
+    return this;
+  },
+
+  /**
+   * Gets an option value.
+   *
+   * @param {string} option The name of the option
+   * @return {string|boolean}
+   */
+
+  option () {
+    let isMatch = false, options = Array.from(arguments);
+
+    for (let index in args) {
+      let match, value = args[index];
+
+      if (isMatch === true) {
+        return value;
+      }
+
+      match = optionRegex.exec(value);
+
+      if (match === null || options.indexOf(match[1]) === -1) {
+        continue;
+      }
+
+      if (typeof match[2] === 'undefined') {
+        isMatch = true;
+        continue;
+      }
+
+      return match[2];
+    }
+
+    return false;
+  },
+
+  /**
+   * Write data to correct location based on the given options.
+   *
+   * @param {string} data The data to write
+   */
+
+  put (data) {
+    let path = helper.option('o', 'outfile');
+
+    if (!path || path === '-') {
+      this.log(data);
+      return;
+    }
+
+    let buff = new Uint8Array(Buffer.from(data));
+
+    fs.writeFile(path, data, (error) => {
+      if (error) {
+        throw error;
+      }
+
+      this.verbose(`Created '${path}'`);
+    });
+  },
+
+  /**
+   * Gets input file.
+   *
+   * @param {function} fn Callback function
+   */
+
+  input (fn) {
+    let path = helper.option('f', 'file'),
+      input = helper.option('i', 'input');
+
+    if (input !== false) {
+      fn.call(helper, null, input);
+      return;
+    }
+
+    if (!path || path === '-') {
+      process.stdin.resume();
+      process.stdin.setEncoding('utf8');
+      process.stdin.on('data', (data) => {
+        fn.call(helper, null, data);
+      });
+
+      return;
+    }
+
+    fs.readFile(path, (error, data) => {
+      if (error) {
+        throw error;
+      }
+
+      fn.call(helper, error, data);
+    });
+  }
+};
+
+try {
+  let result;
+
+  if (!subcommand && options.length >= 1) {
+    if (['-h', '--help'].indexOf(options[0]) !== -1) {
+      result = commands.help();
+    } else if (['-v', '--version'].indexOf(options[0]) !== -1) {
+      result = '0.0.0';
+    } else {
+      result = commands.parse.apply(commands, options);
+    }
+  } else if (subcommand in commands) {
+    result = commands[subcommand].apply(commands, options);
+  } else if (subcommand) {
+    console.error('Unknown command: %s', subcommand);
+    result = false;
+  } else {
+    result = commands.help();
+  }
+
+  if (result === false) {
+    process.exit(1);
+    return;
+  }
+
+  helper.log(result);
+} catch (error) {
+  helper.verbose(error);
+  process.exit(1);
+}

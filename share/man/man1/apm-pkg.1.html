@@ -1,0 +1,93 @@
+<!DOCTYPE html lang="" >
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+
+      <meta name="author" content="Jukka Svahn">
+  
+  
+  
+  <title>APM-PKG(1)</title>
+
+      <link rel="stylesheet" href="../style.css" />
+  
+  </head>
+<body>
+  
+      <header>
+      <h1 class="title">APM-PKG(1)</h1>
+      <p class="subtitle">dotfiles</p>
+
+      
+              <p class="date">October 2018</p>
+          </header>
+  
+  <div id="content">
+          <nav>
+        <ul>
+        <li><a href="#name">NAME</a></li>
+        <li><a href="#synopsis">SYNOPSIS</a></li>
+        <li><a href="#description">DESCRIPTION</a></li>
+        <li><a href="#options">OPTIONS</a></li>
+        <li><a href="#commands">COMMANDS</a></li>
+        <li><a href="#environment">ENVIRONMENT</a></li>
+        <li><a href="#files">FILES</a></li>
+        <li><a href="#examples">EXAMPLES</a></li>
+        </ul>
+      </nav>
+    
+    <main><h1 id="name">NAME</h1>
+<p>apm-pkg – Atom.io package manager</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>apm-pkg</strong> [<em>options</em>] [<em>command</em>]</p>
+<h1 id="description">DESCRIPTION</h1>
+<p>Manage Atom.io apm with <code>$ATOM_PACKAGES_FILE</code> manifest file, by default located at <code>~/.atom/packages.txt</code>.</p>
+<p>This wrapper extends <strong>apm</strong> with <code>install</code> and <code>dump</code> commands that allow installing packages with a manifest file.</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt><code>-h</code>, <code>--help</code></dt>
+<dd>Print help.
+</dd>
+<dt><code>-v</code>, <code>--version</code></dt>
+<dd>Print version number.
+</dd>
+</dl>
+<h1 id="commands">COMMANDS</h1>
+<dl>
+<dt><code>dump</code> [<em>filename</em>]</dt>
+<dd>Dump list of installed packages to the manifest file.
+</dd>
+<dt><code>install</code> [<em>filename</em>]</dt>
+<dd>Install packages listed in the manifest file.
+</dd>
+<dt><code>list</code></dt>
+<dd>List installed packages.
+</dd>
+<dt><code>lock</code></dt>
+<dd>List installed packages and versions.
+</dd>
+</dl>
+<h1 id="environment">ENVIRONMENT</h1>
+<dl>
+<dt><code>ATOM_PACKAGES_FILE</code></dt>
+<dd>Path to the packages manifest file.
+</dd>
+</dl>
+<h1 id="files">FILES</h1>
+<p>Depends on external programs <code>apm</code>, <code>awk</code>, <code>bash</code>, <code>cat</code> and <code>sort</code>.</p>
+<h1 id="examples">EXAMPLES</h1>
+<p>Dump packages:</p>
+<pre><code>$ apm-pkg dump</code></pre>
+<p>Install packages:</p>
+<pre><code>$ apm-pkg install</code></pre></main>
+  </div>
+
+  <footer>
+          <p class="date">October 2018</p>
+    
+          <p class="author">Jukka Svahn</p>
+      </footer>
+
+  </body>
+</html>

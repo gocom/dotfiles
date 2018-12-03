@@ -1,0 +1,7 @@
+[ *.textile ]
+spellChecking    = true
+spellingLanguage = 'en'
+
+[ source.textile ]
+spellChecking    = true
+spellingLanguage = 'en'

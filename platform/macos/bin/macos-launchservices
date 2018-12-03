@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Rebuild Launch Services Database.
+
+Usage:
+  $ ${0##*/} [-h|--help] [rebuild|register|reload]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} rebuild
+  Rebuild Launch Services database.
+
+  $ ${0##*/} register
+  Run commands on the Launch Services registry lsregister.
+
+  $ ${0##*/} reload
+  Relaunch Finder process.
+
+Example:
+  $ ${0##*/} rebuild
+  $ ${0##*/} reload
+EOF
+}
+
+rebuild () {
+  register -kill -seed -r -f -v -domain local -domain user -domain system "$@"
+}
+
+register () {
+  /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister "$@" || exit 1
+}
+
+reload () {
+  killall Finder
+}
+
+case "${1:-}" in
+  -v|--version) echo "0.0.0" ;;
+  rebuild) rebuild "${@:2}" ;;
+  register) register "${@:2}" ;;
+  reload) reload ;;
+  *) usage ;;
+esac

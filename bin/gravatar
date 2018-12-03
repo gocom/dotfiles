@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Query Gravatar images and profiles.
+
+Usage:
+  $ ${0##*/} [-h|--help|-v|--version] [avatar|path|profile|url] email [
+    [-r <[avatar|profile]>] [-s <size>] [-u <md5>] [-t <[json|xml|php|vcf|qr]>]]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+  -e <email>     Requested email address or profile ID.
+  -r <resource>  Requested resource: 'avatar' or 'profile'
+  -s <size>      Sets size of the avatar image in pixels.
+  -t <type>      Profile data-type: 'json', 'xml', 'php', 'vcf' or 'qr'
+  -u <md5>       Request using md5 hash rather than email.
+
+Commands:
+  $ ${0##*/} avatar <email> [-s <size>]
+  Downloads avatar image.
+
+  $ ${0##*/} profile <profile> [type]
+  Downloads profile data.
+
+  $ ${0##*/} path [[-h] [-r <resource>] [-e <email>] [-u <md5>] [-s <size>]
+    [-t <type>]]
+  Builds resource paths from the given options.
+
+  $ ${0##*/} url <profile> [[-r <resource>] [-s <size>] [-t <type>]]
+  Prints an URL to the resource.
+
+Examples:
+  $ ${0##*/} john.doe@example.com
+  > https://www.gravatar.com/avatar/b2bf7d6a6e99765b683061e5ac50df40
+
+  $ ${0##*/} url john.doe@example.com -r profile -t json
+  > https://www.gravatar.com/b2bf7d6a6e99765b683061e5ac50df40.json
+
+  > $ ${0##*/} url
+  ? Email:
+
+  $ ${0##*/} avatar john.doe@example.com -s 512 > image.jpg
+
+  $ ${0##*/} profile beautesting1blog
+  > {"entry":[{}]}
+
+  $ ${0##*/} path -h
+  > https://www.gravatar.com/
+EOF
+}
+
+hash () {
+  printf '%s' "$1" | xargs | tr '[:upper:]' '[:lower:]' | md5
+}
+
+resource () {
+  local OPTIND h r u t q
+
+  while getopts ":hr:e:u:s:t:" option "$@"; do
+    case "$option" in
+      h) h="https://www.gravatar.com/" ;;
+      r)
+        case "$OPTARG" in
+          avatar) r="$OPTARG/" ;;
+          *) r="" ;;
+        esac
+        ;;
+      e)
+        if ! [ "$OPTARG" ]; then
+          read -r -p "Email or username: " OPTARG
+        fi
+
+        case "$OPTARG" in
+          *"@"*) u="$(hash "$OPTARG")" ;;
+          *) u="$OPTARG"; r="" ;;
+        esac
+        ;;
+      u) u="$OPTARG" ;;
+      t) test "$OPTARG" && t=".$OPTARG" ;;
+      s) test "$OPTARG" && q="?s=$OPTARG" ;;
+      \?)
+        echo "Invalid option: -$OPTARG" >&2
+        exit 1
+        ;;
+      :)
+        echo "Option -$OPTARG requires an argument" >&2
+        exit 1
+        ;;
+      *)
+        echo "Unexpected option: -$OPTARG" >&2
+        exit 1
+        ;;
+    esac
+  done
+
+  printf '%s' "${h}${r}${u}${t}${q}"
+}
+
+avatar () {
+  curl -s "$(url "$@")"
+}
+
+profile () {
+  curl -s "$(resource -h -e "${1:-}" -t "${2:-json}")"
+}
+
+url () {
+  resource -h -r avatar -e "${1:-}" "${@:2}"
+}
+
+if [ "$#" -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  avatar|download) avatar "${@:2}" ;;
+  path) resource "${@:2}" ;;
+  profile) profile "${@:2}" ;;
+  url) url "${@:2}" ;;
+  json|php|qr|vcf|xml) profile "${2:-}" "$1" "${@:3}" ;;
+  *) url "$@" ;;
+esac
+
+exit "$?"

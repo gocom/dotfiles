@@ -1,0 +1,7 @@
+editorconfig
+file-icons
+language-generic-config
+language-ini
+language-source-cfg
+language-textile
+open-terminal-here

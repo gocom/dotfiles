@@ -1,0 +1,362 @@
+#!/usr/bin/env node
+
+const {handlebars} = require('../lib/node/HandlebarHelpers');
+const fs = require('fs-extra');
+const path = require('path');
+const process = require('process');
+const chalk = require('chalk');
+const argv = require('yargs')
+  .help(false)
+  .version(false)
+  .options({
+    h: {
+      alias: 'help',
+      boolean: true
+    },
+    v: {
+      alias: 'version',
+      boolean: true
+    },
+    V: {
+      alias: 'verbose',
+      count: true
+    },
+    d: {
+      alias: 'directories',
+      boolean: true
+    },
+    f: {
+      alias: 'files',
+      boolean: true
+    },
+    A: {
+      alias: 'absolute',
+      boolean: true
+    },
+    c: {
+      alias: ['copy'],
+      boolean: true
+    },
+    D: {
+      alias: ['dry-run', 'dryrun'],
+      boolean: true
+    },
+    e: {
+      alias: 'extension',
+      boolean: true
+    },
+    F: {
+      alias: 'force',
+      boolean: true
+    },
+    g: {
+      alias: 'glob',
+      boolean: true
+    },
+    l: {
+      alias: ['link'],
+      boolean: true
+    },
+    s: {
+      alias: ['q', 'quiet', 'silent'],
+      boolean: true
+    }
+  })
+  .argv;
+
+/**
+ * Logger.
+ */
+
+class Log {
+  /**
+   * Success message.
+   */
+
+  ok () {
+    console.log.apply(console, arguments);
+    return this;
+  }
+
+  /**
+   * Info message.
+   */
+
+  info () {
+    if (argv.verbose >= 1) this.ok.apply(this, arguments);
+    return this;
+  }
+
+  /**
+   * Debug message.
+   */
+
+  debug () {
+    if (argv.verbose >= 2) this.ok.apply(this, arguments);
+    return this;
+  }
+
+  /**
+   * Fatal message.
+   */
+
+  fatal () {
+    this.warn.apply(this, arguments);
+    process.exit(1);
+    return this;
+  }
+
+  /**
+   * Error message.
+   */
+
+  warn () {
+    console.error.apply(console, arguments);
+    return this;
+  }
+}
+
+/**
+ * Instance of logger.
+ *
+ * @constant {Log}
+ */
+
+const log = new Log();
+
+/*
+if (argv.verbose >= 2) {
+  process.env.VERBOSE = this.verbose;
+}
+
+if (argv.verbose >= 3) {
+  process.env.DEBUG = this.verbose;
+}
+*/
+
+/**
+ * Usage.
+ */
+
+const usage = () => {
+  log.ok(`Recursive file renamer.
+
+Usage:
+  $ brn [options] <filename, ...> <newname>
+
+Options:
+  -h, --help          Print this message
+  -v, --version       Print version number
+  -A, --absolute      Allow absolute path as a newname
+  -D, --dry-run       Dry-run without writing anything
+  -F, --force         Allow overwriting existing files
+  -q, --quiet         Non-interactive mode, do not prompt for options
+  -c, --copy          Copy instead of moving
+  -g, --glob          Glob and expand filenames
+  -l, --link          Create symbolic link instead of moving
+  -V, -VV, --verbose  Verbose mode
+  -d, --directories   Match directories
+  -f, --files         Match files
+      --no-extension  Do not automatically add extension
+      --no-color      Disable colors
+      --color         Enable colors
+`);
+  return;
+};
+
+/**
+ * Main.
+ */
+
+const main = () => {
+  let operation, icon2, files = Array.from(argv._);
+  const name = files.pop();
+
+  if (!name || files.length === 0) {
+    log.fatal('Source filename and a new name must be provided.');
+  }
+
+  const template = handlebars.compile(name, {
+    noEscape: true
+  });
+
+  if (argv.glob) {
+    let expanded = [];
+
+    for (const pattern of files) {
+      expanded = expanded.concat(glob.sync(pattern));
+    }
+
+    files = expanded;
+  }
+
+  files = files.map((file) => {
+    return path.normalize(String(file));
+  });
+
+  let names = [],
+    duplicates = [],
+    reDir = /[\/\\]$/;
+
+  if (argv.copy) {
+    operation = 'copy';
+    icon2 = chalk`{magenta ⋯}`;
+  } else if (argv.link) {
+    operation = 'link';
+    icon2 = chalk`{magenta ↯}`;
+  } else {
+    operation = 'move';
+    icon2 = chalk`{blue ➞}`;
+  }
+
+  if (argv.dryrun) {
+    log.ok(chalk`Running with {blue --dryrun}, nothing will be written.`);
+    log.ok(chalk`{green These operations would be performed:}`);
+  }
+
+  files.forEach((file, index) => {
+    new Promise((resolve, reject) => {
+      fs.stat(file, (err, stat) => {
+        let filters = [], icon1, data, newname, duplicate, newinfo;
+
+        if (err) {
+          resolve();
+          return;
+        }
+
+        if (argv.files) {
+          filters.push(stat.isFile);
+        }
+
+        if (argv.directories) {
+          filters.push(stat.isDirectory);
+        }
+
+        if (filters.length && !filters.filter((fn) => fn.call(stat)).length) {
+          resolve();
+          return;
+        }
+
+        data = Object.assign({}, path.parse(file), {
+          index: index,
+          path: file,
+          total: files.length,
+          stat: stat,
+          template: name
+        });
+
+        newname = template(data);
+        newinfo = path.parse(newname);
+
+        if (newname) {
+          // Newname end to a slash, but the source file was not a directory.
+          if (newinfo.base && reDir.test(name) && !stat.isDirectory()) {
+            newinfo.dir = path.join(newinfo.dir, newinfo.base);
+            newinfo.base = data.base;
+            newname = path.format(newinfo);
+          }
+
+          // If filename is not absolute, newname can not be either.
+          let allowAbsolute = argv.absolute || path.isAbsolute(file);
+
+          if (!allowAbsolute && path.isAbsolute(newname)) {
+            newinfo.dir = newinfo.dir.substring(newinfo.root.length);
+            newinfo.root = null;
+            newname = path.format(newinfo);
+          }
+
+          newname = path.format(newinfo);
+          newinfo = path.parse(newname);
+
+          // Newname starts with a dot, but given name template does not.
+          if (name.indexOf('.') !== 0 && newname.indexOf('.') === 0) {
+            newname = '';
+          }
+        }
+
+        if (!newname || newname === '.' || newname.base === data.ext) {
+          log.info(chalk`{green ·} %s {green ―} skip empty`, file);
+          resolve();
+          return;
+        }
+
+        // Add root if newname does not contain it.
+        if (data.root && !newinfo.root) {
+          newinfo.root = data.root;
+          newname = path.format(newinfo);
+        }
+
+        // Add directory if the newname does not contain it.
+        if (data.dir && !newinfo.dir) {
+          newinfo.dir = data.dir;
+          newname = path.format(newinfo);
+        }
+
+        // Add extension if newname removed it.
+        if (argv.extension !== false && data.ext && !newinfo.ext) {
+          newinfo.ext = data.ext;
+          newinfo.base = null;
+          newname = path.format(newinfo);
+        }
+
+        newname = path.normalize(newname);
+        newinfo = path.parse(newname);
+
+        if (file === newname) {
+          log.info(chalk`{green ·} %s {green ―} untouched`, file);
+          resolve();
+          return;
+        }
+
+        duplicate = duplicates.filter((r) => r === newname).length;
+        duplicates.push(newname);
+
+        if (duplicate) {
+          newinfo.base = `${newinfo.name}.${duplicate}${newinfo.ext}`;
+          newname = path.format(newinfo);
+        }
+
+        names.push(Object.assign(data, {
+          newname: newname,
+          duplicate: duplicate
+        }));
+
+        if (duplicate > 0) {
+          icon1 = chalk`{magenta !}`;
+        } else {
+          icon1 = chalk`{blue ⋯}`;
+        }
+
+        log.ok('%s %s %s %s', icon1, file, icon2, newname);
+
+        if (!argv.dryrun) {
+          fs.mkdirsSync(newinfo.dir);
+
+          fs[operation](file, newname, {overwrite: argv.force === true}, (e) => {
+            if (e) {
+              log.warn(e.message);
+            }
+
+            resolve();
+          });
+
+          return;
+        }
+
+        resolve();
+      });
+    });
+  });
+};
+
+if (argv.help || process.argv.length === 2) {
+  usage();
+  return;
+}
+
+if (argv.version) {
+  log.ok('0.0.0');
+  return;
+}
+
+main();

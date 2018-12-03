@@ -1,0 +1,331 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+bookmarks="$HOME/Bookmarks"
+links="$HOME/Links"
+
+if [ "${BOOKMARKS:-}" ] && [ -e "$BOOKMARKS" ]; then
+  bookmarks="$BOOKMARKS"
+fi
+
+if [ "${LINKS:-}" ] && [ -e "$LINKS" ]; then
+  links="$LINKS"
+fi
+
+usage () {
+  cat <<EOF
+Bookmarks URLs, files and directories.
+
+Symbolic filesystem links are created to \$LINKS:
+  $links/
+
+URL shortcuts are created to \$BOOKMARKS:
+  $bookmarks/
+
+Usage:
+  $ $app_name [options] [command] [<path|url> <name>]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+  -o, --open     Open matching URLs or linked files
+  -n, --name     List matching names, rather than a table
+  -t, --target   List matching target paths and URLs, rather than a table
+
+  -k <keyword>, --keyword[=]<keyword>
+  Substitute '%s' in an URL or a path with the given keyword.
+
+Commands:
+  $ $app_name file [[path] [name]]
+  Bookmark a file.
+
+  $ $app_name files [name ...]
+  List matching linked files.
+
+  $ $app_name list [name ...]
+  List matching linked files and URLs.
+
+  $ $app_name open [name ...]
+  Open matching linked files with 'open' and URLs in \$BROWSER.
+
+  $ $app_name url [url] [name]
+  Bookmark a URL.
+
+  $ $app_name urls [name ...]
+  List matching linked URLs.
+
+Examples:
+  $ $app_name https://example.com
+  > $bookmarks/example.com.url
+
+  $ $app_name filename.txt
+  > $links/filename.txt
+
+  $ $app_name file /path/to/myproject/src myproject
+  > $links/myproject
+
+  $ $app_name url example.com blog
+  > $bookmarks/blog.url
+
+  $ cd "path/to/directory" && $app_name
+  > $links/directory
+
+  $ $app_name url
+  ? URL:
+  ? Name:
+
+  $ $app_name list
+  > blog                  https://example.com
+  > directory             /path/to/directory
+  > example.com           https://example.com
+  > filename.txt          /home/user/filename.txt
+  > myproject             /path/to/myproject/src
+
+  $ $app_name files
+  > directory             /path/to/directory
+  > filename.txt          /home/user/filename.txt
+  > myproject             /path/to/myproject/src
+
+  $ $app_name urls
+  > blog                  https://example.com
+  > example.com           https://example.com
+
+  $ $app_name list ex
+  > example.com           https://example.test
+  > example               /home/user/projects/example/
+
+  $ $app_name open ex
+  > Opening /home/user/projects/example/
+  > Opening https://example.test
+EOF
+}
+
+main () {
+  local option open list args OPTIND OPTARG OPTERR listLinks listBookmarks keyword
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvfnotuk:-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          files) listLinks=1 ;;
+          keyword) keyword="${!OPTIND}"; OPTIND=$((OPTIND + 1)) ;;
+          keyword=*) keyword="${OPTARG#*=}" ;;
+          name) list="name" ;;
+          open) open=1 ;;
+          target) list="target" ;;
+          urls) listBookmarks=1 ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      f) listLinks=1 ;;
+      k) keyword="$OPTARG" ;;
+      n) list="name" ;;
+      o) open=1 ;;
+      t) list="target" ;;
+      u) listBookmarks=1 ;;
+      \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+      :)
+        echo "Option -$OPTARG requires an argument."
+        exit 1
+        ;;
+      *)
+        echo "Unexpected: -$OPTARG"
+        exit 1
+        ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  case "${1:-}" in
+    files) listLinks=1 ;;
+    list) listLinks=1; listBookmarks=1 ;;
+    o|open) listLinks=1; listBookmarks=1; open=1 ;;
+    urls) listBookmarks=1 ;;
+  esac
+
+  case "${1:-}" in
+    f|ln|file) file "${@:2}" ;;
+    files|ls|list|o|open|urls) list "${@:2}" ;;
+    u|url|link) url "${@:2}" ;;
+    *"://"*) url "$@" ;;
+    *) file "$@" ;;
+  esac
+}
+
+list () {
+  query "$@" | sort -u
+}
+
+query () {
+  local f q target name option
+
+  if [ "$#" -gt 1 ]; then
+    for option in "$@"; do
+      query "$option"
+    done
+
+    return 0
+  fi
+
+  if [ "$listBookmarks" ]; then
+    for f in "$bookmarks/${1:-}"*.url; do
+      test -r "$f" || continue
+
+      name="$(basename "$f")"
+      name="${name%.*}"
+      target="$(awk '/^URL=/' < "$f" | head -n1 | sed 's/^URL=//')"
+
+      if [ "$keyword" ]; then
+        q="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$keyword")"
+        target="${target/"%s"/$q}"
+      fi
+
+      if [ "$open" ]; then
+        $BROWSER "$target" || exit 1
+      fi
+
+      if [ "$list" = "target" ]; then
+        echo "$target"
+        continue
+      fi
+
+      if [ "$list" = "name" ]; then
+        echo "$name"
+        continue
+      fi
+
+      printf '%-20s  %s'"\\n" "${name:0:20}" "${target:0:58}"
+    done
+  fi
+
+  if [ "$listLinks" ]; then
+    for f in "$links/${1:-}"*; do
+      test -L "$f" || continue
+
+      name="$(basename "$f")"
+      target="$(perl -MCwd -e 'print Cwd::realpath($ARGV[0]),qq<\n>' "$f")"
+
+      if [ "$keyword" ]; then
+        target="${target/"%s"/$keyword}"
+      fi
+
+      if [ "$open" ]; then
+        test "$(command -v open)" || exit 1
+        open "$target" || exit 1
+      fi
+
+      if [ "$list" = "target" ]; then
+        echo "$target"
+        continue
+      fi
+
+      if [ "$list" = "name" ]; then
+        echo "$name"
+        continue
+      fi
+
+      printf '%-20s  %s'"\\n" "${name:0:20}" "${target:0:58}"
+    done
+  fi
+}
+
+url () {
+  local url name
+
+  url="${1:-}"
+  name="${2:-}"
+
+  if ! [ "$url" ]; then
+    read -r -p "URL: " url
+    test "$name" || read -r -p "Name: " name
+  fi
+
+  if ! [ "$url" ]; then
+    echo "url must be given." >&2
+    exit 1
+  fi
+
+  case "$url" in
+    *"://"*) ;;
+    *) url="https://$url" ;;
+  esac
+
+  if ! [ "$name" ]; then
+    name="$(printf '%s' "$url" | awk -F '/' '{print $3}')"
+  fi
+
+  mkdir -p "$bookmarks" || exit 1
+  cd "$bookmarks" || exit 1
+
+  if [ -e "$name.url" ]; then
+    echo "'$bookmarks/$name.url' already exists." >&2
+    exit 1
+  fi
+
+  cat << EOF > "$name.url" || exit 1
+[InternetShortcut]
+URL=$url
+EOF
+
+  echo "$bookmarks/$name.url"
+  exit 0
+}
+
+file () {
+  local path name
+
+  path="${1:-}"
+  name="${2:-}"
+
+  if [ "$path" ]; then
+    path="$(perl -MCwd -e 'print Cwd::realpath($ARGV[0]),qq<\n>' "$path")"
+  else
+    path="$PWD"
+  fi
+
+  if ! [ "$name" ]; then
+    name="$(basename "$path")"
+  fi
+
+  if ! [ "$path" ] || ! [ "$name" ]; then
+    echo "path must be given." >&2
+    exit 1
+  fi
+
+  mkdir -p "$links" || exit 1
+  cd "$links" || exit 1
+
+  if [ -e "$name" ]; then
+    echo "'$links/$name' already exists." >&2
+    exit 1
+  fi
+
+  ln -s "$path" "$name" || exit 1
+  echo "$links/$name"
+}
+
+main "$@"

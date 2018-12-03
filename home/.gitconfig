@@ -1,0 +1,181 @@
+[core]
+  editor = atom --wait
+	excludesfile = ~/.gitignore
+	quotepath = false
+[color]
+  branch = auto
+  diff = auto
+  grep = auto
+  interactive = auto
+  status = auto
+  ui = auto
+[color "branch"]
+  current = green
+  local = yellow
+  remote = blue
+  upstream = magenta
+  plain = normal
+[color "decorate"]
+  branch = green
+  remoteBranch = blue
+  tag = bold
+  stash = bold
+  HEAD = bold
+[color "diff"]
+  context = normal
+  meta = bold
+  frag = cyan
+  func = blue
+  old = red
+  new = green
+  commit = yellow
+  whitespace = yellow
+[color "grep"]
+  context = normal
+  filename = normal
+  function = blue
+  linenumber = cyan
+  match = yellow
+  matchContext = yellow
+  matchSelected = yellow bold
+  selected = bold
+  separator = magenta
+[color "status"]
+  header = normal
+  added = green
+  updated = blue
+  changed = yellow
+  untracked = red
+  branch = green
+  nobranch = red
+  unmerged = yellow
+[user]
+	name = Jukka Svahn
+	email = void@rah.pw
+  useConfigOnly = true
+[alias]
+  # Single letter aliases.
+  a = add
+  b = branch
+  c = commit
+  d = diff
+  f = fetch
+  g = grep
+  h = "!git history"
+  l = log
+  m = merge
+  o = checkout
+  p = pull
+  r = remote
+  s = status
+  w = whatchanged
+
+  #: aliases          Print this message
+  #: aliases-names    List name of aliases
+  #: amend            Modify the latest un-pushed commit
+  #: assume           Assume files have not been changed
+  #: assumed          List files that are marked as assume unchaged
+  #: branch-create    Create a new branch
+  #: branch-name      Get the name of the current branch
+  #: branch-orphan    Create a new orphan branch
+  #: branch-rebase    Rebase all commit in the current branch
+  #: branch-tag       Get the name of last tag in the current branch
+  #: branches         List branches
+  #: branches-graph   List branches and their commits in relation to their head
+  #: changes          List changes in the current working tree and staging
+  #: cm               Commit with a inline message
+  #: code-review      Compare changes in our clone against the origin
+  #: committers       List committers
+  #: contributors     List contributors
+  #: create           Create a new repository
+  #: diff-head        Compare differences in the head
+  #: diff-staged      Compare differences in staging against the head
+  #: find             Search file names and contents
+  #: find-contents    Search file contents
+  #: find-name        Find file by name
+  #: history          Compact commit history
+  #: history-diff     History with diffs
+  #: history-refs     History with references
+  #: ignored          List ignored files in the current working tree
+  #: info             Detailed commit info
+  #: issues           List commits that reference #n issues in their messages
+  #: last             Last commit info
+  #: merge-diff       Compare differences in a merge
+  #: merge-history    Commit history originating from a merge
+  #: merge-span       Commit range originating from a merge
+  #: move             Move a file
+  #: patch            Output a patch commit email
+  #: publish          Push the current branch to the origin
+  #: release          Create an annonated tag
+  #: release-latest   Latest release tag
+  #: releases         List tags resembling a version number
+  #: rmfile           Remove a file, keep the file in the filesystem
+  #: rmdir            Remove a directory, keep the files in the filesystem
+  #: staged           Compare differences in staging
+  #: submodules       List submodules in staging or current working tree
+  #: tag-info         Inspect a tag
+  #: tags             Lists tags
+  #: unassume         Unassume a file
+  #: undo             Undo the last commit
+  #: unpublish        Unpublish a branch from the origin
+  #: unstage          Unstage the staged changes
+  #: up               Rebase and update submodules
+
+  aliases = "!awk '/^\\s*#:/{print $0}' < ~/.gitconfig | sed 's/[[:space:]]*#:[[:space:]]*//'"
+  aliases-names = "!git config --list | awk -F '[.=]' '/^alias\\./{print $2}' | sort -u"
+  amend = commit --all --amend
+  assume = update-index --assume-unchanged --
+  assumed = "!git ls-files -v | grep ^h | cut -c 3-"
+  branch-create = checkout -b
+  branch-name = "!git rev-parse --abbrev-ref HEAD"
+  branch-orphan = checkout --orphan
+  branch-rebase = "!git rebase --interactive $(git merge-base master HEAD)"
+  branch-tag = describe --tags --abbrev=0
+  branches = branch --all --list
+  branches-graph = show-branch
+  changes = status --short --branch --
+  cm = commit --message
+  code-review = diff origin/master...
+  committers = shortlog --email --committer --numbered --summary --
+  contributors = shortlog --email --numbered --summary --
+  create = init
+  diff-head = diff --patch HEAD~1 HEAD
+  diff-staged = diff --patch --staged
+  find = "!f() { git find-name "$1"; git find-contents "$1"; return 0; }; f"
+  find-contents = grep -Ii
+  find-name = "!f() { git ls-files | grep -i "$1"; return 0; }; f"
+  history = log --pretty=logcompact --graph --date=short
+  ls = "!git history"
+  history-diff = log -u --pretty=logcompact --date=short
+  history-refs = log --pretty=logcompact-refs --date=short
+  ignored = ls-files --others --i --exclude-standard
+  info = log --no-abbrev-commit --notes --pretty=logdetails --graph
+  issues = "!f() { git log --pretty='format:%B' | grep -io '.*#[0-9]\\+' | sort -u; }; f"
+  last = log --no-abbrev-commit --notes --pretty=fuller --graph -1 HEAD
+  merge-diff = "!git diff `git merge-span ... $1`"
+  merge-history = "!git log `git merge-span .. $1`"
+  merge-span = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
+  move = mv -k
+  patch = format-patch --stdout
+  publish = "!git push --set-upstream origin "$(git branch-name)""
+  release = tag -a -m
+  release-latest = "!git tag-info $(git describe --tags --abbrev=0 $(git rev-list --glob='tags/*[0-9]*.*'))"
+  latest = "!git release-latest"
+  releases = tag -n --format='%(align:left,18)%(color:yellow)%(refname:strip=2)%(color:reset)%(end)  %(objectname:short)%(HEAD) %(color:magenta)%(taggerdate:short)%(color:reset)  %(taggername)' --list '*[0-9]*.*'
+  rmfile = rm -r --cached --
+  rmdir = rm -rf --cached --
+  staged = diff --cached --
+  submodules = "!git ls-files --stage | grep '^160000 '"
+  tag-info = tag -n --format='%(align:left,18)%(color:yellow)%(refname:strip=2)%(color:reset)%(end)  %(objectname:short)%(HEAD) %(color:magenta)%(taggerdate:short)%(color:reset)  %(taggername)\n%(contents)' --list
+  tags = tag -n --format='%(align:left,18)%(color:yellow)%(refname:strip=2)%(color:reset)%(end)%(HEAD) %(contents:subject)' --list
+  unassume = update-index --no-assume-unchanged --
+  undo = reset --soft HEAD~1
+  unpublish = "!git push origin ":$(git branch-name)""
+  unstage = reset --mixed HEAD --
+  up = "!git pull --rebase "$@" && git submodule update --init --recursive"
+[log]
+  date = format-local:"%b %d, %Y %H:%M:%S"
+[pretty]
+  logcompact = format:"%C(auto,yellow)%h%Creset  %<(11,trunc)%an  %C(auto,magenta)%ad%Creset  %<(44,trunc)%s"
+  logcompact-refs = format:"%C(auto,yellow)%h%Creset  %C(auto,green)%<(30,trunc)%D%Creset  %<(37,trunc)%s"
+  logdetails = format:"%C(auto,yellow)%H%Creset ⇡ %C(auto,blue)%p%Creset ↭ %C(auto,magenta)%t%Creset%nref %C(auto,yellow)%d%Creset%n%C(auto,cyan)Author:%Creset  %ad by %an <%ae>%n%C(auto,cyan)Commit:%Creset  %cd by %cn <%ce>%n%n%B %N%n%GG %G?"

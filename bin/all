@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+List all available commands as seen by Bash completion engine.
+
+Usage:
+  $ ${0##*/} [options] [commands|tools|users]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  ${0##*/} commands
+  ${0##*/} tools
+EOF
+}
+
+commands () {
+  compgen -c | sort -u
+}
+
+users () {
+  compgen -u | sort -u | awk '!/^_/'
+}
+
+tools () {
+  compgen -c | sort -u | while read -r cmd; do
+    where="$(command -v "$cmd")" || continue
+    echo "$cmd | $(dirname "$where")"
+  done | column -t -s '|'
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  tools) tools ;;
+  users) users ;;
+  *) commands ;;
+esac

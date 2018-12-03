@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Time HTTP responses in seconds.
+
+Usage:
+  $ ${0##*/} [options] [benchmark|request] [sequences] <url>
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} benchmark [sequences] <url>
+  Run a benchmark specified number of sequences.
+
+  $ ${0##*/} request <url>
+  Run a single request and prints raw results in columns.
+
+Examples:
+  $ ${0##*/} https://localhost.test/example
+EOF
+}
+
+request () {
+  curl \
+    -L \
+    --output /dev/null \
+    --silent \
+    --write-out '%{http_code}  %{time_namelookup}  %{time_connect}  %{time_pretransfer}  %{time_starttransfer}  %{time_total}  %{size_download}  %{speed_download}' \
+    "$@" || return 1
+}
+
+main () {
+  local results sequence sequences
+
+  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    sequences="$(seq 1 "$1")" || exit 1
+    shift
+  else
+    sequences="$(seq 1 10)"
+  fi
+
+  printf '%6s  %-3s  %-8s  %-8s  %-8s  %-8s  %-8s  %-6s  %-6s'"\\n" \
+    "#" "STA" "DNS" "TCP" "TSL" "Start" "Total" "kB" "MB/s"
+
+  for sequence in $sequences; do
+    results="$(request "$@")" || exit 1
+    echo "$sequence  $results" | awk -F '[[:space:]]{2,}' '{printf("%06d  %-3s  %-8s  %-8s  %-8s  %-8s  %-8s  %-6s  %-6s\n", substr($1,0,6), substr($2,0,3), substr($3,0,8), substr($4,0,8), substr($5,0,8), substr($6,0,8), substr($7,0,8), substr($8/1024,0,6), substr($9/1024/1024,0,6))}'
+  done
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  benchmark) main "${@:2}" ;;
+  request) request "${@:2}" ;;
+  *) main "$@" ;;
+esac

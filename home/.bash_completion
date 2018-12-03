@@ -1,0 +1,7 @@
+for f in "$DOTFILES_HOME/share/.bash_completion.d/"*; do
+  if [ -f "$f" ] && [ -r "$f" ]; then
+    . "$f"
+  fi
+done
+
+unset f

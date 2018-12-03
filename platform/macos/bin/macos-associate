@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Associate supported file extensions with the specified application.
+
+Usage:
+  $ $app_name [options] [application ...]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+  -l, --list     List extensions supported by the application
+
+Example:
+  $ $app_name Atom
+EOF
+}
+
+main () {
+  local option list status args OPTIND OPTARG OPTERR
+
+  args=()
+  status=0
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvl-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          list) list="extensions" ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      l) list="extensions" ;;
+      \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+      :)
+        echo "Option -$OPTARG requires an argument."
+        exit 1
+        ;;
+      *)
+        echo "Unexpected: -$OPTARG"
+        exit 1
+        ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  if [ "$#" -eq 0 ]; then
+    read -r -p "Application: " option
+    set -- "$option"
+  fi
+
+  if ! [ "${1:-}" ]; then
+    echo "Application is required." >&2
+    exit 1
+  fi
+
+  for option in "$@"; do
+    app "$option" || status=1
+  done
+
+  return "$status"
+}
+
+app () {
+  local app option plist extensions id extension
+
+  app="${1:-}"
+
+  if ! [ "$app" ]; then
+    return 0
+  fi
+
+  for option in \
+    "$app/Contents/Info.plist" \
+    "$app.app/Contents/Info.plist" \
+    "/Applications/$app/Contents/Info.plist" \
+    "/Applications/$app.app/Contents/Info.plist" \
+    "$app"
+  do
+    if [ -r "$option" ] && [ -f "$option" ]; then
+      plist="$(cat -- "$option" 2> /dev/null)" || continue
+      break
+    fi
+  done
+
+  if ! [ "$plist" ]; then
+    echo "Invalid Application bundle name '$app'." >&2
+    return 1
+  fi
+
+  id="$(echo "$plist" | id)" || return 1
+  extensions="$(echo "$plist" | extensions)" || return 1
+
+  if [ "$list" = "extensions" ]; then
+    echo "$extensions"
+    return 0
+  fi
+
+  while read -r extension; do
+    duti -s "$id" "$extension" || return 1
+  done <<< "$extensions"
+}
+
+json_read () {
+  local plist
+
+  plist="$(cat)"
+
+  if [ "$plist" ]; then
+    echo "$plist" | plutil -convert json - -o -
+    return 0
+  fi
+
+  echo '{}'
+}
+
+extensions () {
+  json_read \
+    | jq -r '.CFBundleDocumentTypes | .[] | .CFBundleTypeExtensions // empty | join("\n")' \
+    | sort -u \
+    | awk '/^[a-z.-]{1,}$/{print "."$1}'
+}
+
+id () {
+  json_read | jq -r '.CFBundleIdentifier'
+}
+
+main "$@"

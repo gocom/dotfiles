@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+
+usage () {
+  cat <<EOF
+Removes .DS_Store files and clears Finder view options.
+
+Finder view options are removed recursively starting from the current working
+directory and then the Finder is terminated to relaunch it.
+
+Usage:
+  $ ${0##*/} [options] [clear|list|reload]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} clear
+  Clear the view options recursively.
+
+  $ ${0##*/} list
+  List .DS_Store files in the child directories.
+
+  $ ${0##*/} reload
+  Relaunch Finder process.
+
+Example:
+  $ ${0##*/} list
+  > ./.DS_Store
+  > ./build/.DS_Store
+  $ ${0##*/} clear
+  $ ${0##*/} reload
+EOF
+}
+
+case "${1:-}" in
+  -v|--version) echo "0.0.0" ;;
+  clear) find . -name .DS_Store -delete ;;
+  list) find . -name .DS_Store ;;
+  reload) killall Finder ;;
+  *) usage ;;
+esac

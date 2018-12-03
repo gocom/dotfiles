@@ -1,0 +1,380 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  outline: 0;
+  padding: 0;
+}
+
+html {
+  background: #1a1a1a;
+  color: #ccc;
+  font: 1em/1.75 "Open Sans", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: inherit;
+  font-weight: bold;
+  text-decoration: underline;
+  transition: color 0.25s;
+}
+
+a:focus,
+a:hover {
+  color: #a872e2;
+}
+
+::selection {
+  background: #000;
+  color: #fff;
+}
+
+p {
+  margin: 1em 0;
+}
+
+em,
+i {
+  font-style: normal;
+  text-decoration: underline;
+}
+
+b {
+  font-weight: bold;
+}
+
+code,
+pre {
+  font: inherit;
+}
+
+code {
+  font-weight: bold;
+}
+
+pre {
+  background: #312e33;
+  color: inherit;
+  margin: 1em -4em;
+  padding: 2em 4em;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+pre code {
+  font-weight: inherit;
+}
+
+/**
+ * Main content page.
+ */
+
+main,
+.manual-text {
+  background: #222;
+  box-shadow: inset 0 1.5em 0 #202020, inset 0 calc(1.5em + 1px) 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  font: 1em/1.75 "Roboto Mono", monospace;
+  max-width: calc(80ch + 4em);
+  min-width: calc(40ch + 4em);
+  padding: 4em;
+}
+
+.manual-text {
+  margin: auto;
+}
+
+#content {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+  position: relative;
+}
+
+/**
+ * Table of contents.
+ */
+
+nav {
+  flex: 0 1 auto;
+  margin: 0 1em;
+  max-width: 30ch;
+  order: 2;
+}
+
+nav ul {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  position: sticky;
+  top: 2em;
+}
+
+nav li > ul {
+  display: none;
+}
+
+nav a {
+  display: inline-block;
+  font-weight: bold;
+  text-decoration: none;
+  text-transform: lowercase;
+}
+
+nav a:first-letter {
+  text-transform: capitalize;
+}
+
+nav + main {
+  margin-right: 0;
+}
+
+@media only screen and (max-width: 960px) {
+  #content {
+    flex-wrap: wrap-reverse;
+  }
+
+  nav {
+    flex: 1 1 auto;
+    margin: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  nav ul {
+    flex-direction: row;
+    position: static;
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  nav a {
+    padding: 0.5em 1em;
+  }
+}
+
+/**
+ * Section headings.
+ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font: bold 1.5em/1.75 "Open Sans", sans-serif;
+  margin: 1em 0;
+  text-transform: lowercase;
+  user-select: none;
+}
+
+h1:first-letter,
+h2:first-letter,
+h3:first-letter,
+h4:first-letter,
+h5:first-letter,
+h6:first-letter {
+  text-transform: capitalize;
+}
+
+h1 a
+h2 a,
+h3 a,
+h4 a,
+h5 a,
+h6 a {
+  display: inline-block;
+  text-transform: lowercase;
+}
+
+h1 a:first-letter,
+h2 a:first-letter,
+h3 a:first-letter,
+h4 a:first-letter,
+h5 a:first-letter,
+h6 a:first-letter {
+  text-transform: capitalize;
+}
+
+h1:first-of-type {
+  margin-top: 0;
+}
+
+[style*="height"] {
+  height: 1em !important;
+}
+
+[style] + br {
+  display: none;
+}
+
+h1 a,
+h2 a,
+h3 a,
+h4 a,
+h5 a,
+h6 a {
+  text-decoration: none;
+}
+
+/**
+ * Header and footer.
+ */
+
+footer,
+header {
+  color: #777;
+  font-weight: bold;
+  line-height: 1;
+}
+
+footer,
+header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+footer > p,
+header > h1,
+header > p {
+  font: inherit;
+  margin: 0;
+  padding: 1em;
+}
+
+header h1::first-letter {
+  text-transform: lowercase;
+}
+
+html table.head,
+html table.foot {
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: #777;
+  font-weight: bold;
+  line-height: 1;
+  width: 100%;
+}
+
+html table.head tbody td,
+html table.foot tbody td {
+  border: 0;
+  padding: 1em;
+}
+
+html td.head-rtitle,
+html td.foot-os {
+  text-align: right;
+}
+
+html td.head-vol {
+  text-align: center;
+}
+
+/**
+ * Lists.
+ */
+
+ul {
+  list-style: none;
+}
+
+ul li {
+  padding: 0 0 0 2ch;
+}
+
+ul li::before {
+  content: "\2022";
+  display: inline-block;
+  margin: 0 1ch 0 -2ch;
+  vertical-align: middle;
+}
+
+nav > ul > li {
+  padding: 0;
+}
+
+nav > ul > li::before {
+  display: none;
+}
+
+/**
+ * Tables.
+ */
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  line-height: 1.75;
+  width: 100%;
+}
+
+table tbody td {
+  padding: 0.5em;
+}
+
+table tbody td:first-child {
+  padding-left: 0;
+}
+
+table tbody td:last-child {
+  padding-right: 0;
+}
+
+/**
+ * Definition lists.
+ */
+
+dl {
+  display: grid;
+  grid-column-gap: 2ch;
+  grid-template: auto / fit-content(15ch) 1fr;
+  margin: 1em 0;
+}
+
+dt {
+  font-weight: bold;
+  grid-column: 1;
+}
+
+dt > * {
+  font-weight: inherit;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+dd {
+  grid-column: 2;
+}
+
+dl > dt:only-of-type,
+dl > dd:only-of-type {
+  grid-column: span 2;
+}
+
+#options + dl > dt:nth-of-type(1),
+#options + dl > dt:nth-of-type(2) {
+  white-space: nowrap;
+}
+
+/**
+ * Synopsis.
+ */
+
+#synopsis + p > code {
+  font-weight: inherit;
+  text-decoration: inherit;
+}
+
+#synopsis + p > code:first-child {
+  font-weight: bold;
+  text-decoration: inherit;
+}
+
+div.Pp {
+  margin: 1ex 0;
+}
+
+pre div.Pp {
+  margin: 0;
+}

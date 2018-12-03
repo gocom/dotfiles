@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Creates an internet shortcut.
+
+Usage:
+  $ ${0##*/} [options] [create|url] [url]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} create [url]
+  Create a internet shortcut.
+
+  $ ${0##*/} url [filename]
+  Extract an URL from a file.
+
+Examples:
+  $ ${0##*/}
+  $ ${0##*/} https://example.com
+  $ ${0##*/} example.com > bookmark.url
+  $ ${0##*/} url bookmark.url
+EOF
+}
+
+shortcut () {
+  local url
+
+  url="${1:-}"
+
+  test "$url" || read -r -p "Shortcut URL: " url
+  test "$url" || exit 1
+
+  case "$url" in
+    *"://"*) ;;
+    *) url="https://$url" ;;
+  esac
+
+  cat <<EOF
+[InternetShortcut]
+URL=$url
+EOF
+
+  exit "$?"
+}
+
+url () {
+  cat "$@" | awk '/^URL=/' | head -n1 | sed 's/^URL=//'
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  create) shortcut "${@:2}" ;;
+  url) url "${@:2}" ;;
+  *.url) url "$@" ;;
+  *) shortcut "$@" ;;
+esac

@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Extract fully-qualified link targets from a well-behaved HTML document.
+
+Usage:
+  $ $app_name [options] [filename ...]
+
+Options:
+  -h, --help      Print this message
+  -v, --version   Print version number
+  -u, --urls      List URLs
+  -d, --domains   List hostnames
+  -i, --insecure  List URLs that do not use HTTPS
+
+Example:
+  $ $app_name bookmarks.html
+EOF
+}
+
+main () {
+  local file list option args OPTIND OPTARG OPTERR
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvdiu-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          domains) list="domains" ;;
+          insecure) list="insecure" ;;
+          urls) list="urls" ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      d) list="domains" ;;
+      i) list="insecure" ;;
+      u) list="urls" ;;
+      \?) echo "Invalid option: -$OPTARG"; exit 1 ;;
+      :) echo "Option -$OPTARG requires an argument."; exit 1 ;;
+      *) echo "Unexpected: -$OPTARG"; exit 1 ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  dump "$@" | column "$list" | awk '/./' | sort -u
+}
+
+column () {
+  case "${1:-}" in
+    domains)  awk -F '/' '{print $3}' ;;
+    insecure) awk -F '/' '!/^https/{print $0}' ;;
+    *)        awk -F '/' '{print $0}' ;;
+  esac
+}
+
+dump () {
+  local file
+
+  if [ "$#" -gt 1 ]; then
+    for file in "$@"; do
+      dump "$file"
+    done
+
+    return 0
+  fi
+
+  file="$(cat "$@")" || return 1
+
+  if [ "$(command -v lynx)" ]; then
+    echo "$file" \
+      | lynx --dump --force_html --hiddenlinks=ignore --listonly --stdin 2> /dev/null \
+      | grep -Eoi '\S*://.*'
+    return "$?"
+  fi
+
+  echo "$file" \
+    | grep -Eoi '<a [^>]+>' \
+    | grep -Eoi 'href=("[^"]+"|'"'[^']+'|[^\\s\"'])" \
+    | grep -Eoi 'https?://[^"]+'
+}
+
+main "$@"

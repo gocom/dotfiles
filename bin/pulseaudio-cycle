@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Cycle between PulseAudio output sinks.
+
+Usage:
+  $ ${0##*/} [options]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ ${0##*/}
+EOF
+}
+
+main () {
+  if ! [ "$(command -v pacmd)" ]; then
+    echo "'pacmd' is not installed." >&2
+    exit 1
+  fi
+
+  # Find the highest output sink index.
+  sinks="$(pacmd list-sinks 2> /dev/null | awk -F ': ' '/index:/{print $2}' | tail -n 1)"
+
+  if ! [ "$sinks" ] || [ "$sinks" -eq 0 ]; then
+    echo "PulseAudio does not have any output sinks set up." >&2
+    exit 1
+  fi
+
+  # Find the currently selected output sink index.
+  current="$(pacmd list-sinks | awk -F ': ' '/\* index:/{print $2}')"
+
+  if ! [ "$current" ] || [ "$current" -ge "$sinks" ]; then
+    sink=0
+  else
+    sink="$((current + 1))"
+  fi
+
+  # Change to output sink.
+  pacmd set-default-sink "$sink" || exit 1
+
+  # Move current audio streams to the new output sink.
+  pacmd list-sink-inputs | awk -F ': ' '/index:/{print $2}' | xargs -r -I{} pacmd move-sink-input {} "$sink"
+
+  echo "Switched to output '${sink}'"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main ;;
+esac

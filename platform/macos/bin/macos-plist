@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Reads and converts plist files in specified format without overwriting.
+
+Usage:
+  $ ${0##*/} [options] [<xml1|json> [input] [output]] [plutil-options]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ ${0##*/} json list.plist
+  > ["item1", "item2"]
+  $ cat config.plist | ${0##*/}
+  > <?xml version="1.0" ...
+  $ cat list.plist | ${0##*/} json
+  > ["item1", "item2"]
+EOF
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) exec plutil -convert "${1:-xml1}" "${2:--}" -o "${3:--}" "${@:4}" ;;
+esac

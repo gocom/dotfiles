@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Installs Homebrew.
+
+Usage:
+  $ ${0##*/} [options] [self-install|self-uninstall]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} self-install
+  Install Homebrew.
+
+  $ ${0##*/} self-uninstall
+  Uninstall Homebrew.
+
+Example:
+  $ ${0##*/}
+EOF
+}
+
+main () {
+  local f brew
+
+  for f in "$(command -v brew)" /usr/local/bin/brew "${HOMEBREW_PREFIX:-}/bin/brew"; do
+    if [ -x "$f" ] && ! [ "$f" = "$0" ]; then
+      brew="$f"
+      break
+    fi
+  done
+
+  if [ "$brew" ]; then
+    exec "$brew" "$@"
+    exit "$?"
+  fi
+
+  echo "Homebrew is not installed, try:" >&2
+  echo "  $ ${0##*/} self-install" >&2
+  exit 1
+}
+
+run () {
+  local rb
+
+  rb="$(curl-checksum "$@")" || exit 1
+
+  if [ "$#" -eq 1 ]; then
+    echo "$rb"
+    exit 0
+  fi
+
+  /usr/bin/ruby -e "$rb" || exit 1
+  exit 0
+}
+
+install () {
+  run "https://raw.githubusercontent.com/Homebrew/install/a555134384dd998a80c20fbcb074fbe17274f246/install" \
+    "762dfd9b7fd594382406a5f6bfee9696119a533880a9d6ad99b3c14db3ee8c94"
+}
+
+uninstall () {
+  run "https://raw.githubusercontent.com/Homebrew/install/646ee0a2068551b4d88ed8f3bd8c1a08b6bca7fe/uninstall" \
+    "c695c12ef6948d053695b42097c57bdae03cadc8203526f45f3c29d9d2814b4b"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  self-install) install ;;
+  self-uninstall) uninstall ;;
+  *) main "$@" ;;
+esac

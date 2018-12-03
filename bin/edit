@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+
+usage () {
+  cat <<EOF
+Opens a file in \$EDITOR:
+  ${EDITOR:-}
+
+Usage:
+  $ ${0##*/} [options] [filename]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ cd path/to/project && ${0##*/}
+  $ ${0##*/} config.xml
+EOF
+}
+
+main () {
+  if ! [ "${EDITOR:-}" ]; then
+    echo "\$EDITOR is not set." >&2
+    exit 1
+  fi
+
+  if [ "$#" -eq 0 ]; then
+    $EDITOR "$(perl -MCwd -e 'print Cwd::realpath($ARGV[0]),qq<\n>' "$PWD")"
+    exit "$?"
+  fi
+
+  $EDITOR "$@"
+  exit "$?"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

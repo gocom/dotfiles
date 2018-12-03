@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keymap>
+  <global>
+    <keyboard>
+      <!-- Media keys -->
+      <prev_track>Rewind</prev_track>
+      <play_pause>PlayPause</play_pause>
+      <next_track>FastForward</next_track>
+      <volume_mute>Mute</volume_mute>
+      <volume_down>RunScript("special://profile/keymaps/apple-keyboard/volume.py", "down")</volume_down>
+      <volume_up>RunScript("special://profile/keymaps/apple-keyboard/volume.py", "up")</volume_up>
+
+      <!-- Option -->
+      <f7>SkipPrevious</f7>
+      <f8>Stop</f8>
+      <f9>SkipNext</f9>
+      <f10>SetVolume(0, showVolumeBar)</f10>
+      <f11>SetVolume(50, showVolumeBar)</f11>
+      <f12>SetVolume(100, showVolumeBar)</f12>
+    </keyboard>
+  </global>
+</keymap>

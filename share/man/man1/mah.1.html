@@ -1,0 +1,83 @@
+<!DOCTYPE html lang="" >
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+
+      <meta name="author" content="Jukka Svahn">
+  
+  
+  
+  <title>MAH(1)</title>
+
+      <link rel="stylesheet" href="../style.css" />
+  
+  </head>
+<body>
+  
+      <header>
+      <h1 class="title">MAH(1)</h1>
+      <p class="subtitle">dotfiles</p>
+
+      
+              <p class="date">November 2018</p>
+          </header>
+  
+  <div id="content">
+          <nav>
+        <ul>
+        <li><a href="#name">NAME</a></li>
+        <li><a href="#synopsis">SYNOPSIS</a></li>
+        <li><a href="#description">DESCRIPTION</a></li>
+        <li><a href="#options">OPTIONS</a></li>
+        <li><a href="#environment">ENVIRONMENT</a></li>
+        <li><a href="#files">FILES</a></li>
+        <li><a href="#examples">EXAMPLES</a></li>
+        </ul>
+      </nav>
+    
+    <main><h1 id="name">NAME</h1>
+<p>mah – Rich man page viewer</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>mah</strong> [<em>options</em>] [<em>page</em> …]</p>
+<h1 id="description">DESCRIPTION</h1>
+<p>View man pages as HTML documents in a <code>$BROWSER</code>.</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt><code>-h</code>, <code>--help</code></dt>
+<dd>Print help.
+</dd>
+<dt><code>-v</code>, <code>--version</code></dt>
+<dd>Print version number.
+</dd>
+<dt><code>-f</code>, <code>--force</code></dt>
+<dd>Overwrite cached page.
+</dd>
+<dt><code>-u</code>, <code>--uri</code></dt>
+<dd>Open as <code>x-man-page</code> scheme.
+</dd>
+<dt><em>page</em></dt>
+<dd>Man page to view.
+</dd>
+</dl>
+<h1 id="environment">ENVIRONMENT</h1>
+<dl>
+<dt><code>BROWSER</code></dt>
+<dd>Viewer the HTML formatted man page is opened in.
+</dd>
+</dl>
+<h1 id="files">FILES</h1>
+<p>Depends on external programs <code>bash</code>, <code>basename</code>, <code>cat</code>, <code>dirname</code>, <code>groff</code>, <code>man</code>, <code>mandoc</code>, <code>mkdir</code> and <code>open</code>.</p>
+<h1 id="examples">EXAMPLES</h1>
+<p>View man pages for <code>bash</code> and <code>test</code>:</p>
+<pre><code>$ mah bash test</code></pre></main>
+  </div>
+
+  <footer>
+          <p class="date">November 2018</p>
+    
+          <p class="author">Jukka Svahn</p>
+      </footer>
+
+  </body>
+</html>

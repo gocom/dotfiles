@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+
+if [ "${WGET_COOKIES:-}" ]; then
+  cookies="$WGET_COOKIES"
+else
+  cookies="$HOME/.wget-cookies"
+fi
+
+usage () {
+  cat <<EOF
+Download files using wget.
+
+Usage:
+  $ ${0##*/} [options] [command] <url>
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} auth <url>
+  Prompt for username and password, download a file using basic HTTP
+  authentication.
+
+  $ ${0##*/} download <url>
+  Download a file.
+
+  $ ${0##*/} login <url[?<post-data>]>
+  Establish a login session and store cookies in \$WGET_COOKIES.
+
+Login:
+  The post-data can use '{u}' and '{p}' variables that are substituted with
+  prompted username and password, hiding them from terminal history. Retrieved
+  cookies are stored in ~/.wget-cookies or \$WGET_COOKIES, if set.
+
+Example:
+  $ ${0##*/} login "https://localhost/login?user={u}&pass={p}"
+  $ ${0##*/} download "https://example.com/download/3451"
+EOF
+}
+
+download () {
+  exec wget \
+    --adjust-extension \
+    --load-cookies="$cookies" \
+    --max-redirect="30" \
+    --no-cache \
+    --no-verbose \
+    --quiet \
+    --random-wait \
+    --referer="${*:$#}" \
+    --show-progress \
+    --tries="10" \
+    --trust-server-names \
+    --wait="30" \
+    "${@:1:(($#-1))}" -- "${@:$#:1}"
+}
+
+auth () {
+  local username password
+  read -r -p "Username: " username
+  read -r -s -p "Password: " password
+  download --http-user="$username" --http-password="$password" "$@"
+}
+
+login () {
+  local param query url data username password
+
+  query="${*:$#}"
+  url="${query%%\?*}"
+  data="${query:((${#url}+1))}"
+
+  if ! [ "$data" ] || [[ "$data" =~ "{u}" ]]; then
+    read -r -p "Username: " username
+    param="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$username")"
+    data="${data/\{u\}/"$param"}"
+  fi
+
+  if ! [ "$data" ] || [[ "$data" =~ "{p}" ]]; then
+    read -r -s -p "Password: " password
+    param="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$password")"
+    data="${data/\{p\}/"$param"}"
+  fi
+
+  exec wget \
+    --http-user="$username" \
+    --http-password="$password" \
+    --keep-session-cookies \
+    --load-cookies="$cookies" \
+    --max-redirect="30" \
+    --no-cache \
+    --output-document=- \
+    --referer="$url" \
+    --save-cookies="$cookies" \
+    --post-data="$data" \
+    --quiet \
+    --tries=1 \
+    "${@:1:(($#-1))}" -- "$url" > /dev/null
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  auth) auth "${@:2}" ;;
+  login) login "${@:2}" ;;
+  download) download "${@:2}" ;;
+  *"{u}"*|*"{p}"*) login "$@" ;;
+  *) download "$@" ;;
+esac

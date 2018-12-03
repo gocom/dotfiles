@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+_rcjpeg () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$prev" in
+    -d|--directory)
+      _filedir -d
+      return
+      ;;
+    -e|--extension)
+      COMPREPLY=($(compgen -W '.jpg .compressed.jpg' -- "$cur"))
+      return
+      ;;
+    -o|--out|--outfile)
+      _filedir
+      return
+      ;;
+    -q|--quality)
+      COMPREPLY=($(compgen -W '65 80 100' -- "$cur"))
+      return
+      ;;
+  esac
+
+  case "$cur" in
+    -*) COMPREPLY=($(compgen -W '--directory --extension --help --out \
+      --quality --version' -- "$cur")) ;;
+    *) _filedir ;;
+  esac
+} && complete -F _rcjpeg rcjpeg

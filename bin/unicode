@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Convert character encoding from ISO-8859-1 to UTF-8 using iconv.
+
+Usage:
+  $ ${0##*/} [options] [iconv-options]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ ${0##*/} path/to/document.txt
+  $ echo "Hello World!" | ${0##*/}
+EOF
+}
+
+main () {
+  exec iconv -f ISO-8859-1 -t UTF-8 "$@"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

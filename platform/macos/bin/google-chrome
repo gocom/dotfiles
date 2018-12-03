@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Open Google Chrome.
+
+Usage:
+  $ ${0##*/} [options] [query]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ ${0##*/} https://example.com
+EOF
+}
+
+main () {
+  local f
+
+  for f in "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; do
+    if [ -x "$f" ]; then
+      exec "$f"
+      exit "$?"
+    fi
+  done
+
+  exit 1
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

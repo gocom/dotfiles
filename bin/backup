@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Backup directories and volumes.
+
+Usage:
+  $ $app_name [options] <source ...> <destination>
+
+Options:
+  -h, --help           Print this message
+  -v, --version        Print version number
+  -D, --dry-run        Dry-run without writing anything
+  -q, --quiet          Silent mode
+  -R, --rotate <days>  Snapshots older than in days are deleted
+  -r, --remote         Remote mode
+  -s, --snapshot       Create incremental snapshot
+  -V, --verbose        Verbose mode
+
+Example:
+  $ $app_name /home/* /mnt/* /mnt/backups/
+EOF
+}
+
+main () {
+  local args option OPTIND OPTARG OPTERR \
+    status dst dryrun rotate remote silent snapshot verbose
+
+  args=()
+  status=0
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvDnsR:rqSV-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          dryrun|dry-run) dryrun=1 ;;
+          remote) remote=1 ;;
+          rotate) rotate="${!OPTIND}"; OPTIND=$((OPTIND + 1)) ;;
+          rotate=*) rotate="${OPTARG#*=}" ;;
+          quiet|silent) silent=1 ;;
+          snapshot) snapshot=1 ;;
+          verbose) verbose=1 ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              fatal "Unknown option --$OPTARG"
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      D|n) dryrun=1 ;;
+      q|S) silent=1 ;;
+      R) rotate="$OPTARG" ;;
+      r) remote=1 ;;
+      s) snapshot=1 ;;
+      V) verbose=1 ;;
+      \?) fatal "Invalid option: -$OPTARG" ;;
+      :) fatal "Option -$OPTARG requires an argument." ;;
+      *) fatal "Unexpected: -$OPTARG" ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  if [ "$#" -lt 2 ]; then
+    args=()
+
+    while read -r option; do
+      args+=("$option")
+    done <<< "$(cat)"
+
+    set -- "${args[@]}" "$@"
+  fi
+
+  if [ "$#" -lt 2 ]; then
+    fatal "Source and destination are required."
+  fi
+
+  if [ "$dryrun" ]; then
+    log "Running with --dry-run nothing will be written."
+  fi
+
+  dst="${*:$#}"
+
+  for option in "${@:1:$(($#-1))}"; do
+    backup "$option" "$dst" || status=1
+  done
+
+  return "$status"
+}
+
+backup () {
+  local args src dst real status tmp fin stamp
+
+  args=()
+  src="${1:-}"
+  dst="${2:-}"
+  status=0
+  stamp="$(date '+%Y-%m-%d__%H-%M-%S')"
+
+  if ! [ "$src" ] || ! [ "$dst" ]; then
+    return 0
+  fi
+
+  real="$(realpath -- "$src" 2> /dev/null)" && src="$real"
+  real="$(realpath -- "$dst" 2> /dev/null)" && dst="$real"
+
+  if [[ "$dst/" == "$src/"* ]]; then
+    return 0
+  fi
+
+  if ! [[ "$src" == *":"* ]] && ! [ -e "$src" ]; then
+    return 0
+  fi
+
+  if [ -d "$src" ]; then
+    src="$src/"
+  fi
+
+  if [ -r "$src/.rsync-exclude" ]; then
+    return 0
+  fi
+
+  fin="$dst"
+  tmp="$dst"
+
+  if [ "$dryrun" ]; then
+    args+=("--dry-run")
+  fi
+
+  if [ "$snapshot" ]; then
+    fin="$dst/$stamp"
+    tmp="$fin"
+
+    if ! [ "${rotate:-0}" = 0 ] && [ -d "$dst" ]; then
+      find "$dst" -depth 1 -type d -mtime +"$rotate" -delete > /dev/null
+    fi
+
+    if ! [ "$remote" ]; then
+      tmp="$dst/.rsync-inprogress"
+      args+=("--link-dest=../current")
+    fi
+  fi
+
+  if [ "$silent" ]; then
+    args+=("--quiet")
+  fi
+
+  if [ "$verbose" ]; then
+    args+=("--verbose")
+  fi
+
+  log "⋯ $src ― $fin"
+
+  if ! [ "$remote" ] && ! [ "$dryrun" ] && ! [ -e "$tmp" ]; then
+    mkdir -p "$tmp" || return 1
+  fi
+
+  set -- "${args[@]}"
+
+  sync "$@" "$src" "$tmp" || status=1
+
+  if [ "$dryrun" ]; then
+    return "$status"
+  fi
+
+  if ! [ "$tmp" = "$fin" ]; then
+    mv "$tmp" "$fin" || return 1
+  fi
+
+  if [ "$snapshot" ] && ! [ "$remote" ]; then
+    if [ -L "$dst/current" ]; then
+      rm "$dst/current" || return 1
+    fi
+
+    ln -s "$stamp" "$dst/current" > /dev/null || return 1
+  fi
+
+  return "$status"
+}
+
+sync () {
+  rsync \
+    --relative \
+    --delete \
+    --delete-excluded \
+    --group \
+    --links \
+    --owner \
+    --perms \
+    --recursive \
+    --times \
+    --update \
+    --exclude="${src:-/}.AppleDB" \
+    --exclude="${src:-/}.AppleDesktop" \
+    --exclude="${src:-/}.AppleDouble" \
+    --exclude="${src:-/}.DS_Store" \
+    --exclude="${src:-/}.DocumentRevisions-V100" \
+    --exclude="${src:-/}.fseventsd" \
+    --exclude="${src:-/}.Spotlight-V100" \
+    --exclude="${src:-/}.TemporaryItems" \
+    --exclude="${src:-/}.Trash-1000" \
+    --exclude="${src:-/}.Trashes" \
+    --exclude="${src:-/}._*" \
+    --exclude="${src:-/}lost+found" \
+    --exclude=".rsync-inprogress" \
+    --exclude=".rsync-partial" \
+    --partial-dir=".rsync-partial" \
+    --progress \
+    "$@" || return 1
+
+  return 0
+}
+
+msg () {
+  local message
+
+  for message in "$@"; do
+    echo "$message"
+  done
+}
+
+log () {
+  if ! [ "$silent" ]; then
+    msg "$@"
+  fi
+}
+
+verbose () {
+  if [ "$verbose" ]; then
+    log "$@"
+  fi
+}
+
+error () {
+  log "$@" >&2
+}
+
+fatal () {
+  error "$@"
+  exit 1
+}
+
+main "$@"

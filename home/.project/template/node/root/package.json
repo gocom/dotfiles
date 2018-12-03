@@ -1,0 +1,33 @@
+{
+  "name": "{{name}}",
+  "version": "{{version}}",
+  "description": "{{description}}",
+  "keywords": ["library"],
+  "homepage": "{{homepage}}",
+  "bugs": "{{homepage}}/issues",
+  "license": "MIT",
+  "author": {
+    "name": "{{author}}",
+    "url": "{{author_homepage}}"
+  },
+  "files": [
+    "build/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "",
+  "scripts": {
+    "build": "grunt build",
+    "install": "grunt install",
+    "pack": "grunt pack",
+    "prepare": "grunt init",
+    "start": "grunt watch",
+    "test": "grunt test",
+    "watch": "grunt watch"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": "{{vendor}}",
+  "private": true
+}

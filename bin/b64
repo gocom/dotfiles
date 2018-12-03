@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Extends base64 with the ability to handle URLs and input strings as an argument.
+
+By default outputs the encoded string on a single line, primed for data-uri
+usage.
+
+Usage:
+  $ ${0##*/} [options] [file|input|url] [resource] [base64-options]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} file [path]
+  Encodes or decodes a file.
+
+  $ ${0##*/} input [value]
+  Encodes or decodes an input value.
+
+  $ ${0##*/} url [url]
+  Encodes or decodes an URL's response body.
+
+Examples:
+  $ ${0##*/} file ~/.gitconfig
+  > SGVsbG8gV29ybGQhCg==
+
+  $ ${0##*/} input "Hello world!"
+  > SGVsbG8gV29ybGQh
+
+  $ ${0##*/} input "SGVsbG8gV29ybGQh" --decode
+  > "Hello World!"
+
+  $ ${0##*/} url https://localhost/image.png
+  > SGVsbG8gV29ybGQh
+
+  $ ${0##*/} https://localhost/with/protocol/scheme.png
+  > SGVsbG8gV29ybGQh
+
+  $ ${0##*/} url
+  ? URL:
+
+  $ ${0##*/} input
+  ? Input:
+
+  $ echo "Hello World!" > "filename.txt"
+  $ ${0##*/} filename.txt
+  > SGVsbG8gV29ybGQhCg==
+
+  $ echo "Hello World!" | b64
+  > SGVsbG8gV29ybGQhCg==
+EOF
+}
+
+prompt () {
+  local option
+
+  if ! [ "${2:-}" ]; then
+    read -r -p "$1: " option
+  else
+    option="$2"
+  fi
+
+  printf '%s' "$option"
+}
+
+url () {
+  curl -s "$(prompt URL "${1:-}")" | base64 -w 0 "${@:2}"
+}
+
+input () {
+  prompt Input "${1:-}" | base64 -w 0 "${@:2}"
+}
+
+file () {
+  exec base64 -w 0 "$@"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  f|file) file "${@:2}" ;;
+  *://*) url "$@" ;;
+  i|input) input "${@:2}" ;;
+  u|url) url "${@:2}" ;;
+  *) file "$@" ;;
+esac

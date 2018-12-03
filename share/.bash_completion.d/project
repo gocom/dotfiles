@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+_project () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$prev" in
+    --license)
+      COMPREPLY=($(compgen -W '$(project --licenses)' -- "$cur"))
+      return
+      ;;
+    --name)
+      COMPREPLY=($(compgen -W '$(basename -- "$PWD")' -- "$cur"))
+      return
+      ;;
+    --template)
+      COMPREPLY=($(compgen -W '$(project --templates)' -- "$cur"))
+      return
+      ;;
+    --version)
+      COMPREPLY=($(compgen -W '0.0.0' -- "$cur"))
+      return
+      ;;
+    --year)
+      COMPREPLY=($(compgen -W '$(date +"%Y")' -- "$cur"))
+      return
+      ;;
+  esac
+
+  COMPREPLY=($(compgen -W '$(_parse_help "$1")' -- "$cur"))
+} && complete -F _project project

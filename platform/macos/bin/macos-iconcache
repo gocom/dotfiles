@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Lists and clears iconcache.
+
+Permanently removes icon cache directories and files, and terminates Finder
+and Dock processes.
+
+If you just want to refresh individual icon, instead use update the target
+file's modification time:
+  $ touch /Application/CyberDuck.app
+
+Usage:
+  $ ${0##*/} [options] [clear|list|reload]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} clear
+  Clear iconcache.
+
+  $ ${0##*/} list
+  List cached items.
+
+  $ ${0##*/} reload
+  Relaunch Finder and Dock processes.
+
+Example:
+  $ ${0##*/} clear
+  $ ${0##*/} reload
+EOF
+}
+
+clear () {
+  find /private/var/folders/ -name com.apple.dock.iconcache -exec rm {} \;
+  find /private/var/folders/ -name com.apple.iconservices -exec rm -rf {} \;
+  rm -rf /Library/Caches/com.apple.iconservices.store
+}
+
+list () {
+  find /private/var/folders/ -name com.apple.dock.iconcache 2> /dev/null
+  find /private/var/folders/ -name com.apple.iconservices 2> /dev/null
+  find /Library/Caches/com.apple.iconservices.store -depth 0 2> /dev/null
+}
+
+reload () {
+  killall Finder
+  killall Dock
+}
+
+case "${1:-}" in
+  -v|--version) echo "0.0.0" ;;
+  clear) clear ;;
+  list) list ;;
+  reload) reload ;;
+  *) usage ;;
+esac

@@ -1,0 +1,94 @@
+<!DOCTYPE html lang="" >
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+
+      <meta name="author" content="Jukka Svahn">
+  
+  
+  
+  <title>TWITCH(1)</title>
+
+      <link rel="stylesheet" href="../style.css" />
+  
+  </head>
+<body>
+  
+      <header>
+      <h1 class="title">TWITCH(1)</h1>
+      <p class="subtitle">dotfiles</p>
+
+      
+              <p class="date">November 2018</p>
+          </header>
+  
+  <div id="content">
+          <nav>
+        <ul>
+        <li><a href="#name">NAME</a></li>
+        <li><a href="#synopsis">SYNOPSIS</a></li>
+        <li><a href="#description">DESCRIPTION</a></li>
+        <li><a href="#options">OPTIONS</a></li>
+        <li><a href="#commands">COMMANDS</a></li>
+        <li><a href="#environment">ENVIRONMENT</a></li>
+        <li><a href="#files">FILES</a></li>
+        <li><a href="#examples">EXAMPLES</a></li>
+        </ul>
+      </nav>
+    
+    <main><h1 id="name">NAME</h1>
+<p>twitch – Twitch.tv client</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>twitch</strong> [<em>options</em>] [<em>command</em>]</p>
+<h1 id="description">DESCRIPTION</h1>
+<p>Check live followed Twitch.tv channels and watch broadcasts using <strong>streamlink</strong>.</p>
+<p>Configuration required for viewing your Twitch account’s followed and live channels is automatically prompted for when required, and then stored in <code>~/.twitch</code>.</p>
+<p>The program does not receive, or require, write or read access to your account, but simply uses public-facing read-only API records.</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt><code>-h</code>, <code>--help</code></dt>
+<dd>Print help.
+</dd>
+<dt><code>-v</code>, <code>--version</code></dt>
+<dd>Print version number.
+</dd>
+</dl>
+<h1 id="commands">COMMANDS</h1>
+<dl>
+<dt><code>following</code></dt>
+<dd>Lists followed channels.
+</dd>
+<dt><code>live</code></dt>
+<dd>Lists followed live channels.
+</dd>
+<dt><code>open</code> <code>&lt;</code><em>channel</em><code>&gt;</code></dt>
+<dd>Opens a channel page in <code>$BROWSER</code>.
+</dd>
+<dt><code>watch</code> <code>&lt;</code><em>channel</em><code>&gt;</code> [<code>&lt;</code><em>quality</em><code>&gt;</code> [<em>options</em>]]</dt>
+<dd>Opens a stream in a player using <strong>streamlink</strong>
+</dd>
+</dl>
+<h1 id="environment">ENVIRONMENT</h1>
+<dl>
+<dt><code>BROWSER</code></dt>
+<dd>The program channel page is opened in.
+</dd>
+</dl>
+<h1 id="files">FILES</h1>
+<p>Depends on external programs: <code>bash</code>, <code>cat</code>, <code>column</code>, <code>curl</code>, <code>date</code>, <code>jq</code>, <code>mkdir</code>, <code>rm</code>, <code>streamlink</code> and <code>xargs</code>.</p>
+<h1 id="examples">EXAMPLES</h1>
+<p>List live channels:</p>
+<pre><code>$ twitch live</code></pre>
+<p>Watch <code>faceittv</code>:</p>
+<pre><code>$ twitch watch faceittv</code></pre></main>
+  </div>
+
+  <footer>
+          <p class="date">November 2018</p>
+    
+          <p class="author">Jukka Svahn</p>
+      </footer>
+
+  </body>
+</html>

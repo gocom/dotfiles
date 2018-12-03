@@ -1,0 +1,53 @@
+{
+  "require": [
+    "../config.json"
+  ],
+  "variables": [
+    {
+      "name": "vendor",
+      "prompt": true
+    },
+    {
+      "name": "author-name",
+      "prompt": true
+    },
+    {
+      "name": "author-homepage",
+      "prompt": true
+    },
+    {
+      "name": "date",
+      "prompt": true
+    },
+    {
+      "name": "description",
+      "prompt": true
+    },
+    {
+      "name": "header",
+      "prompt": true
+    },
+    {
+      "name": "homepage",
+      "prompt": true
+    },
+    {
+      "name": "license",
+      "prompt": true
+    },
+    {
+      "name": "name",
+      "prompt": true
+    },
+    {
+      "name": "version",
+      "prompt": {
+        "default": "0.0.0"
+      }
+    },
+    {
+      "name": "year",
+      "prompt": true
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+
+usage () {
+  cat <<EOF
+Extract compressed archives using dtrx.
+
+Usage:
+  $ ${0##*/} [options] [filename]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+EOF
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) exec dtrx --one=here --noninteractive "$@" ;;
+esac

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+_add () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$cur" in
+    -*) COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur")) ;;
+    *) _filedir -d ;;
+  esac
+} && complete -F _add add

@@ -1,0 +1,108 @@
+<!DOCTYPE html lang="" >
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+
+      <meta name="author" content="Jukka Svahn">
+  
+  
+  
+  <title>BACKUP(1)</title>
+
+      <link rel="stylesheet" href="../style.css" />
+  
+  </head>
+<body>
+  
+      <header>
+      <h1 class="title">BACKUP(1)</h1>
+      <p class="subtitle">dotfiles</p>
+
+      
+              <p class="date">October 2018</p>
+          </header>
+  
+  <div id="content">
+          <nav>
+        <ul>
+        <li><a href="#name">NAME</a></li>
+        <li><a href="#synopsis">SYNOPSIS</a></li>
+        <li><a href="#description">DESCRIPTION</a></li>
+        <li><a href="#options">OPTIONS</a></li>
+        <li><a href="#environment">ENVIRONMENT</a></li>
+        <li><a href="#files">FILES</a></li>
+        <li><a href="#examples">EXAMPLES</a></li>
+        </ul>
+      </nav>
+    
+    <main><h1 id="name">NAME</h1>
+<p>backup – Backup directories and volumes</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>backup</strong> [<em>options</em>] <code>&lt;</code><em>source</em> …<code>&gt;</code> <code>&lt;</code><em>destination</em><code>&gt;</code></p>
+<h1 id="description">DESCRIPTION</h1>
+<p>Files are backed up using <strong>rsync</strong> from the specified <em>source</em> directories to under the <em>destination</em> directory.</p>
+<p>Specified <em>source</em> directory is skipped if it is not readable, or contains a <code>.rsync-exclude</code> file.</p>
+<p>Some hidden operating system related files are automatically excluded from the root of the <em>source</em> directory, including <code>.Trashes</code>, <code>lost+found</code>, temporary files and spotlight indexes.</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt><code>-h</code>, <code>--help</code></dt>
+<dd>Print help.
+</dd>
+<dt><code>-v</code>, <code>--version</code></dt>
+<dd>Print version number.
+</dd>
+<dt><code>-D</code>, <code>--dry-run</code></dt>
+<dd>Dry-run without writing anything.
+</dd>
+<dt><code>-q</code>, <code>--quiet</code></dt>
+<dd>Silent mode.
+</dd>
+<dt><code>-R</code> <code>&lt;</code><em>days</em><code>&gt;</code>, <code>--rotate</code>[=]<code>&lt;</code><em>days</em><code>&gt;</code></dt>
+<dd>Snapshots older than in <em>days</em> are deleted. If <code>0</code>, disables rotation.
+</dd>
+<dt><code>-r</code>, <code>--remote</code></dt>
+<dd>Remote mode, drop functionalities that only function locally.
+</dd>
+<dt><code>-s</code>, <code>--snapshot</code></dt>
+<dd>Create incremental snapshot similarly to macOS Time Machine.
+</dd>
+<dt><code>-V</code>, <code>--verbose</code></dt>
+<dd>Verbose mode.
+</dd>
+<dt><em>source</em></dt>
+<dd>One or more directory paths to back up. If omitted, sources are read from <code>STDIN</code> instead.
+</dd>
+<dt><em>destination</em></dt>
+<dd>Path to location where the backups are stored. If <em>source</em> and <em>destination</em> are both omitted, the last line from <code>STDIN</code> is used as the <em>destination</em>.
+</dd>
+</dl>
+<h1 id="environment">ENVIRONMENT</h1>
+<dl>
+<dt><code>PWD</code></dt>
+<dd>Used to resolve current working directory.
+</dd>
+</dl>
+<h1 id="files">FILES</h1>
+<p>Depends on external programs <code>bash</code>, <code>cat</code>, <code>find</code>, <code>mkdir</code>, <code>realpath</code> and <code>rsync</code>.</p>
+<h1 id="examples">EXAMPLES</h1>
+<p>Back-up current user directories from <code>/home</code> and volumes from <code>/mnt</code> to <code>/mnt/backups</code>:</p>
+<pre><code>$ backup /home/* /mnt/* /mnt/backups</code></pre>
+<p>Because non-existing locations are ignored, universal set of paths can be used and deployed on various host systems:</p>
+<pre><code>$ backup /home/* /Users/* /mnt/* /media/*/* /Volumes/* /mnt/backups</code></pre>
+<p>Paths can be piped:</p>
+<pre><code>$ echo /mnt/source | backup /mnt/backups</code></pre>
+<p>And read from a file, <code>list.txt</code>, containing list of paths:</p>
+<pre><code>$ echo /mnt/1 &gt;&gt; list.txt
+$ echo /mnt/2 &gt;&gt; list.txt
+$ backup /mnt/backups &lt; list.txt</code></pre></main>
+  </div>
+
+  <footer>
+          <p class="date">October 2018</p>
+    
+          <p class="author">Jukka Svahn</p>
+      </footer>
+
+  </body>
+</html>

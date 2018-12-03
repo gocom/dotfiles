@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+if [ "${SEARCH_ENGINE:-}" ]; then
+  engine="$SEARCH_ENGINE"
+else
+  engine="https://www.google.com/search?q=%s&hl=en&pws=0"
+fi
+
+usage () {
+  cat <<EOF
+Quickly search web in \$BROWSER using \$SEARCH_ENGINE:
+  $engine
+
+Usage:
+  $ ${0##*/} [options] [query]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ ${0##*/} "my search"
+  $ cd "application-src" && ${0##*/}
+EOF
+}
+
+main () {
+  query="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$query")"
+  browse "${engine/"%s"/$query}"
+  exit "$?"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac

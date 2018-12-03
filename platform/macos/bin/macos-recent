@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+prefix="$HOME/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/"
+
+usage () {
+  cat <<EOF
+Clears macOS recent documents list.
+
+Usage:
+  $ ${0##*/} [options] [clear|list|reload|view] [identifier]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} clear [identifier]
+  Clear recent documents list for the matching bundle identifiers.
+
+  $ ${0##*/} list [identifier]
+  List records for the matching bundle identifiers.
+
+  $ ${0##*/} reload
+  Relaunch Dock process.
+
+  $ ${0##*/} view [identifier]
+  View recent documents records for the matching bundle identifiers.
+
+Examples:
+  $ ${0##*/} list vlc
+  > org.videolan.vlc
+  $ ${0##*/} clear vlc
+  > ✓ org.videolan.vlc
+EOF
+}
+
+id () {
+  local base
+  base="$(basename "$1")"
+  printf '%s' "${base%.*}"
+}
+
+clear () {
+  local f
+
+  for f in "$prefix"*"${1:-}"*.sfl; do
+    test "$f" || continue
+    test -f "$f" || continue
+    rm "$f" || continue
+    echo "✓ $(id "$f")"
+  done
+}
+
+list () {
+  local f
+
+  for f in "$prefix"*"${1:-}"*.sfl; do
+    test "$f" || continue
+    test -f "$f" || continue
+    echo "⋯ $(id "$f")"
+  done
+}
+
+reload () {
+  killall Dock
+}
+
+view () {
+  local f
+
+  for f in "$prefix"*"${1:-}"*.sfl; do
+    test "$f" || continue
+    test -f "$f" || continue
+    plutil -convert "xml1" "$f" -o -
+  done
+}
+
+case "${1:-}" in
+  -v|--version) echo "0.0.0" ;;
+  clear) clear "${@:2}" ;;
+  list) list "${@:2}" ;;
+  reload) reload ;;
+  view) view "${@:2}" ;;
+  *) usage ;;
+esac

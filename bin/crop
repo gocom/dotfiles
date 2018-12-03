@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Scales and crops an image from the center.
+
+Usage:
+  $ ${0##*/} [options] <file> <dimensions> [output-file|imagemagick-options]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ ${0##*/} image.png 320x180 thumbnail.png
+EOF
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) exec magick "$1" -resize "${2}^" -gravity center -extent "$2" "${@:3}" ;;
+esac

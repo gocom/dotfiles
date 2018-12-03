@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+_gravatar () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$prev" in
+    -r)
+      COMPREPLY=($(compgen -W 'avatar profile' -- "$cur"))
+      return
+      ;;
+    -s)
+      COMPREPLY=($(compgen -W '80' -- "$cur"))
+      return
+      ;;
+    -t)
+      COMPREPLY=($(compgen -W 'json xml php vcf qr' -- "$cur"))
+      return
+      ;;
+  esac
+
+  case "$cur" in
+    -*)
+      COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
+      return
+      ;;
+  esac
+
+  if [ "$cword" -eq 1 ]; then
+    COMPREPLY=($(compgen -W 'avatar path profile url' -- "$cur"))
+    return;
+  fi
+
+  case "${words[1]}" in
+    avatar)
+      if [ "$cword" -ge 3 ]; then
+        COMPREPLY=($(compgen -W '-s' -- "$cur"))
+        return;
+      fi
+      ;;
+    path)
+      COMPREPLY=($(compgen -W '-h -r -e -u -s -t' -- "$cur"))
+      return;
+      ;;
+    profile)
+      if [ "$cword" -eq 3 ]; then
+        COMPREPLY=($(compgen -W 'json xml php vcf qr' -- "$cur"))
+        return;
+      fi
+      ;;
+    url)
+      if [ "$cword" -ge 3 ]; then
+        COMPREPLY=($(compgen -W '-r -s -t' -- "$cur"))
+        return
+      fi
+      ;;
+  esac
+} && complete -F _gravatar gravatar

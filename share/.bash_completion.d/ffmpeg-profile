@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+_ffmpeg-profile () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  if [ "$cword" -eq 1 ]; then
+    case "$cur" in
+      -*)
+        COMPREPLY=($(compgen -W '$(_parse_help "$1")' -- "$cur"))
+        return
+        ;;
+      *)
+        COMPREPLY=($(compgen -W '$(ffmpeg-profile --names)' -- "$cur"))
+        return
+        ;;
+    esac
+  fi
+
+  case "$cur" in
+    -*) ;;
+    *) _filedir ;;
+  esac
+} && complete -F _ffmpeg-profile ffmpeg-profile
