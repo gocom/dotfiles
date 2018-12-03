@@ -1,0 +1,13 @@
+.DS_Store
+/.*
+!.editorconfig
+!.gitignore
+dotfiles.bash
+/backups/
+/node_modules/
+/vendor/
+/share/man/man1/*/
+/bin/_*
+/bin/.*
+/package-lock.json
+/composer.lock
