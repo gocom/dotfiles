@@ -1,12 +1,12 @@
 # Whether the session is interactive.
 case "$-" in
-  *i*) DOTFILES_INTERACTIVE=1 ;;
-  *)   DOTFILES_INTERACTIVE="" ;;
+  *i*) ;;
+  *) return ;;
 esac
 
 export DOTFILES_HOME="${DOTFILES_HOME:-}"
 export DOTFILES_COLOR=""
-export DOTFILES_INTERACTIVE=""
+export DOTFILES_INTERACTIVE=1
 export DOTFILES_PLATFORM="${OSTYPE:-}"
 export DOTFILES_DISPLAY=""
 
