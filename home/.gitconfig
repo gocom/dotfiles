@@ -50,8 +50,8 @@
   nobranch = red
   unmerged = yellow
 [user]
-	name = Jukka Svahn
-	email = void@rah.pw
+  name = Jukka Svahn
+  email = void@rah.pw
   useConfigOnly = true
 [alias]
   # Single letter aliases.
