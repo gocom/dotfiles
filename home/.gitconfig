@@ -141,6 +141,7 @@
   create = init
   diff-head = diff --patch HEAD~1 HEAD
   diff-staged = diff --patch --staged
+  files = ls-files
   find = "!f() { git find-name "$1"; git find-contents "$1"; return 0; }; f"
   find-contents = grep -Ii
   find-name = "!f() { git ls-files | grep -i "$1"; return 0; }; f"
