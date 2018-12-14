@@ -1,3 +1,9 @@
+# Whether the session is interactive.
+case "$-" in
+  *i*) DOTFILES_INTERACTIVE=1 ;;
+  *)   DOTFILES_INTERACTIVE="" ;;
+esac
+
 export DOTFILES_HOME="${DOTFILES_HOME:-}"
 export DOTFILES_COLOR=""
 export DOTFILES_INTERACTIVE=""
@@ -11,12 +17,6 @@ if ! [ "$DOTFILES_HOME" ]; then
     DOTFILES_HOME="$HOME/.dotfiles"
   fi
 fi
-
-# Whether the session is interactive.
-case "$-" in
-  *i*) DOTFILES_INTERACTIVE=1 ;;
-  *)   DOTFILES_INTERACTIVE="" ;;
-esac
 
 # Exit using CTRL+D requires confirmation.
 IGNOREEOF=1
