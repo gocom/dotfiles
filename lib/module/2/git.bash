@@ -9,7 +9,7 @@ if [ "$(declare -F __git_ps1)" ]; then
     local branch="$(GIT_PS1_SHOWDIRTYSTATE=yes; __git_ps1 "%s")"
 
     if [ "$branch" ]; then
-      df::prompt_append 5 "${PS_MAGENTA}⎇${PS_RESET} ${PS_BLUE}${branch}${PS_RESET}"
+      df::prompt_append 6 "${PS_MAGENTA} ‡ ${PS_RESET}${PS_BOLD}${PS_BLUE}${branch}${PS_RESET}"
     fi
   }
 

@@ -159,6 +159,7 @@ df::prompt_set () {
     w)  DOTFILES_PS1_W="$value" ;;
     e0) DOTFILES_PS1_E0="$value" ;;
     e1) DOTFILES_PS1_E1="$value" ;;
+    e2) DOTFILES_PS1_E2="$value" ;;
     *)  return 1 ;;
   esac
 }
@@ -219,7 +220,7 @@ df::prompt_remove () {
 # @private
 
 df::prompt_clear () {
-  df::prompt_remove 1 2 3 4 5 6 7 8 9 u a h m w e0 e1
+  df::prompt_remove 1 2 3 4 5 6 7 8 9 u a h m w e0 e1 e2
 }
 
 # Resets the prompt to defaults.
@@ -661,6 +662,8 @@ df::prompt_run () {
   else
     printf "\e]1;%s\007" "$DOTFILES_PS1_E1"
   fi
+
+  printf "\e]2;%s\007" "$DOTFILES_PS1_E2"
 
   PS1=""
 

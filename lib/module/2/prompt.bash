@@ -2,23 +2,26 @@
 dotfiles_prompt () {
   df::color -e
 
-  df::prompt_add 5 "${blue}\u${reset}"
+  if ! [ "${PS_PREVIOUS_PWD:-$HOME}" = "$PWD" ]; then
+    df::prompt_add 3 "${yellow}↠${reset} ${green}${PWD}${reset}\n"
+  fi
+
+  df::prompt_add 5 "${PS_BOLD}${blue}\u${reset}"
   df::prompt_add 5 "${magenta}@${reset}"
-  df::prompt_add 5 "${blue}\h${reset}"
+  df::prompt_add 5 "${PS_BOLD}${blue}\h${reset}"
 
   if [ "$UID" -eq 0 ]; then
     df::prompt_append "m" "${red}${PS_TOXIC}${reset}"
   else
-    df::prompt_append "m" "${magenta}${PS_COMMAND}${reset}"
+    df::prompt_append "m" "${PS_BOLD}${magenta}${PS_COMMAND}${reset}"
   fi
 
   df::prompt_add "e0" "$TERM"
   df::prompt_add "e1" "${PWD##*/}"
+  df::prompt_add "e2" "$PWD – $0 – $USER"
   df::prompt_status || df::prompt_add w "${yellow}${PS_DWARROWR} exit: $(df::prompt_status code)${reset}\n"
 
-  if [ "$(df::prompt_status code)" -eq 127 ]; then
-    bshtr::remove_exact "$(bshtr::list 1)"
-  fi
+  PS_PREVIOUS_PWD="$PWD"
 }
 
 df::prompt_handler 'dotfiles_prompt'

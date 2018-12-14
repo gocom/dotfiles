@@ -19,6 +19,7 @@ Requirements
 * [Bash](https://www.gnu.org/software/bash/) >= 4.3
 * [Coreutils](https://www.gnu.org/software/coreutils/coreutils.html)
 * perl
+* GNU awk
 
 Setup
 -----
