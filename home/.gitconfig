@@ -144,9 +144,10 @@
   find = "!f() { git find-name "$1"; git find-contents "$1"; return 0; }; f"
   find-contents = grep -Ii
   find-name = "!f() { git ls-files | grep -i "$1"; return 0; }; f"
-  history = log --pretty=logcompact --graph --date=short
+  history = log --pretty=logcompact --date=short
   ls = "!git history"
   history-diff = log -u --pretty=logcompact --date=short
+  history-graph = "!git history --graph"
   history-refs = log --pretty=logcompact-refs --date=short
   ignored = ls-files --others --i --exclude-standard
   info = log --no-abbrev-commit --notes --pretty=logdetails --graph
