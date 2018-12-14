@@ -55,11 +55,6 @@
     coloured: false
   "git-diff":
     showIconsInEditorGutter: true
-  "ide-php":
-    phpPath: "/usr/local/bin/php"
-  "php-debug":
-    showWelcome: false
-    xdebug:
-      pathMaps: "[{\"remotePath\":\"src/Netcarver/Textile\",\"localPath\":\"/Volumes/Mango/Projects/php-textile/src/Netcarver/Textile\"}]"
+  "ide-php": {}
   welcome:
     showOnStartup: false

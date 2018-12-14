@@ -5,3 +5,5 @@ language-ini
 language-source-cfg
 language-textile
 open-terminal-here
+atom-ide-ui
+ide-php
