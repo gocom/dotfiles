@@ -217,6 +217,7 @@ install_dependencies () {
 
   if [ "$(command -v composer)" ]; then
     composer install
+    composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs
   else
     error "${yellow}·${reset} composer not installed"
   fi
