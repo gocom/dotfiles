@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ "$(declare -F _cd)" ]; then
+  if shopt -q cdable_vars; then
+    complete -v -F _cd rd
+  else
+    complete -F _cd rd
+  fi
+fi
