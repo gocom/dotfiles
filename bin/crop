@@ -19,5 +19,5 @@ EOF
 case "${1:-}" in
   ""|-h|--help) usage ;;
   -v|--version) echo "0.0.0" ;;
-  *) exec magick "$1" -resize "${2}^" -gravity center -extent "$2" "${@:3}" ;;
+  *) exec convert "$1" -resize "${2}^" -gravity center -extent "$2" "${@:3}" ;;
 esac

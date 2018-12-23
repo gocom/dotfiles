@@ -58,6 +58,8 @@ main () {
 
   if [ "$(command -v magick)" ]; then
     magick="magick"
+  elif [ "$(command -v convert)" ]; then
+    magick="convert"
   fi
 
   if ! [ "$mozjpeg" ]; then
