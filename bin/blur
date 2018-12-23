@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Blurs an image.
+
+Usage:
+  $ ${0##*/} [options] <input> <output>
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ ${0##*/} image.png blurred.png
+EOF
+}
+
+main () {
+  exec convert "${@:(($#-1)):1}" -filter Gaussian -blur 30x10 "${@:1:(($#-2))}" "${@:$#:1}"
+}
+
+if [ "$#" -lt 2 ]; then
+  usage
+  exit 1
+fi
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac
