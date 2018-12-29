@@ -3,6 +3,7 @@
 app_name="${0##*/}"
 app_version="0.0.0"
 app_shell="/bin/bash"
+app_cwd="$(realpath "$PWD")"
 
 usage () {
   cat <<EOF
@@ -16,6 +17,9 @@ Options:
   -v, --version  Print version number
 
 Commands:
+  $ $app_name ch [container] [command]
+  Run a command inside a container in the current working directory
+
   $ $app_name names
   List container names
 
@@ -27,6 +31,7 @@ Commands:
 
 Examples:
   $ $app_name sh php
+  $ $app_name ch php -- ls -a
 EOF
 }
 
@@ -81,9 +86,11 @@ main () {
   fi
 
   case "${1:-}" in
+    ch) ch "${@:2}" ;;
     ips) ips ;;
     names) containers "${@:2}" ;;
     sh) sh "${@:2}" ;;
+    *) echo "Unknown command: ${1:-}"; exit 1 ;;
   esac
 
   return 0
@@ -94,9 +101,11 @@ sh () {
   docker exec -it "$@" "$app_shell"
 }
 
-run () {
-  set -- "$(containers "$@" | head -n1)"
-
+ch () {
+  docker exec -i "$(containers "${1:-}" | head -n1)" "$app_shell" <<EOF
+    test -d "$app_cwd" && cd "$app_cwd"
+    ${@:2}
+EOF
 }
 
 containers () {
