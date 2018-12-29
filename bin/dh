@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+app_shell="/bin/bash"
+
+usage () {
+  cat <<EOF
+Docker helpers.
+
+Usage:
+  $ $app_name [options] [command]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ $app_name names
+  List container names
+
+  $ $app_name ips
+  List container IP addresses
+
+  $ $app_name sh [container]
+  Launch shell session inside a container
+
+Examples:
+  $ $app_name sh php
+EOF
+}
+
+main () {
+  local option args OPTIND OPTARG OPTERR
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvailoqsr-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+      :)
+        echo "Option -$OPTARG requires an argument."
+        exit 1
+        ;;
+      *)
+        echo "Unexpected: -$option"
+        exit 1
+        ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
+  if [ "$#" -eq 0 ]; then
+    usage
+    exit 1
+  fi
+
+  case "${1:-}" in
+    ips) ips ;;
+    names) containers "${@:2}" ;;
+    sh) sh "${@:2}" ;;
+  esac
+
+  return 0
+}
+
+sh () {
+  set -- "$(containers "$@" | head -n1)"
+  docker exec -it "$@" "$app_shell"
+}
+
+run () {
+  set -- "$(containers "$@" | head -n1)"
+
+}
+
+containers () {
+  local containers line
+
+  containers="$(docker ps --format "{{.Names}}")"
+
+  if ! [ "${1:-}" ]; then
+    echo "$containers"
+    return 0
+  fi
+
+  while read -r line; do
+    case "$line" in
+      *"$1"*) echo "$line" ;;
+    esac
+  done <<< "$(printf '%s' "$containers")"
+}
+
+ips () {
+  docker ps -q | xargs -n 1 docker inspect --format '{{.Name}} {{.NetworkSettings.Networks.internal_network.IPAddress}}  {{.NetworkSettings.IPAddress}}' | sed 's/^\///' | column -t
+}
+
+main "$@"
