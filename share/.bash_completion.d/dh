@@ -21,7 +21,7 @@ _dh () {
 
   if [ "$cword" -eq 1 ]; then
     COMPREPLY=($(compgen -W 'ch ips names sh' -- "$cur"))
-    return 0
+    return
   fi
 
   _command
