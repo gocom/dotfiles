@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+_dh () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$prev" in
+    ch|names|sh)
+      COMPREPLY=($(dh names))
+      return
+      ;;
+  esac
+
+  case "$cur" in
+    -*)
+      COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
+      return
+      ;;
+  esac
+
+  if [ "$cword" -eq 1 ]; then
+    COMPREPLY=($(compgen -W 'ch ips names sh' -- "$cur"))
+    return 0
+  fi
+
+  _command
+} && complete -F _dh dh
