@@ -1,0 +1,1 @@
+gsettings set org.gnome.desktop.input-sources xkb-options "['numpad:mac', 'eurosign:e', 'ctrl:swap_lwin_lctl', 'ctrl:swap_rwin_rctl', 'lv3:ralt_switch', 'lv3:lalt_switch']"
