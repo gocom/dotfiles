@@ -33,8 +33,7 @@ bshtr::ignore() {
 # @api
 
 bshtr::remove() {
-  local pattern
-  local i
+  local pattern i
 
   for i in "$@"; do
     pattern="$(printf '^%s$' "$i")"
@@ -57,8 +56,7 @@ bshtr::remove() {
 # @api
 
 bshtr::remove_exact() {
-  local pattern
-  local i
+  local pattern i
 
   for i in "$@"; do
     if [ "${BSHTR_REMOVE_EXACT:-}" ]; then
@@ -132,10 +130,7 @@ bshtr::list() {
 # @api
 
 bshtr::forget() {
-  local last
-  local line
-  local numeric
-  local original
+  local last line numeric original
 
   if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
     echo "usage: $ $FUNCNAME [command ...]" >&1
@@ -190,6 +185,8 @@ bshtr::forget() {
 # @private
 
 bshtr::assert() {
+  local lines
+
   if [ "${HISTTIMEFORMAT:-}" ]; then
     return 1
   fi
@@ -198,7 +195,7 @@ bshtr::assert() {
     return 1
   fi
 
-  local lines=$(wc -l < "$HISTFILE")
+  lines=$(wc -l < "$HISTFILE")
 
   if ! [ "$lines" ] || [ "$lines" -lt 1 ]; then
     return 1
@@ -237,10 +234,12 @@ bshtr::read() {
 # @private
 
 bshtr::purge() {
+  local tmp1 tmp2
+
   bshtr::assert || return 1
 
-  local tmp1="${HISTFILE}.purge.1.${$}.tmp"
-  local tmp2="${HISTFILE}.purge.2.${$}.tmp"
+  tmp1="${HISTFILE}.purge.1.${$}.tmp"
+  tmp2="${HISTFILE}.purge.2.${$}.tmp"
 
   cp "$HISTFILE" "$tmp1" || return 1
 
@@ -269,10 +268,12 @@ bshtr::purge() {
 # @private
 
 bshtr::dedupe() {
+  local tmp1 tmp2
+
   bshtr::assert || return 1
 
-  local tmp1="${HISTFILE}.dedupe.1.${$}.tmp"
-  local tmp2="${HISTFILE}.dedupe.2.${$}.tmp"
+  tmp1="${HISTFILE}.dedupe.1.${$}.tmp"
+  tmp2="${HISTFILE}.dedupe.2.${$}.tmp"
 
   cp "$HISTFILE" "$tmp1" || return 1
   awk 'NR==FNR && !/^#/{lines[$0]=FNR;next} lines[$0]==FNR' "$tmp1" "$tmp1" > "$tmp2" || return 1
@@ -292,24 +293,26 @@ bshtr::dedupe() {
 # @private
 
 bshtr::prune() {
+  local limit lines buffer offset archive tmp1 tmp2
+
   bshtr::assert || return 1
 
   if ! [ "${HISTSIZE:-}" ] || [ "$HISTSIZE" -lt 1 ]; then
     return 1
   fi
 
-  local limit="$HISTSIZE"
-  local lines=$(wc -l < "$HISTFILE")
-  local buffer=$(("$limit" * 2))
+  limit="$HISTSIZE"
+  lines=$(wc -l < "$HISTFILE")
+  buffer=$(("$limit" * 2))
 
   if ! [ "$lines" ] || [ "$lines" -lt "$buffer" ]; then
     return 0
   fi
 
-  local offset=$(("$lines" - "$limit"))
-  local archive="${HISTFILE}.1"
-  local tmp1="${HISTFILE}.prune.1.${$}.tmp"
-  local tmp2="${HISTFILE}.prune.2.${$}.tmp"
+  offset=$(("$lines" - "$limit"))
+  archive="${HISTFILE}.1"
+  tmp1="${HISTFILE}.prune.1.${$}.tmp"
+  tmp2="${HISTFILE}.prune.2.${$}.tmp"
 
   cp "$HISTFILE" "$tmp1" || return 1
   head -$offset "$tmp1" >> "$archive" || return 1
@@ -330,11 +333,13 @@ bshtr::prune() {
 # @private
 
 bshtr::archive() {
+  local file tmp1 tmp2
+
   bshtr::assert || return 1
 
-  local file="${HISTFILE}.last-session"
-  local tmp1="${file}.1.${$}.tmp"
-  local tmp2="${file}.2.${$}.tmp"
+  file="${HISTFILE}.last-session"
+  tmp1="${file}.1.${$}.tmp"
+  tmp2="${file}.2.${$}.tmp"
 
   touch "$file" || return 1
   cp "$HISTFILE" "$tmp1" || return 1
@@ -343,6 +348,16 @@ bshtr::archive() {
   awk 'NR==FNR && !/^#/{lines[$0]=FNR;next} lines[$0]==FNR' "$tmp2" "$tmp2" > "$tmp1" || return 1
   rm "$tmp2" || return 1
   mv "$tmp1" "$file" || return 1
+}
+
+# Clean temporary files.
+#
+# @private
+
+bshtr::clean() {
+  bshtr::assert || return 1
+
+  rm -- "${HISTFILE}."*".${$}.tmp"
 }
 
 # History callback function.
@@ -364,6 +379,9 @@ bshtr::run() {
 
   # Rotate history to reduce filesize.
   bshtr::prune
+
+  # Clean temporary files.
+  bshtr::clean
 }
 
 # Enables history control.
@@ -452,10 +470,10 @@ bshtr::off() {
 # @private
 
 bshtr::trap_add () {
-  local add="$1"
-  local position="$2"
-  local signal
-  local traps
+  local add position signal traps
+
+  add="$1"
+  position="$2"
 
   shift 2 || return 1
 
@@ -531,9 +549,9 @@ bshtr::trap_append () {
 # @private
 
 bshtr::trap_remove () {
-  local needle="$1"
-  local signal
-  local traps
+  local needle signal traps
+
+  needle="$1"
 
   shift || return 1
 
@@ -559,8 +577,7 @@ bshtr::trap_remove () {
 # @private
 
 bshtr::trap_list () {
-  local signal
-  local traps
+  local signal traps
 
   for signal in "$@"; do
     traps=$(trap -p "$signal" | awk -F "'" '{print $2}')
