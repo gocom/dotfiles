@@ -6,11 +6,11 @@ Personal [Bash](https://www.gnu.org/software/bash/) shell configuration files an
 Install
 -----
 
-The scripts expect that they can be accessed from `~/.dotfiles`. Clone the directory to that location and source the configuration files in `.bash_profile` and `.bashrc`.
+The scripts expect that they can be accessed from `~/.dotfiles`. Clone the repository to that location and source the configuration files from `home` directory in your `.bash_profile` and `.bashrc`.
 
 ```
-$ git clone git@github.com:gocom/dotfiles.git ~/.dotfiles
-$ ./.dotfiles/bin/dotfiles install
+$ git clone https://github.com/gocom/dotfiles.git ~/.dotfiles
+$ ~/.dotfiles/bin/dotfiles install
 ```
 
 Requirements
