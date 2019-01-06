@@ -1,15 +1,8 @@
 #!/usr/bin/env bash
 
-packages="$HOME/.atom/packages.txt"
-
-if [ "${ATOM_PACKAGES_FILE:-}" ]; then
-  packages="$ATOM_PACKAGES_FILE"
-fi
-
 usage () {
   cat <<EOF
-Manage Atom.io apm with \$ATOM_PACKAGES_FILE manifest:
-  $packages
+Manage Atom.io apm with Atomfile manifest.
 
 This wrapper extends apm with 'install' and 'dump' commands that allow
 installing packages with a manifest file.
@@ -52,11 +45,11 @@ lock () {
 }
 
 dump () {
-  list > "${1:-$packages}"
+  list > "${1:-Atomfile}"
 }
 
 install () {
-  apm install --packages-file "${1:-$packages}"
+  apm install --packages-file "${1:-Atomfile}"
 }
 
 case "${1:-}" in

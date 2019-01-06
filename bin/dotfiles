@@ -188,7 +188,6 @@ install () {
 
   base "$directory"
   link "home/.atom/config.cson"
-  link "home/.atom/packages.txt"
   link "home/.man/style.css"
   link "home/.rename/replacements.js"
   link "home/.ssh/config"
@@ -580,7 +579,7 @@ watch () {
 # Dump dependencies.
 
 dump () {
-  apm-pkg dump "home/.atom/packages.txt" 2> /dev/null
+  apm-pkg dump "Atomfile" 2> /dev/null
   brew bundle dump --force 2> /dev/null
   return 0
 }
