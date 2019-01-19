@@ -1,0 +1,19 @@
+[/]
+foreground-color='#abb2bf'
+visible-name='One Dark'
+palette=['#000000', '#E06C75', '#98c379', '#d19a66', '#61aeee', '#c678dd', '#56b6c2', '#abb2bf', '#5c6370', '#e06c75', '#98c379', '#d19a66', '#62afee', '#c678dd', '#56b6c2', '#ffffff']
+cell-width-scale=1.0
+bold-is-bright=true
+cursor-shape='underline'
+use-system-font=false
+use-theme-colors=false
+cell-height-scale=1.1500000000000001
+font='Fira Code 11'
+use-theme-transparency=false
+use-theme-background=false
+bold-color-same-as-fg=true
+cursor-blink-mode='off'
+background-color='#282c34'
+audible-bell=false
+bold-color='#ABB2BF'
+scrollbar-policy='always'
