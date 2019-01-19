@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Dumps installed apt packages.
+
+Usage:
+  $ $ ${0##*/} [options] [dump|list]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ ${0##*/} dump [filename]
+  Dumps a list of installed packages.
+
+  $ ${0##*/} install [filename]
+  Install packages from a file.
+
+  $ ${0##*/} list
+  List installed packages.
+
+For more information see:
+  $ apt --help
+
+Examples:
+  ${0##*/} list
+  ${0##*/} dump
+EOF
+}
+
+list () {
+  apt list --installed 2> /dev/null | awk -F '/' '!/,automatic/{print $1}' | sort -u
+}
+
+dump () {
+  list > "${1:-Aptfile}"
+}
+
+install () {
+  apt install "$(cat "${1:-Aptfile}" | xargs)"
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  dump) dump "${@:2}" ;;
+  install) install "${@:2}" ;;
+  list) list ;;
+  *) usage; exit 1 ;;
+esac
