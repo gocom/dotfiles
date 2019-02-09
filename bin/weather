@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Get weather report from wttr.in.
+
+Usage:
+  $ ${0##*/} [options] [location]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+  -n, --now      Print current temperature instead of forecast
+
+Example:
+  $ ${0##*/}
+  $ ${0##*/} London
+EOF
+}
+
+main () {
+  local option param language options locations
+
+  options="m&n"
+  locations=()
+
+  if [ "${LANG:-}" ]; then
+    language="${LANG%_*}"
+  fi
+
+  for option in "$@"; do
+    case "$option" in
+      -n|--now) format="&format=4" ;;
+      *) locations+=("$option") ;;
+    esac
+  done
+
+  for option in "${locations[@]}"; do
+    param="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$option")"
+    curl -q -H "Accept-Language: ${language:-en}" "https://wttr.in/${param}?m&n${format}" || exit 1
+  done
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac
