@@ -20,7 +20,7 @@ Commands:
   $ $app_name ch [container] [command]
   Run a command inside a container in the current working directory
 
-  $ $app_name names
+  $ $app_name names [container]
   List container names
 
   $ $app_name ips
@@ -47,7 +47,7 @@ main () {
     esac
   done
 
-  while getopts ":hvailoqsr-:" option; do
+  while getopts ":hv-:" option; do
     case "$option" in
       -)
         case "$OPTARG" in

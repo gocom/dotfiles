@@ -3,7 +3,7 @@
 .SH NAME
 php-xdebug-server \- php-xdebug-server
 .SH DESCRIPTION
-Run PHP with debug configs.
+Run PHP with a xdebug\-server configuration.
 .SS "Usage:"
 .IP
 $ php\-xdebug\-server [options]
@@ -14,6 +14,12 @@ Print this message
 .TP
 \fB\-v\fR, \fB\-\-version\fR
 Print version number
+.TP
+\fB\-\-configs\fR
+List loaded extra config files
+.TP
+\fB\-\-init\fR
+Initialize new configuration set
 .SH EXAMPLES
 .IP
 \f(CW$ php-xdebug-server /usr/local/bin/composer test\fR
