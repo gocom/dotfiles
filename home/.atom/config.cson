@@ -41,13 +41,13 @@
       "welcome"
       "update-package-dependencies"
       "timecop"
-      "ide-php"
     ]
     reopenProjectMenuCount: 0
     telemetryConsent: "no"
     warnOnLargeFileLimit: 15
   editor:
     autoIndentOnPaste: false
+    fontFamily: "Hack, Menlo, Consolas, DejaVu Sans Mono, monospace"
     invisibles: {}
     softWrap: true
   "exception-reporting": {}
