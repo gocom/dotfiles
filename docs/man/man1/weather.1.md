@@ -1,6 +1,6 @@
-% WGET-DL(1)
+% WEATHER(1)
 % Jukka Svahn
-% October 2018
+% February 2019
 
 # NAME
 
