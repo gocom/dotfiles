@@ -28,20 +28,13 @@ main () {
     exit "$?"
   fi
 
-  if [ "$(command -v gio)" ]; then
+  if ! [[ "${OSTYPE:-}" =~ "darwin" ]] && [ "$(command -v gio)" ]; then
     exec gio open "$@"
     exit "$?"
   fi
 
   if [ -x "/usr/bin/open" ]; then
     exec /usr/bin/open "$@"
-    exit "$?"
-  fi
-
-  open="$(command -v open)"
-
-  if [ "$open" ] && ! [ "$open" = "$0" ]; then
-    exec "$open" "$@"
     exit "$?"
   fi
 
