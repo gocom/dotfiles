@@ -18,7 +18,7 @@ dotfiles_prompt () {
 
   df::prompt_add "e0" "$TERM"
   df::prompt_add "e1" "${PWD##*/}"
-  df::prompt_add "e2" "$PWD – ${0##*/}"
+  df::prompt_add "e2" "${PWD##*/}"
   df::prompt_status || df::prompt_add w "${yellow}${PS_DWARROWR} exit: $(df::prompt_status code)${reset}\n"
 
   PS_PREVIOUS_PWD="$PWD"
