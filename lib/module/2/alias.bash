@@ -43,6 +43,5 @@ rd () {
   fi
 
   cd "$@" > /dev/null || return 1
-  cd -P -- "$(pwd -P)" || return 1
-  echo "$PWD"
+  cd -P -- "$(pwd -P)" > /dev/null || return 1
 }
