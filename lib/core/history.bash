@@ -357,7 +357,7 @@ bshtr::archive() {
 bshtr::clean() {
   bshtr::assert || return 1
 
-  rm -- "${HISTFILE}."*".${$}.tmp"
+  rm -- "${HISTFILE}."*".${$}.tmp" 2> /dev/null
 }
 
 # History callback function.
