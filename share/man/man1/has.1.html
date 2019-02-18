@@ -1,0 +1,81 @@
+<!DOCTYPE html lang="" >
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+
+      <meta name="author" content="Jukka Svahn">
+  
+  
+  
+  <title>HAS(1)</title>
+
+      <link rel="stylesheet" href="../style.css" />
+  
+  </head>
+<body>
+  
+      <header>
+      <h1 class="title">HAS(1)</h1>
+      <p class="subtitle">dotfiles</p>
+
+      
+              <p class="date">February 2019</p>
+          </header>
+  
+  <div id="content">
+          <nav>
+        <ul>
+        <li><a href="#name">NAME</a></li>
+        <li><a href="#synopsis">SYNOPSIS</a></li>
+        <li><a href="#description">DESCRIPTION</a></li>
+        <li><a href="#options">OPTIONS</a></li>
+        <li><a href="#files">FILES</a></li>
+        <li><a href="#examples">EXAMPLES</a></li>
+        </ul>
+      </nav>
+    
+    <main><h1 id="name">NAME</h1>
+<p>has – List installed software versions</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p><strong>has</strong> [<em>options</em>] [<em>command</em> …]</p>
+<h1 id="description">DESCRIPTION</h1>
+<p>Checks and lists installed command versions.</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt><code>-h</code>, <code>--help</code></dt>
+<dd>Print help.
+</dd>
+<dt><code>-v</code>, <code>--version</code></dt>
+<dd>Print version number.
+</dd>
+<dt><code>-s</code>, <code>--supported</code></dt>
+<dd>List supported commands.
+</dd>
+<dt><code>-u</code>, <code>--unsupported</code></dt>
+<dd>List unsupported commands.
+</dd>
+<dt><code>-f</code>, <code>--force</code></dt>
+<dd>Perform unsafe check even if the command is not supported.
+</dd>
+<dt><em>command</em></dt>
+<dd>One or more command to check. If omitted, checks and lists all supported commands.
+</dd>
+</dl>
+<h1 id="files">FILES</h1>
+<p>Depends on external programs <code>awk</code>, <code>bash</code>, <code>cat</code>, <code>column</code>, <code>grep</code> and <code>head</code>.</p>
+<h1 id="examples">EXAMPLES</h1>
+<p>Check and list all packages and their versions:</p>
+<pre><code>$ has</code></pre>
+<p>Check <code>docker</code> and <code>git</code>:</p>
+<pre><code>$ has docker git</code></pre></main>
+  </div>
+
+  <footer>
+          <p class="date">February 2019</p>
+    
+          <p class="author">Jukka Svahn</p>
+      </footer>
+
+  </body>
+</html>

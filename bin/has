@@ -8,7 +8,7 @@ usage () {
 Lists version numbers for the specified command.
 
 Usage:
-  $ $app_name [options] [command, ...]
+  $ $app_name [options] [command ...]
 
 Options:
   -h, --help         Print this message
@@ -17,7 +17,8 @@ Options:
   -u, --unsupported  List unsupported commands
   -f, --force        Perform unsafe check even if the command is not supported
 
-Example:
+Examples:
+  $ $app_name
   $ $app_name git
 EOF
 }
@@ -25,58 +26,61 @@ EOF
 table () {
   cat <<EOF
 # <progam>  [regex:<expression>]  <argument ...>
-ant           -version
-apm           --version
-atom          --version
-autoconf      --version
-awk           --version
-bash          --version
-bats          --version
-bower         --version
-brew          --version
-bzr           --version
-composer      --version
-curl          --version
-dd            --version
-dnsmasq       --version
-emacs         --version
-ffmpeg        -version
-gcc           --version
-git           --version
-hg            --version
-httpd         -v
-iconv         --version
-jasper        --version
-java          -version
-javac         -version
-jq            --version
-lame          --version
-less          --version
-lynx          --version
-m4            --version
-magick        --version
-make          --version
-mcrypt        --version
-memcached     --version
-nano          --version
-node          --version
-npm           --version
-openssl       version
-perl          --version
-php           --version
-pulseaudio    --version
-python        --version
-rsync         --version
-ruby          --version
-scala         -version
-screenfetch   --version
-shellcheck    --version
-svn           --version
-tr            --version
-vim           --version
-wget          --version
-youtube-dl    --version
-zsh           --version
+ant             -version
+apm             --version
+atom            --version
+autoconf        --version
+awk             --version
+bash            --version
+bats            --version
+bower           --version
+brew            --version
+bzr             --version
+composer        --version
+curl            --version
+dd              --version
+dnsmasq         --version
+docker          --version
+docker-compose  --version
+docker-machine  --version
+emacs           --version
+ffmpeg          -version
+gcc             --version
+git             --version
+hg              --version
+httpd           -v
+iconv           --version
+jasper          --version
+java            -version
+javac           -version
+jq              --version
+lame            --version
+less            --version
+lynx            --version
+m4              --version
+magick          --version
+make            --version
+mcrypt          --version
+memcached       --version
+nano            --version
+node            --version
+npm             --version
+openssl         version
+perl            --version
+php             --version
+pulseaudio      --version
+python          --version
+rsync           --version
+ruby            --version
+scala           -version
+screenfetch     --version
+shellcheck      --version
+svn             --version
+tr              --version
+vim             --version
+wget            --version
+youtube-dl      --version
+zsh             --version
 EOF
 }
 
