@@ -1,9 +1,10 @@
+atom-ide-ui
 editorconfig
 file-icons
+ide-php
 language-generic-config
 language-ini
 language-source-cfg
 language-textile
 open-terminal-here
-atom-ide-ui
-ide-php
+php-twig
