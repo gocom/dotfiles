@@ -45,9 +45,11 @@
     reopenProjectMenuCount: 0
     telemetryConsent: "no"
     warnOnLargeFileLimit: 15
+  docblockr:
+    spacer_between_sections: "after_description"
   editor:
     autoIndentOnPaste: false
-    fontFamily: "Hack, Menlo, Consolas, DejaVu Sans Mono, monospace"
+    fontFamily: "Fira Code, Hack, Menlo, Consolas, DejaVu Sans Mono, monospace"
     invisibles: {}
     softWrap: true
   "exception-reporting": {}
