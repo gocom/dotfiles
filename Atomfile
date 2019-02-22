@@ -2,7 +2,9 @@ atom-ide-ui
 docblockr
 editorconfig
 file-icons
+ide-docker
 ide-php
+language-docker
 language-generic-config
 language-ini
 language-source-cfg
