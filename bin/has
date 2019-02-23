@@ -85,55 +85,7 @@ EOF
 }
 
 check () {
-  local args name options option list force line OPTIND OPTARG OPTERR
-
-  args=()
-
-  for option in "$@"; do
-    case "$option" in
-      -*) break ;;
-      *) args+=("$option"); shift ;;
-    esac
-  done
-
-  while getopts ":hvusf-:" option; do
-    case "$option" in
-      -)
-        case "$OPTARG" in
-          help) usage; exit 0 ;;
-          version) echo "$app_version"; exit 0 ;;
-          unsupported) list="unsupported" ;;
-          supported) list="names" ;;
-          force) force=1 ;;
-          *)
-            if [ "$OPTERR" = 1 ] ; then
-              echo "Unknown option --$OPTARG"
-              exit 1
-            fi
-            ;;
-        esac;;
-      h) usage; exit 0 ;;
-      v) echo "$app_version"; exit 0 ;;
-      u) list="unsupported" ;;
-      s) list="names" ;;
-      f) force=1 ;;
-      \?)
-        echo "Invalid option: -$OPTARG"
-        exit 1
-        ;;
-      :)
-        echo "Option -$OPTARG requires an argument."
-        exit 1
-        ;;
-      *)
-        echo "Unexpected: -$OPTARG"
-        exit 1
-        ;;
-    esac
-  done
-
-  shift "$((OPTIND - 1))"
-  set -- "${args[@]}" "$@"
+  local option line list name options
 
   if [ "$list" = "unsupported" ]; then
     list="$(check --supported)"
@@ -238,6 +190,56 @@ extract () {
 }
 
 main () {
+  local args option list force OPTIND OPTARG OPTERR
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  while getopts ":hvusf-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          unsupported) list="unsupported" ;;
+          supported) list="names" ;;
+          force) force=1 ;;
+          *)
+            if [ "$OPTERR" = 1 ] ; then
+              echo "Unknown option --$OPTARG"
+              exit 1
+            fi
+            ;;
+        esac;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      u) list="unsupported" ;;
+      s) list="names" ;;
+      f) force=1 ;;
+      \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+      :)
+        echo "Option -$OPTARG requires an argument."
+        exit 1
+        ;;
+      *)
+        echo "Unexpected: -$OPTARG"
+        exit 1
+        ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}" "$@"
+
   check "$@" | sort | column -t -s ' '
 }
 
