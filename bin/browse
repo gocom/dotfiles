@@ -2,8 +2,7 @@
 
 usage () {
   cat <<EOF
-Opens a file in \$BROWSER:
-  ${BROWSER:-}
+Opens a file in \$BROWSER.
 
 Usage:
   $ ${0##*/} [options] [uri]

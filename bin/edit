@@ -2,8 +2,7 @@
 
 usage () {
   cat <<EOF
-Opens a file in \$EDITOR:
-  ${EDITOR:-}
+Opens a file in \$EDITOR.
 
 Usage:
   $ ${0##*/} [options] [filename]

@@ -8,8 +8,7 @@ fi
 
 usage () {
   cat <<EOF
-Quickly translate in \$BROWSER using \$TRANSLATE_ENGINE:
-  $engine
+Quickly translate in \$BROWSER using \$TRANSLATE_ENGINE.
 
 Usage:
   $ ${0##*/} [options] [query]
