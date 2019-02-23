@@ -46,7 +46,7 @@ Commands:
   $app_name install
   Install dotfiles to the user's home directory.
 
-  $apm_name install-deps
+  $app_name install-deps
   Install third-party dependencies through package managers.
 
 Examples:
