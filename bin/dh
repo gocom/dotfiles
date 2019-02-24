@@ -126,7 +126,7 @@ containers () {
 }
 
 ips () {
-  docker ps -q | xargs -n 1 docker inspect --format '{{.Name}} {{.NetworkSettings.Networks.internal_network.IPAddress}} {{.NetworkSettings.IPAddress}}' | sed 's/^\///' | column -t
+  docker ps -q | xargs -n 1 docker inspect | jq -r '.[] | [(.Name | ltrimstr("/")), (.Config.ExposedPorts | keys | join(", ")), (.NetworkSettings.Networks | .[] | .IPAddress?), (.NetworkSettings.IPAddress)] | @tsv' | column -t -s $'\t'
 }
 
 main "$@"
