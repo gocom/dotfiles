@@ -1,24 +1,38 @@
 #!/usr/bin/env bash
 
+usage () {
+  cat <<EOF
+Shellspec
+
+Usage:
+  $ ${0##*/} [options] [filename ...]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+EOF
+}
+
 indent () {
   printf '%*s' $(( (_shpec_indent - 1) * 2))
 }
 
-echoe () {
+section () {
   printf "%b\n" "$*";
 }
 
-iecho () {
-  indent && echoe "$@"
+log () {
+  indent && section "$@"
 }
 
 sanitize () {
-  IFS= echoe "$1" | tr '\n' 'n' | tr "'" 'q'
+  IFS= section "$1" | tr '\n' 'n' | tr "'" 'q'
 }
 
 describe () {
   : $((_shpec_indent += 1))
-  iecho "$1"
+  log "$1"
 }
 
 run () {
@@ -29,19 +43,14 @@ run () {
 end () {
   : $((_shpec_indent -= 1))
   _shpec_assertion_printed=0
-  [ $_shpec_indent -ge 0 ] && return 0
-  echo >& 2 "shpec: $_shpec_file: unexpected 'end'"
+
+  if [ $_shpec_indent -ge 0 ]; then
+    return 0
+  fi
+
+  echo "shpec: $_shpec_file: unexpected 'end'" >&2
   exit 1
 }
-
-end_describe () {
-  iecho "Warning: end_describe will be deprecated in shpec 1.0." \
-    "Please use end instead."
-  end
-}
-
-# Beware: POSIX shells are not required to accept
-# any identifier as a function name.
 
 stub_command () {
   _shpec_stub_body="${2:-:}"
@@ -153,62 +162,57 @@ result () {
     ((_shpec_assertion_printed++))
 
     if [ "$_shpec_assertion_printed" -le 1 ]; then
-      iecho "$_shpec_green$_shpec_assertion$_shpec_norm"
+      log "$_shpec_green$_shpec_assertion$_shpec_norm"
       return 0
     fi
 
     printf "%b" "$_shpec_clear_ln"
-    iecho "$_shpec_green$_shpec_assertion$_shpec_norm(x$_shpec_assertion_printed)"
+    log "$_shpec_green$_shpec_assertion$_shpec_norm(x$_shpec_assertion_printed)"
     return 0
   fi
 
   ((_shpec_failures += 1))
   _shpec_assertion_printed=0
-  iecho "$_shpec_red$_shpec_assertion"
-  iecho "($1)$_shpec_norm"
+
+  log "$_shpec_red$_shpec_assertion"
+  log "($1)$_shpec_norm"
 }
 
 print_result () {
   if eval "$1"; then
     : $((_shpec_assertion_printed += 1))
     if [ ${_shpec_assertion_printed} -le 1 ]; then
-      iecho "$_shpec_green$_shpec_assertion$_shpec_norm"
+      log "$_shpec_green$_shpec_assertion$_shpec_norm"
     else
       printf "%b" "$_shpec_clear_ln"
-      iecho "$_shpec_green$_shpec_assertion$_shpec_norm(x$_shpec_assertion_printed)"
+      log "$_shpec_green$_shpec_assertion$_shpec_norm(x$_shpec_assertion_printed)"
     fi
   else
     : $((_shpec_failures += 1))
     _shpec_assertion_printed=0
-    iecho "$_shpec_red$_shpec_assertion"
-    iecho "($2)$_shpec_norm"
+    log "$_shpec_red$_shpec_assertion"
+    log "($2)$_shpec_norm"
   fi
 }
 
 final_results () {
-  [ $_shpec_failures -eq 0 ] && _shpec_color=$_shpec_green || _shpec_color=$_shpec_red
-  echoe "${_shpec_color}${_shpec_examples} examples, ${_shpec_failures} failures${_shpec_norm}"
-  times
-  [ $_shpec_failures -eq 0 ]
-  exit
-}
+  local color status
 
-shpec_version () {
-  (
-    VERSION=0.3.0
-    echo $VERSION
-  )
+  if [ "$_shpec_failures" -eq 0 ]; then
+    color=$_shpec_green
+    status=0
+  else
+    color=$_shpec_red
+    status=1
+  fi
+
+  section "${color}${_shpec_examples} examples, ${_shpec_failures} failures${_shpec_norm}"
+  times
+  exit "$status"
 }
 
 shpec () {
   (
-    case "$1" in
-      -v|--version)
-        shpec_version
-        exit 0
-        ;;
-    esac
-
     _shpec_examples=0
     _shpec_failures=0
     _shpec_indent=0
@@ -216,26 +220,30 @@ shpec () {
     _shpec_green="\033[0;32m"
     _shpec_norm="\033[0m"
     _shpec_clear_ln="\033[1A\033[K"
+    _shpec_matcher_files=""
 
-    _shpec_root=${SHPEC_ROOT:-$(
-      [ -d './shpec' ] && echo './shpec' || echo '.'
-    )}
-    SHPEC_ROOT=${_shpec_root}
+    if [ "${SHPEC_ROOT:-}" ]; then
+      _shpec_root="$SHPEC_ROOT"
+    elif [ -d "./shpec" ]; then
+      _shpec_root="./shpec"
+    else
+      _shpec_root="."
+    fi
 
-    _shpec_matcher_files=$(
-      find "$_shpec_root/matchers" -name '*.sh' 2>/dev/null
-    )
+    SHPEC_ROOT="$_shpec_root"
+
+    if [ -d "$_shpec_root/matchers" ]; then
+      _shpec_matcher_files="$(find "$_shpec_root/matchers" -name '*.sh' 2>/dev/null)"
+    fi
 
     for _shpec_matcher_file in $_shpec_matcher_files; do
       . "$_shpec_matcher_file"
     done
 
-    if [ $# -gt 0 ] ; then
-      _shpec_files="${*}"
+    if [ $# -eq 0 ]; then
+      _shpec_files="$(find "$_shpec_root" -name '*_shpec.*')"
     else
-      _shpec_files=$(
-        find "$_shpec_root" -name '*_shpec.*'
-      )
+      _shpec_files="${*}"
     fi
 
     for _shpec_file in $_shpec_files; do
@@ -247,10 +255,17 @@ shpec () {
 }
 
 (
-  _progname=shpec
-  _pathname=$( command -v "$0" )
-  _cmdname=${_pathname##*/}
-  _main=shpec
+  case "${1:-}" in
+    -v|--version) echo "0.0.0"; exit 0 ;;
+    -h|--help) usage; exit 0 ;;
+  esac
 
-  case $_progname in (${_cmdname%.sh}) $_main "$@";; esac
+  _progname="shpec"
+  _pathname="$(command -v "$0")"
+  _cmdname="${_pathname##*/}"
+  _main="shpec"
+
+  case $_progname in
+    "${_cmdname%.sh}") $_main "$@";;
+  esac
 )
