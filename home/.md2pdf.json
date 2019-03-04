@@ -1,0 +1,13 @@
+{
+  "body_class": "markdown-body",
+  "highlight_style": "monokai",
+  "marked_options": {
+    "headerIds": false,
+    "smartypants": true
+  },
+  "pdf_options": {
+    "format": "A4",
+    "margin": "20mm"
+  },
+  "stylesheet_encoding": "utf-8"
+}
