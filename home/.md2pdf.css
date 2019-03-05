@@ -99,13 +99,13 @@
 .markdown-body pre {
   color: #444d56;
   font: 1em/1.75 "Roboto Mono", "Fira Code", Hack, Menlo, monospace;
-  word-break: break-word;
   white-space: pre-wrap;
 }
 
 .markdown-body pre {
   border-left: 0.25em dashed #dfe2e5;
   padding-left: 1em;
+  page-break-inside: avoid;
 }
 
 /**
@@ -132,6 +132,7 @@
   color: #999;
   margin: 0 0 1em 1em;
   padding: 0 1em;
+  page-break-inside: avoid;
 }
 
 .markdown-body blockquote > :first-child {
@@ -155,6 +156,8 @@
   font-size: 1.25em;
   font-weight: bold;
   margin: 1.5rem 0 1rem 0;
+  page-break-after: avoid;
+  page-break-inside: avoid;
 }
 
 .markdown-body h1 {
@@ -255,12 +258,14 @@
   border-spacing: 0;
   border-collapse: collapse;
   display: block;
-  width: 100%;
   overflow: auto;
+  page-break-inside: avoid;
+  width: 100%;
 }
 
 .markdown-body table th {
   font-weight: bold;
+  text-align: inherit;
 }
 
 .markdown-body table th,
@@ -464,4 +469,16 @@
 
 .markdown-body > h1:first-of-type img:last-child {
   margin-right: 0;
+}
+
+.markdown-body > h1:first-of-type + h6 {
+  color: #999;
+  display: flex;
+  font-size: 1em;
+  font-weight: normal;
+  margin: 0 0 1em 0;
+}
+
+.markdown-body > h1:first-of-type + h6 > strong:not(:first-child) {
+  margin-left: auto;
 }
