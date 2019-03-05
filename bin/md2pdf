@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
-exec "${DOTFILES_HOME:-$HOME/.dotfiles}/node_modules/.bin/md2pdf" \
+
+set -- --stylesheet "${DOTFILES_HOME:-$HOME/.dotfiles}/home/.md2pdf.css" "$@"
+
+if [ -f "$HOME/.md2pdf.css" ]; then
+  set -- --stylesheet "$HOME/.md2pdf.css" "$@"
+fi
+
+set -- \
   --config-file "${DOTFILES_HOME:-$HOME/.dotfiles}/home/.md2pdf.json" \
   --stylesheet "https://fonts.googleapis.com/css?family=Roboto+Mono:400,400i,700,700i|Roboto:400,400i,700,700i" \
-  --stylesheet "${DOTFILES_HOME:-$HOME/.dotfiles}/home/.md2pdf.css" \
   "$@"
+
+exec "${DOTFILES_HOME:-$HOME/.dotfiles}/node_modules/.bin/md2pdf" "$@"
