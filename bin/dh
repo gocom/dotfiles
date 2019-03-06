@@ -97,8 +97,15 @@ main () {
 }
 
 sh () {
+  local shell
+
   set -- "$(containers "$@" | head -n1)"
-  docker exec -it "$@" "$app_shell"
+
+  for shell in "/bin/bash" "/bin/sh"; do
+    docker exec -it "$@" "$shell" && return 0
+  done
+
+  return 1
 }
 
 ch () {
