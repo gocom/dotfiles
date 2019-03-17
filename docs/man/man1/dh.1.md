@@ -32,6 +32,9 @@ container that shares identical directory structure to the host system.
 `names` [*container*]
 : List container names.
 
+`ids`
+: List container IDs.
+
 `ips`
 : List container IP addresses.
 
