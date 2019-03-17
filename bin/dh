@@ -23,6 +23,9 @@ Commands:
   $ $app_name names [container]
   List container names
 
+  $ $app_name ids
+  List container IDs
+
   $ $app_name ips
   List container IP addresses
 
@@ -87,8 +90,9 @@ main () {
 
   case "${1:-}" in
     ch) ch "${@:2}" ;;
+    ids) ids ;;
     ips) ips ;;
-    names) containers "${@:2}" ;;
+    names) containers "${@:2}" | sort -u ;;
     sh) sh "${@:2}" ;;
     *) echo "Unknown command: ${1:-}"; exit 1 ;;
   esac
@@ -132,6 +136,12 @@ containers () {
   fi
 
   while read -r line; do
+    if [ "$line" = "$1" ]; then
+      echo "$line"
+    fi
+  done <<< "$(printf '%s' "$containers")"
+
+  while read -r line; do
     case "$line" in
       *"$1"*) echo "$line" ;;
     esac
@@ -140,6 +150,10 @@ containers () {
 
 ips () {
   docker ps -q | xargs -n 1 docker inspect | jq -r '.[] | [(.Name | ltrimstr("/")), (.Config.ExposedPorts | keys | join(", ")), (.NetworkSettings.Networks | .[] | .IPAddress?), (.NetworkSettings.IPAddress)] | @tsv' | column -t -s $'\t'
+}
+
+ids () {
+  docker ps -q | xargs -n 1 docker inspect | jq -r '.[] | [(.Name | ltrimstr("/") | .[0:14]), .Id] | @tsv' | column -t -s $'\t'
 }
 
 main "$@"
