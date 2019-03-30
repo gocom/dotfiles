@@ -26,6 +26,8 @@ EOF
 }
 
 main () {
+  local url sha256 contents checksum
+
   url="${1:-}"
   shift
 
