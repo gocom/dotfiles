@@ -1,5 +1,8 @@
+# Filelist defaults.
+alias ls="ls -hpq --color=auto --hide=$'Icon\r'"
+
 # Filelist with full information.
-alias ll='ls -alF'
+alias ll='ls -alF --group-directories-first'
 
 # Filelist including hidden files.
 alias la='ls -A'
