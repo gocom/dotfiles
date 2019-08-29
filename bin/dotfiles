@@ -200,6 +200,7 @@ install () {
   link "home/.gitignore"
   link "home/.hushlogin"
   link "home/.inputrc"
+  link "home/.lnav/formats/monolog.json"
   link "home/.netrc"
   link "home/.profile"
   link "home/.project"
