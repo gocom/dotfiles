@@ -1,6 +1,6 @@
 {
   "monolog": {
-    "title": "Monolog log file",
+    "title": "Monolog",
     "description": "Monolog log format",
     "url": "https://github.com/Seldaek/monolog",
     "regex": {
