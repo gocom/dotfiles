@@ -1,0 +1,48 @@
+{
+  "monolog": {
+    "title": "Monolog log file",
+    "description": "Monolog log format",
+    "url": "https://github.com/Seldaek/monolog",
+    "regex": {
+      "default": {
+        "pattern": "\\[(?P<timestamp>.*)\\] (?P<logger>\\w+).(?P<level>\\w+): (?P<message>[^\\[\\{]+) (?P<context>[\\[\\{].*[\\]\\}]) (?P<extra>[\\[\\{].*[\\]\\}])"
+      }
+    },
+    "level-field": "level",
+    "level": {
+      "fatal": "ALERT|EMERG|EMERGENCY",
+      "critical": "CRIT|CRITICAL",
+      "error": "ERR|ERROR",
+      "debug": "DEBUG",
+      "info": "INFO",
+      "warning": "WARNING"
+    },
+    "value": {
+      "logger": {
+        "kind": "string",
+        "identifier": true
+      },
+      "level": {
+        "kind": "string",
+        "identifier": true
+      },
+      "message": {
+        "kind": "string"
+      },
+      "context": {
+        "kind": "string"
+      },
+      "extra": {
+        "kind": "string"
+      }
+    },
+    "sample": [
+      {
+        "line": "[2017-11-28 15:01:49] event.DEBUG: Notified event \"kernel.terminate\" to listener \"Symfony\\Component\\HttpKernel\\EventListener\\ProfilerListener::onKernelTerminate\". [] []"
+      },
+      {
+        "line": "[2019-08-02 03:38:51] event.ERROR: Failed to save the given entity [{\"entity_id\":\"6543\"}] []"
+      }
+    ]
+  }
+}
