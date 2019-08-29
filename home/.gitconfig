@@ -175,9 +175,11 @@
   unpublish = "!git push origin ":$(git branch-name)""
   unstage = reset --mixed HEAD --
   up = "!git pull --rebase "$@" && git submodule update --init --recursive"
+  worklog = "!f() { git shortlog -w0,0,0 --pretty=logshortchanges --date=short "$1"...; }; f"
 [log]
   date = format-local:"%b %d, %Y %H:%M:%S"
 [pretty]
+  logshortchanges = format:"- %s"
   logcompact = format:"%C(auto,yellow)%h%Creset  %<(11,trunc)%an  %C(auto,magenta)%ad%Creset  %<(44,trunc)%s"
   logcompact-refs = format:"%C(auto,yellow)%h%Creset  %C(auto,green)%<(30,trunc)%D%Creset  %<(37,trunc)%s"
   logdetails = format:"%C(auto,yellow)%H%Creset ⇡ %C(auto,blue)%p%Creset ↭ %C(auto,magenta)%t%Creset%nref %C(auto,yellow)%d%Creset%n%C(auto,cyan)Author:%Creset  %ad by %an <%ae>%n%C(auto,cyan)Commit:%Creset  %cd by %cn <%ce>%n%n%B %N%n%GG %G?"
