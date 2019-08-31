@@ -40,3 +40,9 @@ TAB: menu-complete
 # Make sure left and right arrows still work.
 "\e[C": forward-char
 "\e[D": backward-char
+
+# Jump by a word with Option + ArrowLeft and Option + ArrowRight
+"\e[5C": forward-word
+"\e[5D": backward-word
+"\e\e[C": forward-word
+"\e\e[D": backward-word
