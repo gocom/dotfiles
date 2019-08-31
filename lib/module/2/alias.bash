@@ -10,6 +10,32 @@ alias la='ls -A'
 # Filelist with directories marked.
 alias l='ls -CF'
 
+# Source local environment variables to the shell session
+#
+# $ dotenv [filesuffix]
+dotenv() {
+  local file
+
+  if [ "${1:-}" ]; then
+    file=".env.$1"
+  elif [ "${ENVIRONMENT:-}" ]; then
+    file=".env.$ENVIRONMENT"
+  else
+    file=".env"
+  fi
+
+  if ! [ -e "$file" ]; then
+    echo "No '$file' file found in the current working directory" >&2
+    return 1
+  fi
+
+  set -a
+  . .env
+  set +a
+
+  echo "Loaded environment variables from '$file'"
+}
+
 # Calculator.
 = () {
   calc "$@"
