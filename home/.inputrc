@@ -18,9 +18,9 @@ set editing-mode emacs
 set enable-meta-key on
 set history-size -1
 
-set mark-directories off
+set mark-directories on
 set mark-modified-lines off
-set mark-symlinked-directories off
+set mark-symlinked-directories on
 set match-hidden-files on
 
 # Completion.
