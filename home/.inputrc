@@ -12,7 +12,7 @@ set completion-ignore-case on
 set completion-map-case on
 set completion-prefix-display-length 0
 set completion-query-items 100
-set convert-meta on
+set convert-meta off
 set echo-control-characters on
 set editing-mode emacs
 set enable-meta-key on
