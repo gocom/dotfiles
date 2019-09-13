@@ -173,7 +173,7 @@
   unassume = update-index --no-assume-unchanged --
   undo = reset --soft HEAD~1
   unpublish = "!git push origin ":$(git branch-name)""
-  unstage = reset --mixed HEAD --
+  unstage = reset --
   up = "!git pull --rebase "$@" && git submodule update --init --recursive"
   worklog = "!f() { git shortlog -w0,0,0 --pretty=logshortchanges --date=short "$1"...; }; f"
 [log]
