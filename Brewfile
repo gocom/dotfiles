@@ -9,7 +9,7 @@ brew "autoconf"
 brew "bash"
 brew "bash-completion@2"
 brew "bats-core"
-brew "binutils", link: true
+brew "binutils"
 brew "brew-cask-completion"
 brew "bundler-completion"
 brew "c-ares"
