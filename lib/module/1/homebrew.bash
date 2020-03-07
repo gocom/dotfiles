@@ -16,4 +16,5 @@ df::path -p -n "manpath" \
   "/usr/local/opt/gnu-sed/libexec/gnuman" \
   "/usr/local/opt/gnu-tar/libexec/gnuman" \
   "/usr/local/opt/gettext/share/man" \
-  "/usr/local/opt/texinfo/share/man"
+  "/usr/local/opt/texinfo/share/man" \
+  "/usr/local/opt/binutils/share/man"
