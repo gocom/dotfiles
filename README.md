@@ -32,3 +32,22 @@ $ composer install
 $ npm install
 $ apm-pkg install
 ```
+
+Customizing Bash configuration
+-----
+
+Local Bash configuration can be customized from `~/.bash_login`, `~/.bash_aliases` and `~/.bash_config` files. If one of these exists, it is included in the login shell bashrc and never overwritten by the installer.
+
+```
+echo 'export EDITOR=/usr/local/bin/atom' >> ~/.bash_config
+```
+
+Configuring git
+-----
+
+Local git config can be provided with `~/.gitconfig_local`.
+
+```
+git config --file ~/.gitconfig_local user.email foobar@example.tld
+git config --file ~/.gitconfig_local user.name "Foo Bar"
+```
