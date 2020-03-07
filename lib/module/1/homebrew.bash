@@ -7,7 +7,8 @@ df::path -p \
   "/usr/local/opt/gnu-sed/libexec/gnubin" \
   "/usr/local/opt/gnu-tar/libexec/gnubin" \
   "/usr/local/opt/gettext/bin" \
-  "/usr/local/opt/texinfo/bin"
+  "/usr/local/opt/texinfo/bin" \
+  "/usr/local/opt/binutils/bin"
 
 df::path -p -n "manpath" \
   "/usr/local/opt/coreutils/libexec/gnuman" \
