@@ -357,7 +357,7 @@ views () {
 live () {
   config
   streams \
-    | jq -r 'sort_by(.sort_viewer_count) | reverse | .[] | select(.stream == "live") | ["↯", .login, .viewer_count, .game, .title // " "] | @tsv'\
+    | jq -r 'sort_by(.sort_viewer_count) | reverse | .[] | select(.stream == "live") | ["↯", .login, .viewer_count, .game, .title // " "] | @tsv' \
     | column -t -s $'\t'
 }
 
