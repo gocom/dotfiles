@@ -31,11 +31,11 @@ Configuration:
   Configuration required for viewing your Twitch account's followed and live
   channels is automatically prompted for when required, and then stored in:
 
-    $HOME/.twitch
+    ~/.twitch
 
   If you wish to later on reset the settings, simply delete the directory:
 
-    $ rm -rf "$HOME/.twitch"
+    $ rm -rf ~/.twitch
 
   The tool does not receive or require write or read access to your account,
   but simply uses public-facing read-only API records.
@@ -50,14 +50,9 @@ EOF
 }
 
 main () {
-  local args option OPTIND OPTARG OPTERR color reset cyan yellow green
+  local args option OPTIND OPTARG OPTERR
 
   args=()
-  color=1
-
-  if [ "${TERM:-}" = "dumb" ] || [ "${NO_COLOR:-}" ]; then
-    color=""
-  fi
 
   for option in "$@"; do
     case "$option" in
@@ -72,10 +67,7 @@ main () {
         case "$OPTARG" in
           help) usage; exit 0 ;;
           version) echo "$app_version"; exit 0 ;;
-          color) color=1 ;;
-          dryrun|dry-run) dryrun=1 ;;
           quiet|silent) silent=1 ;;
-          verbose) verbose=1 ;;
           *)
             if [ "$OPTERR" = 1 ] ; then
               fatal "Unknown option --$OPTARG"
@@ -84,9 +76,7 @@ main () {
         esac;;
       h) usage; exit 0 ;;
       v) echo "$app_version"; exit 0 ;;
-      D|n) dryrun=1 ;;
       q|S) silent=1 ;;
-      V) verbose=1 ;;
       \?) fatal "Invalid option: -$OPTARG" ;;
       :) fatal "Option -$OPTARG requires an argument." ;;
       *) fatal "Unexpected: -$OPTARG" ;;
@@ -95,13 +85,6 @@ main () {
 
   shift "$((OPTIND - 1))"
   set -- "${args[@]}" "$@"
-
-  if [ "$color" ]; then
-    reset="$(tput sgr0)"
-    cyan="$(tput setaf 6)"
-    yellow="$(tput setaf 3)"
-    green="$(tput setaf 2)"
-  fi
 
   case "${1:-}" in
     list) list "${@:2}" ;;
@@ -124,12 +107,6 @@ msg () {
 log () {
   if ! [ "$silent" ]; then
     msg "$@"
-  fi
-}
-
-verbose () {
-  if [ "$verbose" ]; then
-    log "$@"
   fi
 }
 

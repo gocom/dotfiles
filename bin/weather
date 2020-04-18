@@ -19,9 +19,8 @@ EOF
 }
 
 main () {
-  local option param language options locations
+  local option language locations
 
-  options="m&n"
   locations=()
 
   if [ "${LANG:-}" ]; then
@@ -40,8 +39,7 @@ main () {
   fi
 
   for option in "${locations[@]}"; do
-    param="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$option")"
-    curl -q -H "Accept-Language: ${language:-en}" "https://wttr.in/${param}?m&n${format}" || exit 1
+    curl -q -H "Accept-Language: ${language:-en}" "https://wttr.in/${option}?m&n${format}" || exit 1
   done
 }
 

@@ -39,7 +39,7 @@ dump () {
 }
 
 install () {
-  apt install "$(cat "${1:-Aptfile}" | xargs)"
+  apt install "$(xargs < "${1:-Aptfile}")"
 }
 
 case "${1:-}" in

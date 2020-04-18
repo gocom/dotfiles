@@ -17,8 +17,6 @@ EOF
 }
 
 main () {
-  local open
-
   if [ "$#" -eq 0 ]; then
     set -- "."
   fi

@@ -119,7 +119,7 @@ backup () {
   real="$(realpath -- "$dst" 2> /dev/null)" && dst="$real"
 
   if [[ "$dst/" == "$src/"* ]]; then
-    args+=("--exclude="${dst/$src/}"")
+    args+=("--exclude=\"${dst/$src/}\"")
   fi
 
   if ! [[ "$src" == *":"* ]] && ! [ -e "$src" ]; then

@@ -1,0 +1,23 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install shellcheck
+        run: sudo apt-get install shellcheck
+
+      - name: Install bats
+        run: sudo npm install -g bats
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make unit

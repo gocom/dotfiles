@@ -167,7 +167,6 @@ main () {
   unique="$(date +"%s")"
 
   case "${args[0]}" in
-    #base) base "${@:2}" ;;
     docs) docs "${@:2}" ;;
     dump) dump ;;
     install) install ;;
