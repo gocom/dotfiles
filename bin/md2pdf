@@ -1,14 +1,42 @@
 #!/usr/bin/env bash
 
-set -- --stylesheet "${DOTFILES_HOME:-$HOME/.dotfiles}/home/.md2pdf.css" "$@"
+app_name="${0##*/}"
+app_version="0.0.0"
 
-if [ -f "$HOME/.md2pdf.css" ]; then
-  set -- --stylesheet "$HOME/.md2pdf.css" "$@"
-fi
+usage () {
+  cat <<<EOF
+Convert Markdown files to PDF.
 
-set -- \
-  --config-file "${DOTFILES_HOME:-$HOME/.dotfiles}/home/.md2pdf.json" \
-  --stylesheet "https://fonts.googleapis.com/css?family=Roboto+Mono:400,400i,700,700i|Roboto:400,400i,700,700i" \
-  "$@"
+Usage:
+  $ $app_name [options] [filename ...]
 
-exec "${DOTFILES_HOME:-$HOME/.dotfiles}/node_modules/.bin/md2pdf" "$@"
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ $app_name
+  $ $app_name README.md
+EOF
+}
+
+main() {
+  set -- --stylesheet "${DOTFILES_HOME:-$HOME/.dotfiles}/home/.md2pdf.css" "$@"
+
+  if [ -f "$HOME/.md2pdf.css" ]; then
+    set -- --stylesheet "$HOME/.md2pdf.css" "$@"
+  fi
+
+  set -- \
+    --config-file "${DOTFILES_HOME:-$HOME/.dotfiles}/home/.md2pdf.json" \
+    --stylesheet "https://fonts.googleapis.com/css?family=Roboto+Mono:400,400i,700,700i|Roboto:400,400i,700,700i" \
+    "$@"
+
+  exec "${DOTFILES_HOME:-$HOME/.dotfiles}/node_modules/.bin/md2pdf" "$@"
+}
+
+case "${1:-}" in
+  -v|--version) echo "$app_version" ;;
+  -h|--help) usage ;;
+  *) main "$@" ;;
+esac

@@ -436,14 +436,18 @@ docs () {
     return "$status"
   fi
 
-  for f in ./share/man/*/*.ronn ./share/man/*/*.md ./docs/man/*/*.md; do
+  rm -rf share/man/man*/ || return 1
+
+  for f in ./docs/man/*/*.ronn ./docs/man/*/*.md; do
     if [ -e "$f" ]; then
       doc "$f" || status=1
     fi
   done
 
   for f in ./bin/*; do
-    doc "$f" || status=1
+    if [ -e "$f" ]; then
+      doc "$f" || status=1
+    fi
   done
 
   return "$status"
@@ -476,6 +480,8 @@ doc () {
   o="share/man/$d/$b"
   t="share/man/pandoc.html"
   c="../style.css"
+
+  mkdir -p "share/man/$d" || return 1
 
   for option in "${docs[@]}"; do
     if [ "$option" = "$b" ]; then
