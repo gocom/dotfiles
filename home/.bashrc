@@ -42,11 +42,11 @@ case "$TERM" in
 esac
 
 case "$DOTFILES_PLATFORM" in
-  solaris*)      DOTFILES_PLATFORM="solaris" ;;
-  darwin*)       DOTFILES_PLATFORM="macos" ;;
-  linux*)        DOTFILES_PLATFORM="linux" ;;
-  freebsd*)      DOTFILES_PLATFORM="freebsd" ;;
-  bsd*)          DOTFILES_PLATFORM="bsd" ;;
+  solaris*) DOTFILES_PLATFORM="solaris" ;;
+  darwin*) DOTFILES_PLATFORM="macos" ;;
+  linux*) DOTFILES_PLATFORM="linux" ;;
+  freebsd*) DOTFILES_PLATFORM="freebsd" ;;
+  bsd*) DOTFILES_PLATFORM="bsd" ;;
   msys*|cygwin*) DOTFILES_PLATFORM="win" ;;
 esac
 

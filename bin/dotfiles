@@ -399,27 +399,6 @@ backup () {
   log "${magenta}↺${reset} $backup"
 }
 
-# Build dotfiles into single file.
-
-build () {
-  echo "" > "dotfiles.bash"
-  cat "./lib/global.bash" >> "dotfiles.bash"
-
-  for file in ./lib/core/*.bash; do
-    if [ -f "$file" ]; then
-      echo "" >> "dotfiles.bash"
-      cat "$file" >> "dotfiles.bash"
-    fi
-  done
-
-  for file in ./lib/module/*/*.bash; do
-    if [ -f "$file" ]; then
-      echo "" >> "dotfiles.bash"
-      cat "$file" >> "dotfiles.bash"
-    fi
-  done
-}
-
 # Generate docs.
 
 docs () {
