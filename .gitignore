@@ -5,6 +5,7 @@
 !.gitignore
 dotfiles.bash
 /backups/
+/dist/
 /node_modules/
 /vendor/
 /share/man/man1/*/

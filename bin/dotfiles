@@ -487,9 +487,9 @@ doc () {
   docs+=("$b")
 
   case "$f" in
-    *.md)   format="pandoc" ;;
+    *.md) format="pandoc" ;;
     *.ronn) format="ronn" ;;
-    *)      format="help2man" ;;
+    *) format="help2man" ;;
   esac
 
   if [ "$format" = "ronn" ]; then

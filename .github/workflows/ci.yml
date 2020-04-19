@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
 
     steps:
@@ -19,5 +20,39 @@ jobs:
       - name: Lint
         run: make lint
 
-      - name: Test
+      - name: Unit test
         run: make unit
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Setup Ruby
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+
+      - name: Install Pandoc
+        run: sudo apt-get install pandoc
+
+      - name: Install help2man
+        run: sudo apt-get install help2man
+
+      - name: Install Gemfile bundle
+        run: bundle install
+
+      - name: Build
+        run: make build
+
+      - name: Package
+        run: make package
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: dotfiles.zip
+          path: dist/dotfiles.zip
