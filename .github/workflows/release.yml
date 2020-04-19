@@ -73,6 +73,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/dist/pinceau.zip
-          asset_name: pinceau.zip
+          asset_path: ${{ github.workspace }}/dist/dotfiles.zip
+          asset_name: dotfiles.zip
           asset_content_type: application/zip
