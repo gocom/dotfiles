@@ -3,14 +3,21 @@
 
 Personal [Bash](https://www.gnu.org/software/bash/) shell configuration files and scripts.
 
+Supported OS
+-----
+
+* Ubuntu 18.04 LTS
+* Mac OS 10.15
+
 Install
 -----
 
-The scripts expect that they can be accessed from `~/.dotfiles`. Clone the repository to that location and source the configuration files from `home` directory in your `.bash_profile` and `.bashrc`.
+It is expected that dotfiles are accessible through `~/.dotfiles`, either by a link or otherwise.
+Clone the repository to that location and run the installer:
 
 ```
-$ git clone https://github.com/gocom/dotfiles.git ~/.dotfiles
-$ ~/.dotfiles/bin/dotfiles install
+$ git clone https://github.com/gocom/dotfiles.git ~/.dotfiles && cd ~/.dotfiles
+$ make install
 ```
 
 Requirements
@@ -21,13 +28,14 @@ Requirements
 * perl
 * GNU awk
 
-Setup
+Optional setup
 -----
 
 The repository also contains set of tools that can be installed with various package managers:
 
 ```
 $ brew install
+$ bundle install
 $ composer install
 $ npm install
 $ apm-pkg install
@@ -36,7 +44,8 @@ $ apm-pkg install
 Customizing Bash configuration
 -----
 
-Local Bash configuration can be customized from `~/.bash_login`, `~/.bash_aliases` and `~/.bash_config` files. If one of these exists, it is included in the login shell bashrc and never overwritten by the installer.
+Local Bash configuration can be customized from `~/.bash_login`, `~/.bash_aliases` and `~/.bash_config` files.
+If one of these exists, it is included in the login shell bashrc and never overwritten by the installer.
 
 ```
 echo 'export EDITOR=/usr/local/bin/atom' >> ~/.bash_config

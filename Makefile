@@ -1,7 +1,10 @@
-.PHONY: all build lint unit test package
+.PHONY: all build install lint unit test package
 
 all:
 	@$(MAKE) test
+
+install:
+	bin/dotfiles install
 
 build:
 	bin/dotfiles docs
