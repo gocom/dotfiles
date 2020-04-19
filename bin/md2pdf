@@ -4,7 +4,7 @@ app_name="${0##*/}"
 app_version="0.0.0"
 
 usage () {
-  cat <<<EOF
+  cat <<EOF
 Convert Markdown files to PDF.
 
 Usage:
