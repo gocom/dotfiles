@@ -1,6 +1,6 @@
 % FREENAME(1)
 % Jukka Svahn
-% October 2018
+% May 2020
 
 # NAME
 
@@ -31,9 +31,26 @@ ends to a slash (`/`), where it's added to the end.
 : Filename to generate unique name out of. If multiple filenames are given
 prints a list of filenames, one per line.
 
+# FILES
+
+Depends on external programs `basename`, `bash` and `dirname`.
+
 # EXAMPLES
 
 Generate unique out of already existing `file.txt`:
 
     $ freename file.txt
     > file-1.ext
+
+Generate multiple unique filenames:
+
+    $ freename document.md picture.jpg directory/ nonexisting
+    > document-1.md
+      picture-24.jpg
+      directory-2/
+      nonexisting
+
+Use `freename` with `touch` or `mkdir`:
+
+    $ mkdir $(freename directory)
+    $ touch $(freename README.md)

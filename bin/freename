@@ -12,13 +12,26 @@ Options:
   -v, --version  Print version number
 
 Examples:
-  $ cd path/to/project && ${0##*/}
-  $ ${0##*/} config.xml
+  $ ${0##*/} archive.zip
+  > archive-32.xml
+
+  $ ${0##*/} document.md picture.jpg directory/ nonexisting
+  > document-1.md
+    picture-24.jpg
+    directory-2/
+    nonexisting
+
+  $ touch \$(${0##*/} config.xml)
 EOF
 }
 
 main () {
   local f
+
+  if [ "$#" -eq 0 ]; then
+    usage
+    exit 1
+  fi
 
   for f in "$@"; do
     freename "$f"
@@ -29,44 +42,39 @@ freename () {
   local name index ext directory basename filename suffix normalized
 
   name="${1:-}"
+
+  if ! [ "$name" ]; then
+    return 1
+  fi
+
   index=0
 
-  if [ "$name" ]; then
-    directory="$(dirname -- "$name" 2> /dev/null)"
-    basename="$(basename -- "$name" 2> /dev/null)"
+  directory="$(dirname -- "$name" 2> /dev/null)"
+  basename="$(basename -- "$name" 2> /dev/null)"
+  filename="$basename"
 
-    case "$directory" in
-      ""|*"/") ;;
-      ".")
-        case "$name" in
-          "."*) ;;
-          *) directory="" ;;
-        esac
-        ;;
-      *) directory="$directory/"
-    esac
+  case "$directory" in
+    ".") directory="" ;;
+    *"/") ;;
+    *) directory="$directory/"
+  esac
 
-    case "$name" in
-      *"/") suffix="/" ;;
-    esac
+  if [[ "$name" == *"/" ]]; then
+    suffix="/"
+  else
+    filename="${basename%.*}"
 
-    if [ "$suffix" ]; then
+    # hidden .file without extension.
+    if ! [ "$filename" ]; then
       filename="$basename"
+    fi
+
+    ext="${basename##*.}"
+
+    if [ "$ext" ] && ! [ "$basename" = ".$ext" ] && ! [ "$basename" = "$ext" ]; then
+      ext=".$ext"
     else
-      filename="${basename%.*}"
-
-      # .dotfile without extension.
-      if ! [ "$filename" ]; then
-        filename="$basename"
-      fi
-
-      ext="${basename##*.}"
-
-      if [ "$ext" ] && ! [ "$basename" = ".$ext" ]; then
-        ext=".$ext"
-      else
-        ext=""
-      fi
+      ext=""
     fi
   fi
 
