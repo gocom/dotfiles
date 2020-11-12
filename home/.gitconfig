@@ -185,3 +185,5 @@
   logdetails = format:"%C(auto,yellow)%H%Creset ⇡ %C(auto,blue)%p%Creset ↭ %C(auto,magenta)%t%Creset%nref %C(auto,yellow)%d%Creset%n%C(auto,cyan)Author:%Creset  %ad by %an <%ae>%n%C(auto,cyan)Commit:%Creset  %cd by %cn <%ce>%n%n%B %N%n%GG %G?"
 [include]
   path = ~/.gitconfig_local
+[push]
+  default = current
