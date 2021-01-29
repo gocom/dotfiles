@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+usage () {
+  cat <<EOF
+Connects GTK 3 theme to all snaps.
+
+Usage:
+  $ ${0##*/} [options] [theme]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ ${0##*/} canta-themes
+EOF
+}
+
+main () {
+  local theme
+
+  theme="${1:-}"
+
+  if ! [ "$theme" ]; then
+    echo "'theme' argument required." >&2
+    exit 1
+  fi
+
+  for i in $(snap connections | grep gtk-common-themes:gtk-3-themes | awk '{print $2}'); do
+    snap connect "$i" "$theme:gtk-3-themes" || exit 1
+  done
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac
