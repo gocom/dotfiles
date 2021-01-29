@@ -41,6 +41,8 @@
       "welcome"
       "update-package-dependencies"
       "timecop"
+      "github"
+      "open-on-github"
     ]
     reopenProjectMenuCount: 0
     telemetryConsent: "no"
