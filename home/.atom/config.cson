@@ -58,5 +58,7 @@
   "git-diff":
     showIconsInEditorGutter: true
   "ide-php": {}
+  "tree-view":
+    hideVcsIgnoredFiles: true
   welcome:
     showOnStartup: false
