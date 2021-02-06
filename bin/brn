@@ -1057,7 +1057,9 @@ const main = () => {
           template: name
         });
 
-        newname = template(data);
+        const templateData = Object.assign({}, data, path.parse(path.resolve(file)));
+
+        newname = template(templateData);
         newinfo = path.parse(newname);
 
         if (newname) {
