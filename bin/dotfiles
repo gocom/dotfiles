@@ -188,7 +188,6 @@ install () {
   base "$directory"
   link "home/.atom/config.cson"
   link "home/.man/style.css"
-  link "home/.rename/replacements.js"
   link "home/.ssh/config"
   link "home/.bash_completion"
   link "home/.bash_profile"
