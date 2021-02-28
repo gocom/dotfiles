@@ -55,7 +55,7 @@ if [ "$DISPLAY" ]; then
   DOTFILES_DISPLAY=1
 fi
 
-for file in "$DOTFILES_HOME"/bash.d/*/*.bash; do
+for file in "$DOTFILES_HOME"/bashrc.d/*/*.bash; do
   if [ -f "$file" ]; then
     . "$file"
   fi
