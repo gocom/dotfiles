@@ -199,6 +199,7 @@ install () {
   link "home/.hushlogin"
   link "home/.inputrc"
   link "home/.lnav/formats/monolog.json"
+  link "home/.nanorc.d"
   link "home/.nanorc"
   link "home/.netrc"
   link "home/.profile"

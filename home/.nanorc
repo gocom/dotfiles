@@ -4,27 +4,16 @@ set constantshow
 set fill 0
 set keycolor blue,normal
 set functioncolor normal,normal
-set guidestripe 80
 set smarthome
 set statuscolor magenta,normal
 set stripecolor normal,magenta
 set tabsize 4
 set tabstospaces
 set titlecolor magenta,normal
+set nowrap
+set morespace
+set quickblank
+set mouse
+set nohelp
 
-syntax "gitcommit" "COMMIT_EDITMSG$"
-color normal "^#.*"
-color green "#.new file.*"
-color yellow "#.modified.*"
-color red "#.deleted.*"
-color green "^# .*:$"
-color cyan start="^# Untracked.*" end="diff"
-color cyan start="^# Untracked.*" end="$$"
-color brightred "^deleted file mode .*"
-color brightgreen "^\+.*"
-color brightred "^-.*"
-color brightyellow "^(diff|index|---|\+\+\+).*"
-color brightmagenta "@@.*@@"
-color white "# (Change[ds]|Untracked) .*"
-color white "#.*\(use .*"
-color yellow "^#"
+include ~/.nanorc.d/git.nanorc

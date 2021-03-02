@@ -1,0 +1,31 @@
+syntax "gitcommit" "COMMIT_EDITMSG|TAG_EDITMSG"
+
+# Comment lines
+color white "^#.*"
+
+# Quoted strings
+color blue "'[^']+'"
+
+# Long lines
+color brightred "^.{70,}.+$"
+
+# Jira ticket identifier
+color yellow "[A-Z]+-[0-9]+"
+
+# Changes
+color green "#.new file.*"
+color yellow "#.modified.*"
+color red "#.deleted.*"
+
+# Untracked.
+color cyan start="^# Untracked.*" end="diff"
+color cyan start="^# Untracked.*" end="$$"
+
+color brightred "^deleted file mode .*"
+color brightgreen "^\+.*"
+color brightred "^-.*"
+color brightyellow "^(diff|index|---|\+\+\+).*"
+color brightmagenta "@@.*@@"
+
+color white "#.*\(use .*"
+color white "^#"
