@@ -37,19 +37,19 @@ EOF
 }
 
 info () {
-  for variable in ${app_variables[@]}; do
+  for variable in "${app_variables[@]}"; do
     sysctl "$variable" 2> /dev/null || true
   done
 }
 
 disable () {
-  for variable in ${app_variables[@]}; do
+  for variable in "${app_variables[@]}"; do
     sudo sysctl -w "${variable}=1" || exit 1
   done
 }
 
 enable () {
-  for variable in ${app_variables[@]}; do
+  for variable in "${app_variables[@]}"; do
     sudo sysctl -w "${variable}=0" || exit 1
   done
 }
