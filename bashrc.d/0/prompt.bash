@@ -166,7 +166,7 @@ df::prompt_set () {
 
 # Gets a prompt string value.
 #
-# @param {integer|string} order The position to get
+# @param {integer|string} order The position to get
 # @print {string} The value
 # @private
 
@@ -504,7 +504,7 @@ df::prompt_set_colors () {
   df::prompt_has_unicode || return 1
 
   [ "${PS_BLOCKED:-}" ]  || PS_BLOCKED="⊘"
-  [ "${PS_BRANCH:-}" ]   || PS_BRANCH="⎇"
+  [ "${PS_BRANCH:-}" ]   || PS_BRANCH="‡"
   [ "${PS_CHECK:-}" ]    || PS_CHECK="✓"
   [ "${PS_COMMAND:-}" ]  || PS_COMMAND="⌘"
   [ "${PS_DOWN:-}" ]     || PS_DOWN="⇣"
@@ -526,6 +526,7 @@ df::prompt_set_colors () {
   [ "${PS_TOXIC:-}" ]    || PS_TOXIC="☢"
   [ "${PS_UP:-}" ]       || PS_UP="⇡"
   [ "${PS_WARNING:-}" ]  || PS_WARNING="⚠"
+  [ "${PS_DIRECTORY:-}" ]  || PS_DIRECTORY="↠"
 }
 
 # Unsets theme variables.
@@ -707,13 +708,4 @@ df::prompt_column () {
   local rows
   IFS=';' read -sdR -p $'\E[6n' rows columns
   echo "${columns}"
-}
-
-# Escape.
-#
-# @private
-# @todo remove
-
-df::prompt_escape () {
-  echo -nE "${1//\\/\\\\}"
 }

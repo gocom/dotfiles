@@ -3,7 +3,7 @@ dotfiles_prompt () {
   df::color -e
 
   if ! [ "${PS_PREVIOUS_PWD:-$HOME}" = "$PWD" ]; then
-    df::prompt_add 3 "${yellow}↠${reset} ${green}${PWD}${reset}\n"
+    df::prompt_add 3 "${yellow}${PS_DIRECTORY}${reset} ${green}${PWD}${reset}\n"
   fi
 
   df::prompt_add 5 "${PS_BOLD}${blue}\u${reset}"
