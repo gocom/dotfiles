@@ -119,6 +119,7 @@
   #: unpublish        Unpublish a branch from the origin
   #: unstage          Unstage the staged changes
   #: up               Rebase and update submodules
+  #: worklog          Worklog between commits
 
   aliases = "!awk '/^\\s*#:/{print $0}' < ~/.gitconfig | sed 's/[[:space:]]*#:[[:space:]]*//'"
   aliases-names = "!git config --list | awk -F '[.=]' '/^alias\\./{print $2}' | sort -u"
@@ -175,7 +176,7 @@
   unpublish = "!git push origin ":$(git branch-name)""
   unstage = reset --
   up = "!git pull --rebase "$@" && git submodule update --init --recursive"
-  worklog = "!f() { git shortlog -w0,0,0 --pretty=logshortchanges --date=short "$1"...; }; f"
+  worklog = "!f() { git shortlog -w0,0,0 --pretty=logshortchanges --date=short "$1...$2"; }; f"
 [log]
   date = format-local:"%b %d, %Y %H:%M:%S"
 [pretty]
