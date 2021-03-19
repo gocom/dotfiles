@@ -7,6 +7,5 @@ if [ -e "$NVM_DIR/nvm.sh" ]; then
 fi
 
 if [ -e "$NVM_DIR/bash_completion" ]; then
-    . "$NVM_DIR/nvm.sh"
+    . "$NVM_DIR/bash_completion"
 fi
-
