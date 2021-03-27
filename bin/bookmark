@@ -33,6 +33,7 @@ Options:
   -o, --open     Open matching URLs or linked files
   -n, --name     List matching names, rather than a table
   -t, --target   List matching target paths and URLs, rather than a table
+      --force    Overwrite bookmark if it exists
 
   -k <keyword>, --keyword[=]<keyword>
   Substitute '%s' in an URL or a path with the given keyword.
@@ -103,7 +104,7 @@ EOF
 }
 
 main () {
-  local option open list args OPTIND OPTARG OPTERR listLinks listBookmarks keyword
+  local option open list args OPTIND OPTARG OPTERR listLinks listBookmarks keyword force
 
   args=()
 
@@ -121,6 +122,7 @@ main () {
           help) usage; exit 0 ;;
           version) echo "$app_version"; exit 0 ;;
           files) listLinks=1 ;;
+          force) force=1 ;;
           keyword) keyword="${!OPTIND}"; OPTIND=$((OPTIND + 1)) ;;
           keyword=*) keyword="${OPTARG#*=}" ;;
           name) list="name" ;;
@@ -281,7 +283,7 @@ url () {
   mkdir -p "$bookmarks" || exit 1
   cd "$bookmarks" || exit 1
 
-  if [ -e "$name.url" ]; then
+  if [ -e "$name.url" ] && ! [ "$force" ]; then
     echo "'$bookmarks/$name.url' already exists." >&2
     exit 1
   fi
@@ -319,7 +321,7 @@ file () {
   mkdir -p "$links" || exit 1
   cd "$links" || exit 1
 
-  if [ -e "$name" ]; then
+  if [ -e "$name" ] && ! [ "$force" ]; then
     echo "'$links/$name' already exists." >&2
     exit 1
   fi
