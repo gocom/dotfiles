@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+_ipv6-config () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$cur" in
+    -*)
+      COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
+      return
+      ;;
+  esac
+
+  if [ "$cword" -eq 1 ]; then
+    COMPREPLY=($(compgen -W 'disable enable info' -- "$cur"))
+  fi
+} && complete -F _ipv6-config ipv6-config
