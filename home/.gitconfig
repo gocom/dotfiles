@@ -89,6 +89,7 @@
   #: diff-head        Compare differences in the head
   #: diff-staged      Compare differences in staging against the head
   #: find             Search file names and contents
+  #: find-commit      Search commit by message
   #: find-contents    Search file contents
   #: find-name        Find file by name
   #: history          Compact commit history
@@ -143,6 +144,7 @@
   diff-staged = diff --patch --staged
   files = ls-files
   find = "!f() { git find-name "$1"; git find-contents "$1"; return 0; }; f"
+  find-commit = "!f() { git history --grep="$1"; }; f"
   find-contents = grep -Ii
   find-name = "!f() { git ls-files | grep -i "$1"; return 0; }; f"
   history = log --pretty=logcompact --date=short
