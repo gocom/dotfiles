@@ -25,6 +25,12 @@ jobs:
         with:
           node-version: '12.x'
 
+      - name: Install shellcheck
+        run: sudo apt-get install shellcheck
+
+      - name: Install bats
+        run: sudo npm install -g bats
+
       - name: Install Pandoc
         run: sudo apt-get install pandoc
 
