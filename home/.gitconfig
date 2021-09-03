@@ -100,7 +100,6 @@
   #: issues           List commits that reference #n issues in their messages
   #: last             Last commit info
   #: master           Checkout master
-  #: main             Checkout main
   #: merge-diff       Compare differences in a merge
   #: merge-history    Commit history originating from a merge
   #: merge-span       Commit range originating from a merge
@@ -157,8 +156,7 @@
   info = log --no-abbrev-commit --notes --pretty=logdetails --graph
   issues = "!f() { git log --pretty='format:%B' | grep -io '.*#[0-9]\\+' | sort -u; }; f"
   last = log --no-abbrev-commit --notes --pretty=fuller --graph -1 HEAD
-  master = "!git checkout master && echo ♪ Master Master ♪"
-  main = "!git checkout main && echo 'Dunno, https://www.youtube.com/watch?v=aJ26eNSJNhM ...?'"
+  master = "!git checkout main 2> /dev/null || git checkout master && echo ♪ Master Master ♪"
   merge-diff = "!git diff `git merge-span ... $1`"
   merge-history = "!git log `git merge-span .. $1`"
   merge-span = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
