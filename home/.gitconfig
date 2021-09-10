@@ -104,6 +104,7 @@
   #: merge-history    Commit history originating from a merge
   #: merge-span       Commit range originating from a merge
   #: move             Move a file
+  #: orphan           Create orphan branch
   #: patch            Output a patch commit email
   #: publish          Push the current branch to the origin
   #: release          Create an annonated tag
@@ -161,6 +162,7 @@
   merge-history = "!git log `git merge-span .. $1`"
   merge-span = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
   move = mv -k
+  orphan = "!f() { if ! [ "$1" ]; then echo 'Branch name required'; exit 1; fi; read -r -p 'Create an orphan branch and delete all files (Y/n): ' answer; case "$answer" in y*|Y*) git checkout --orphan $1 && git rm -rf . && echo '/*' > .gitignore && echo '.*' >> .gitignore && echo '!.gitignore' >> .gitignore && git add .gitignore ;; esac; }; f"
   patch = format-patch --stdout
   publish = "!git push --set-upstream origin "$(git branch-name)""
   release = tag -a -m
