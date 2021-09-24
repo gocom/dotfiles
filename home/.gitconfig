@@ -97,6 +97,7 @@
   #: history          Compact commit history
   #: history-diff     History with diffs
   #: history-refs     History with references
+  #: jira-tickets     List Jira tickets identifiers in the log
   #: ignored          List ignored files in the current working tree
   #: info             Detailed commit info
   #: issues           List commits that reference #n issues in their messages
@@ -159,6 +160,7 @@
   ignored = ls-files --others --i --exclude-standard
   info = log --no-abbrev-commit --notes --pretty=logdetails --graph
   issues = "!f() { git log --pretty='format:%B' | grep -io '.*#[0-9]\\+' | sort -u; }; f"
+  jira-tickets = "!f() { git log "$@" | grep -io '[A-Z0-9]\\+-[0-9]\\+' | sort -u; }; f"
   last = log --no-abbrev-commit --notes --pretty=fuller --graph -1 HEAD
   master = "!git checkout main 2> /dev/null || git checkout master && echo ♪ Master Master ♪"
   merge-diff = "!git diff `git merge-span ... $1`"
