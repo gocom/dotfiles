@@ -13,7 +13,7 @@ dotfiles_prompt () {
   if [ "$UID" -eq 0 ]; then
     df::prompt_append "m" "${red}${PS_TOXIC}${reset}"
   else
-    df::prompt_append "m" "${PS_BOLD}${magenta}${PS_COMMAND}${reset}"
+    df::prompt_append "m" "${PS_BOLD}${magenta}≻${reset}"
   fi
 
   df::prompt_add "e0" "$TERM"
