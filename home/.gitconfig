@@ -185,6 +185,7 @@
   unpublish = "!git push origin ":$(git branch-name)""
   unstage = reset --
   up = "!git pull --rebase "$@" && git submodule update --init --recursive"
+  upstream = "!git branch --set-upstream-to=origin/"$(git branch-name)" "$(git branch-name)""
   worklog = "!f() { git shortlog -w0,0,0 --pretty=logshortchanges --date=short "$1...$2"; }; f"
 [log]
   date = format-local:"%b %d, %Y %H:%M:%S"
