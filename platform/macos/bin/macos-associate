@@ -102,7 +102,7 @@ app () {
     "$app"
   do
     if [ -r "$option" ] && [ -f "$option" ]; then
-      plist="$(plist_read "$option" 2> /dev/null)" || continue
+      plist="$(plist_read "$option")" || continue
       break
     fi
   done
@@ -127,7 +127,7 @@ app () {
 }
 
 plist_read () {
-  cat "$1" | plutil -convert json - -o -
+  plutil -convert json "$1" -o - 2> /dev/null
 }
 
 extensions () {
