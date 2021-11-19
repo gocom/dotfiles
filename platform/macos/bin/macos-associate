@@ -102,7 +102,7 @@ app () {
     "$app"
   do
     if [ -r "$option" ] && [ -f "$option" ]; then
-      plist="$(cat -- "$option" 2> /dev/null)" || continue
+      plist="$(plist_read "$option" 2> /dev/null)" || continue
       break
     fi
   done
@@ -112,41 +112,33 @@ app () {
     return 1
   fi
 
-  id="$(echo "$plist" | id)" || return 1
-  extensions="$(echo "$plist" | extensions)" || return 1
+  extensions="$(extensions "$plist")" || return 1
 
   if [ "$list" = "extensions" ]; then
     echo "$extensions"
     return 0
   fi
 
+  id="$(id "$plist")" || return 1
+
   while read -r extension; do
     duti -s "$id" "$extension" || return 1
   done <<< "$extensions"
 }
 
-json_read () {
-  local plist
-
-  plist="$(cat)"
-
-  if [ "$plist" ]; then
-    echo "$plist" | plutil -convert json - -o -
-    return 0
-  fi
-
-  echo '{}'
+plist_read () {
+  cat "$1" | plutil -convert json - -o -
 }
 
 extensions () {
-  json_read \
+  echo "$1" \
     | jq -r '.CFBundleDocumentTypes | .[] | .CFBundleTypeExtensions // empty | join("\n")' \
     | sort -u \
     | awk '/^[a-z.-]{1,}$/{print "."$1}'
 }
 
 id () {
-  json_read | jq -r '.CFBundleIdentifier'
+  echo "$1" | jq -r '.CFBundleIdentifier'
 }
 
 main "$@"

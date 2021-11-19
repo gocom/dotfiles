@@ -43,7 +43,8 @@ id () {
 clear () {
   local f
 
-  for f in "$prefix"*"${1:-}"*.sfl; do
+  for f in "$prefix"*"${1:-}"*.sfl \
+    "$prefix"*"${1:-}"*.sfl2; do
     test "$f" || continue
     test -f "$f" || continue
     rm "$f" || continue
@@ -54,7 +55,8 @@ clear () {
 list () {
   local f
 
-  for f in "$prefix"*"${1:-}"*.sfl; do
+  for f in "$prefix"*"${1:-}"*.sfl \
+    "$prefix"*"${1:-}"*.sfl2; do
     test "$f" || continue
     test -f "$f" || continue
     echo "⋯ $(id "$f")"
@@ -68,7 +70,8 @@ reload () {
 view () {
   local f
 
-  for f in "$prefix"*"${1:-}"*.sfl; do
+  for f in "$prefix"*"${1:-}"*.sfl \
+    "$prefix"*"${1:-}"*.sfl2; do
     test "$f" || continue
     test -f "$f" || continue
     plutil -convert "xml1" "$f" -o -

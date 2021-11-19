@@ -3,12 +3,14 @@
 app_name="${0##*/}"
 app_version="0.0.0"
 
+entity="com.apple.metadata:_kMDItemUserTags"
+
 usage () {
   cat <<EOF
 List and edit macOS Finder file tags.
 
 Uses xattr, plutil, xxd and jq to modify the plist definition embedded
-in the 'com.apple.metadata:_kMDItemUserTags' extended file attribute.
+in the '$entity' extended file attribute.
 
 Usage:
   $ $app_name [options] [add|list|remove|reverse|sort] [[tag ...] <filename>]
@@ -116,7 +118,7 @@ json_read () {
     return 1
   fi
 
-  plist="$(xattr -p com.apple.metadata:_kMDItemUserTags "$file" 2> /dev/null)"
+  plist="$(xattr -p "$entity" "$file" 2> /dev/null)"
 
   if [ "$plist" ]; then
     plist="$(echo "$plist" | xxd -r -p | plutil -convert json - -o -)"
@@ -146,12 +148,12 @@ json_write () {
   tags="$(cat)"
 
   if ! [ "$tags" ] || [ "$tags" = "[]" ]; then
-    xattr -xd com.apple.metadata:_kMDItemUserTags "$1" || return 1
+    xattr -xd "$entity" "$1" || return 1
     return 0
   fi
 
   tags="$(echo "$tags" | plutil -convert binary1 - -o - | xxd -p -c 256 -u)"
-  xattr -xw com.apple.metadata:_kMDItemUserTags "$tags" "$1" || return 1
+  xattr -xw "$entity" "$tags" "$1" || return 1
 }
 
 add () {
