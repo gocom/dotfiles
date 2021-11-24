@@ -27,7 +27,7 @@ Disable or enable IPv6 support on the fly using sysctl.
 `disable`
 : Disables IPv6 support.
 
-`install`
+`enable`
 : Enables IPv6 support.
 
 `info`
