@@ -56,6 +56,7 @@
   a = add
   b = branch
   c = commit
+  cp = cherry-pick
   d = diff
   f = fetch
   g = grep
@@ -82,6 +83,7 @@
   #: branches-graph   List branches and their commits in relation to their head
   #: changes          List changes in the current working tree and staging
   #: cm               Commit with a inline message
+  #: cp               Cherry-pick commits
   #: code-review      Compare changes in our clone against the origin
   #: committers       List committers
   #: contributors     List contributors
