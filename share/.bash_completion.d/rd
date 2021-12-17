@@ -2,8 +2,8 @@
 
 if [ "$(declare -F _cd)" ]; then
   if shopt -q cdable_vars; then
-    complete -v -F _cd rd
+    complete -v -F _cd -o nospace rd
   else
-    complete -F _cd rd
+    complete -F _cd -o nospace rd
   fi
 fi
