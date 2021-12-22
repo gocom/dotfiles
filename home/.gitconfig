@@ -74,6 +74,7 @@
   #: amend            Modify the latest un-pushed commit
   #: assume           Assume files have not been changed
   #: assumed          List files that are marked as assume unchaged
+  #: back             Back to the previous git branch
   #: branch-create    Create a new branch
   #: branch-name      Get the name of the current branch
   #: branch-orphan    Create a new orphan branch
