@@ -133,6 +133,7 @@
   amend = commit --all --amend
   assume = update-index --assume-unchanged --
   assumed = "!git ls-files -v | grep ^h | cut -c 3-"
+  back = checkout -
   branch-create = checkout -b
   branch-name = "!git rev-parse --abbrev-ref HEAD"
   branch-orphan = checkout --orphan
