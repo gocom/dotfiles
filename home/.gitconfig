@@ -153,7 +153,8 @@
   directory = "!f() { cd -- "$1" > /dev/null && git ls-files . | sed 's,/.*,/,' | uniq; }; f"
   files = ls-files
   find = "!f() { git find-name "$1"; git find-contents "$1"; return 0; }; f"
-  find-commit = "!f() { git history --grep="$1"; }; f"
+  find-commit = "!git history --grep"
+  fd = "!git find-commit"
   find-contents = grep -Ii
   find-name = "!f() { git ls-files | grep -i "$1"; return 0; }; f"
   history = log --pretty=logcompact --date=short
@@ -190,7 +191,7 @@
   unstage = reset --
   up = "!git pull --rebase "$@" && git submodule update --init --recursive"
   upstream = "!git branch --set-upstream-to=origin/"$(git branch-name)" "$(git branch-name)""
-  worklog = "!f() { git --no-pager shortlog -w0,0,0 --pretty=logshortchanges --date=short "$@"; }; f"
+  worklog = "!git --no-pager shortlog -w0,0,0 --pretty=logshortchanges --date=short"
 [log]
   date = format-local:"%b %d, %Y %H:%M:%S"
 [pretty]
