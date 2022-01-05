@@ -29,28 +29,44 @@ main () {
   # shellcheck disable=SC2046
   set -- $(hashes "$@")
 
-  table "$@"
+  commit-list "$@"
 
   prompt "$@"
 }
 
-table() {
-  local hash
+commit-list() {
+  local hash index padding
+
+  index=1
+  padding="    "
 
   for hash in "$@"; do
     commit "$hash"
-  done | nl
+    ((index++))
+  done
 }
 
 commit() {
-  git show --reverse --quiet --color=always --pretty="%C(auto,yellow)%h%Creset  %<(11,trunc)%an  %C(auto,magenta)%ad%Creset  %<(44,trunc)%s" "$@"
+  git show \
+    --reverse \
+    --quiet \
+    --color=always \
+    --date=format:'%Y-%m-%d %H:%M:%S' \
+    --pretty="${padding:${#index}}%C(auto,green)$index%Creset  %<(74,trunc)%s%n${padding:-}  %C(auto,yellow)%h%Creset  %C(auto,magenta)%ad%Creset  %<(40,trunc)%an" \
+    "$@"
 }
 
 prompt () {
-  read -r -p "Cherry-pick commit row (1-n, all, exit): " row
+  local answer
+
+  read -r -p "Cherry-pick commit row (1-n, all, exit): " answer
+
+  if [[ "$answer" == "e"* ]] || [[ "$answer" == "E"* ]]; then
+    exit 0
+  fi
 
   # shellcheck disable=SC2046
-  cherry-pick $(selection "$row" "$@")
+  cherry-pick $(selection "$answer" "$@")
 }
 
 selection () {
@@ -61,8 +77,7 @@ selection () {
   shift 1
 
   case "$row" in
-    all|"") ;;
-    "exit") exit 0 ;;
+    a*|"") ;;
     *-*)
       min="$(echo "$row" | awk -F '-' '{print $1}')"
       max="$(echo "$row" | awk -F '-' '{print $2}')"
@@ -101,6 +116,8 @@ cherry-pick () {
 }
 
 skip () {
+  local answer
+
   echo "Failed to cherry-pick $hash" >&2
   commit "$hash" >&2
   read -r -p "Skip and continue from the next commit (Yes/no)? " answer
