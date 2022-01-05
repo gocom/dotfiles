@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Interactively cherry-picks commits by searching their messages for a keyword.
+
+This tool is intended for tasks where set of commits need to be taken
+to a target branch in their original commit date order. This could, for
+instance, be used to build release branches from a main branch.
+
+Usage:
+  $ $app_name [options] <source-branch> <keyword>
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ git checkout release/2022-01
+  $ $app_name main EXAMPLE-101
+
+EOF
+}
+
+main () {
+  local hashes hash
+
+  set -- $(hashes "$@")
+
+  table "$@"
+
+  prompt "$@"
+}
+
+table() {
+  local index
+
+  index=0
+
+  for hash in "$@"; do
+    commit "$hash"
+  done | nl
+}
+
+commit() {
+  git show --reverse --quiet --color=always --pretty="%C(auto,yellow)%h%Creset  %<(11,trunc)%an  %C(auto,magenta)%ad%Creset  %<(44,trunc)%s" "$@"
+}
+
+prompt () {
+  read -r -p "Cherry-pick commit row (1-n, all, exit): " row
+  cherry-pick $(selection "$row" "$@")
+}
+
+selection () {
+  local min max row i
+
+  row="$1"
+
+  shift 1
+
+  case "$row" in
+    all|"") ;;
+    "exit") exit 0 ;;
+    *-*)
+      min="$(echo "$row" | awk -F '-' '{print $1}')"
+      max="$(echo "$row" | awk -F '-' '{print $2}')"
+      ;;
+    *)
+      echo "${@:$row:1}"
+      return
+      ;;
+  esac
+
+  min="${min:-1}"
+  max="${max:-$#}"
+
+  for ((i=$min;i<=$max;i++)); do
+    echo "${@:$i:1}"
+  done
+}
+
+cherry-pick () {
+  local hash
+
+  if [ "$#" -gt 1 ]; then
+    for hash in "$@"; do
+      git cherry-pick -x "$hash"
+      false || skip || return 1
+    done
+
+    return 0
+  fi
+
+  if [ "$#" -eq 1 ]; then
+    git cherry-pick -x "$1" || return 1
+  fi
+
+  return 1
+}
+
+skip () {
+  echo "Failed to cherry-pick $hash" >&2
+  commit "$hash" >&2
+  read -r -p "Skip and continue from the next commit (Yes/no)? " answer
+
+  case "$answer" in
+    Y|y) git cherry-pick --abort 2> /dev/null ;;
+    *) return 1 ;;
+  esac
+}
+
+hashes () {
+  local args branch option
+
+  branch="${1:-master}"
+
+  shift 1
+
+  args=()
+
+  for option in "$@"; do
+    args+=("--grep=$option")
+    shift 1
+  done
+
+  set -- "${args[@]}"
+
+  git --no-pager log --pretty=tformat:"%H" "$@" master
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  *) main "$@" ;;
+esac
