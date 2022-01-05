@@ -26,8 +26,7 @@ EOF
 }
 
 main () {
-  local hashes hash
-
+  # shellcheck disable=SC2046
   set -- $(hashes "$@")
 
   table "$@"
@@ -36,9 +35,7 @@ main () {
 }
 
 table() {
-  local index
-
-  index=0
+  local hash
 
   for hash in "$@"; do
     commit "$hash"
@@ -51,6 +48,8 @@ commit() {
 
 prompt () {
   read -r -p "Cherry-pick commit row (1-n, all, exit): " row
+
+  # shellcheck disable=SC2046
   cherry-pick $(selection "$row" "$@")
 }
 
@@ -77,7 +76,7 @@ selection () {
   min="${min:-1}"
   max="${max:-$#}"
 
-  for ((i=$min;i<=$max;i++)); do
+  for ((i=min;i<=max;i++)); do
     echo "${@:$i:1}"
   done
 }
@@ -115,7 +114,7 @@ skip () {
 hashes () {
   local args branch option
 
-  branch="${1:-master}"
+  branch="${1:-}"
 
   shift 1
 
@@ -128,7 +127,7 @@ hashes () {
 
   set -- "${args[@]}"
 
-  git --no-pager log --pretty=tformat:"%H" "$@" master
+  git --no-pager log --pretty=tformat:"%H" "$@" "$branch"
 }
 
 case "${1:-}" in
