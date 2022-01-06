@@ -12,7 +12,7 @@ to a target branch in their original commit date order. This could, for
 instance, be used to build release branches from a main branch.
 
 Usage:
-  $ $app_name [options] <source-branch> <keyword>
+  $ $app_name [options] <source-branch> <keyword ...>
 
 Options:
   -h, --help     Print this message
@@ -43,7 +43,15 @@ fatal () {
 }
 
 main () {
-  local branch
+  case "${1:-}" in
+    -v|--version) echo "$app_version" ;;
+    -h|--help) usage ;;
+    *) pick "$@" ;;
+  esac
+}
+
+pick() {
+  local branch selected selection hash
 
   if [ "$#" -eq 0 ]; then
     fatal "Branch is required."
@@ -56,45 +64,42 @@ main () {
   # shellcheck disable=SC2046
   set -- $(hashes "$@")
 
-  commit-list "$@"
+  if [ "$#" -eq 0 ]; then
+    fatal "No commits found matching the given criteria."
+  fi
 
-  prompt "$@"
+  commits "$@"
+
+  read -r -p "Cherry-pick commit row (1-n, all, exit): " selected
+
+  case "$selected" in
+    e*|E*|"") exit 0 ;;
+    *) selection "$selected" "$@" || fatal ;;
+  esac
+
+  for hash in "${selection[@]}"; do
+    msg "Cherry-picking $hash..."
+    git cherry-pick -x "$hash" || skip
+  done
 }
 
-commit-list() {
+commits() {
   local hash index padding
 
   index=1
   padding="    "
 
   for hash in "$@"; do
-    commit "$hash"
+    git show \
+      --reverse \
+      --quiet \
+      --color=always \
+      --date=format:'%Y-%m-%d %H:%M:%S' \
+      --pretty="${padding:${#index}}%C(auto,green)$index%Creset  %<(74,trunc)%s%n${padding:-}  %C(auto,yellow)%h%Creset  %C(auto,magenta)%ad%Creset  %<(40,trunc)%an" \
+      "$hash"
+
     ((index++))
   done
-}
-
-commit() {
-  git show \
-    --reverse \
-    --quiet \
-    --color=always \
-    --date=format:'%Y-%m-%d %H:%M:%S' \
-    --pretty="${padding:${#index}}%C(auto,green)$index%Creset  %<(74,trunc)%s%n${padding:-}  %C(auto,yellow)%h%Creset  %C(auto,magenta)%ad%Creset  %<(40,trunc)%an" \
-    "$@"
-}
-
-prompt () {
-  local answer selection
-
-  read -r -p "Cherry-pick commit row (1-n, all, exit): " answer
-
-  if [[ "$answer" == "e"* ]] || [[ "$answer" == "E"* ]]; then
-    exit 0
-  fi
-
-  selection "$answer" "$@" || fatal
-
-  cherry-pick "${selection[@]}"
 }
 
 selection () {
@@ -107,7 +112,7 @@ selection () {
   shift 1
 
   case "$row" in
-    a*) ;;
+    a*|"") ;;
     *-*)
       min="$(echo "$row" | awk -F '-' '{print $1}')"
       max="$(echo "$row" | awk -F '-' '{print $2}')"
@@ -135,17 +140,6 @@ selection () {
   return 0
 }
 
-cherry-pick () {
-  local hash
-
-  for hash in "$@"; do
-    msg "Cherry-picking $hash..."
-    git cherry-pick -x "$hash" || skip || return 1
-  done
-
-  return 1
-}
-
 skip () {
   local answer
 
@@ -154,8 +148,11 @@ skip () {
   read -r -p "Skip and continue from the next commit (Yes/no)? " answer
 
   case "$answer" in
-    Y|y) git cherry-pick --abort 2> /dev/null ;;
-    *) return 1 ;;
+    Y|y)
+      git cherry-pick --abort 2> /dev/null \
+        || fatal "Aborting cherry-pick failed."
+        ;;
+    *) fatal ;;
   esac
 }
 
@@ -166,16 +163,9 @@ hashes () {
 
   for option in "$@"; do
     args+=("--grep=$option")
-    shift 1
   done
 
-  set -- "${args[@]}"
-
-  git --no-pager log --pretty=tformat:"%H" "$@" "$branch"
+  git --no-pager log --pretty=tformat:"%H" "${args[@]}" "$branch"
 }
 
-case "${1:-}" in
-  ""|-h|--help) usage ;;
-  -v|--version) echo "$app_version" ;;
-  *) main "$@" ;;
-esac
+main "$@"
