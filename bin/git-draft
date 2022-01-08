@@ -292,12 +292,17 @@ run () {
 }
 
 hashes () {
-  local args option
+  local args option delimiters
 
   args=()
 
+  delimiters="[/-?!:., ]"
+
   for option in "$@"; do
-    args+=("--grep=$option")
+    args+=("--grep=^${option}${delimiters}")
+    args+=("--grep=${delimiters}${option}$")
+    args+=("--grep=${delimiters}${option}${delimiters}")
+    args+=("--grep=^${option}$")
   done
 
   git --no-pager log --pretty=tformat:"%H" "${args[@]}" "$branch"
