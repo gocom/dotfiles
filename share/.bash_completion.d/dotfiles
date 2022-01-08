@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+_dotfiles () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$prev" in
+    -d)
+      _filedir -d
+      return
+      ;;
+  esac
+
+  case "$cur" in
+    -*)
+      COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
+      return
+      ;;
+  esac
+
+  if [ "$cword" -eq 1 ]; then
+    COMPREPLY=($(compgen -W 'docs dump install install-deps lint pull prefix test unit watch' -- "$cur"))
+    return;
+  fi
+} && complete -F _dotfiles dotfiles

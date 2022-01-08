@@ -34,6 +34,9 @@ Commands:
   $app_name prefix
   Print dotfiles install path.
 
+  $app_name pull
+  Pull dotfiles from remote.
+
   $app_name test
   Run test suite.
 
@@ -172,6 +175,7 @@ main () {
     install) install ;;
     install-deps) install_dependencies ;;
     lint) lint ;;
+    pull) pull ;;
     prefix) prefix ;;
     test) suite ;;
     unit) unit ;;
@@ -568,6 +572,10 @@ dump () {
   apm-pkg dump "Atomfile" 2> /dev/null
   brew bundle dump --force 2> /dev/null
   return 0
+}
+
+pull () {
+  git pull
 }
 
 main "$@"

@@ -124,6 +124,7 @@
   #: rmdir            Remove a directory, keep the files in the filesystem
   #: staged           Compare differences in staging
   #: submodules       List submodules in staging or current working tree
+  #: spork            Commits in the given source branch after fork
   #: tag-info         Inspect a tag
   #: tags             Lists tags
   #: unassume         Unassume a file
@@ -189,6 +190,7 @@
   releases = tag -n --format='%(align:left,18)%(color:yellow)%(refname:strip=2)%(color:reset)%(end)  %(objectname:short)%(HEAD) %(color:magenta)%(taggerdate:short)%(color:reset)  %(taggername)' --list '*[0-9]*.*'
   rmfile = rm -r --cached --
   rmdir = rm -rf --cached --
+  spork = "!f () { git history --reverse "$(git fork-point-ref "$@")" ... "$@"; }; f"
   staged = diff --cached --
   submodules = "!git ls-files --stage | grep '^160000 '"
   tag-info = tag -n --format='%(align:left,18)%(color:yellow)%(refname:strip=2)%(color:reset)%(end)  %(objectname:short)%(HEAD) %(color:magenta)%(taggerdate:short)%(color:reset)  %(taggername)\n%(contents)' --list
