@@ -15,14 +15,83 @@ Usage:
   $ $app_name [options] <source-branch> <keyword ...>
 
 Options:
-  -h, --help     Print this message
-  -v, --version  Print version number
+  -h, --help      Print this message
+  -v, --version   Print version number
+  -D, --dry-run   Dry-run without writing
+  -S, --silent    Silent mode
+  -V, --verbose   Verbose output
+      --color     Enable colors
+      --no-color  Disable colors
+
+      --all       Select all matching commits
 
 Examples:
   $ git checkout release/2022-01
   $ $app_name main EXAMPLE-101
 
 EOF
+}
+
+main () {
+  local args OPTIND OPTARG OPTERR option \
+    color dryrun silent verbose all \
+    reset red green yellow blue magenta cyan
+
+  args=()
+
+  for option in "$@"; do
+    case "$option" in
+      -*) break ;;
+      *) args+=("$option"); shift ;;
+    esac
+  done
+
+  color="always"
+
+  if [ "${TERM:-}" = "dumb" ] || [ "${NO_COLOR:-}" ]; then
+    color=""
+  fi
+
+  while getopts ":hvVDQS-:" option; do
+    case "$option" in
+      -)
+        case "$OPTARG" in
+          help) usage; exit 0 ;;
+          version) echo "$app_version"; exit 0 ;;
+          color) color="always" ;;
+          dryrun|dry-run) dryrun=1 ;;
+          no-color) color="" ;;
+          verbose) verbose=1 ;;
+          quiet|silent) silent=1 ;;
+          all) all=1 ;;
+          *) fatal "Invalid option: --$OPTARG" ;;
+        esac
+        ;;
+      h) usage; exit 0 ;;
+      v) echo "$app_version"; exit 0 ;;
+      D) dryrun=1 ;;
+      Q|S) silent=1 ;;
+      V) verbose=1 ;;
+      \?) fatal "Invalid option: -$OPTARG" ;;
+      :) fatal "Option -$OPTARG requires an argument." ;;
+      *) fatal "Unexpected: -$OPTARG" ;;
+    esac
+  done
+
+  shift "$((OPTIND - 1))"
+  set -- "${args[@]}"
+
+  if [ "$color" ]; then
+    reset="$(tput sgr0)"
+    red="$(tput setaf 1)"
+    green="$(tput setaf 2)"
+    yellow="$(tput setaf 3)"
+    blue="$(tput setaf 4)"
+    magenta="$(tput setaf 5)"
+    cyan="$(tput setaf 6)"
+  fi
+
+  pick "$@"
 }
 
 msg () {
@@ -33,8 +102,14 @@ msg () {
   done
 }
 
+log () {
+  if ! [ "$silent" ]; then
+    msg "$@"
+  fi
+}
+
 err () {
-  msg "$@" >&2
+  log "$@" >&2
 }
 
 fatal () {
@@ -42,19 +117,15 @@ fatal () {
   exit 1
 }
 
-main () {
-  case "${1:-}" in
-    -v|--version) echo "$app_version" ;;
-    -h|--help) usage ;;
-    *) pick "$@" ;;
-  esac
-}
-
 pick() {
   local branch selected selection hash
 
   if [ "$#" -eq 0 ]; then
-    fatal "Branch is required."
+    fatal "${red}✘${reset} Branch is required."
+  fi
+
+  if [ "$dryrun" ]; then
+    log "${blue}ℹ${reset} Running with ${yellow}--dry-run${reset}, nothing will be written."
   fi
 
   branch="${1:-}"
@@ -65,12 +136,16 @@ pick() {
   set -- $(hashes "$@")
 
   if [ "$#" -eq 0 ]; then
-    fatal "No commits found matching the given criteria."
+    fatal "${cyan}·${reset} No commits found matching the given criteria."
   fi
 
   commits "$@"
 
-  read -r -p "Cherry-pick commit row (1-n, all, exit): " selected
+  if [ "$all" ] || [ "$silent" ]; then
+    selected="all"
+  else
+    read -r -p "Cherry-pick commit row (1-n, all, exit): " selected
+  fi
 
   case "$selected" in
     e*|E*|"") exit 0 ;;
@@ -78,24 +153,33 @@ pick() {
   esac
 
   for hash in "${selection[@]}"; do
-    msg "Cherry-picking $hash..."
-    git cherry-pick -x "$hash" || skip
+    cherry-pick "$hash"
   done
+
+  log "${green}✓${reset} All selected commits processed"
 }
 
 commits() {
-  local hash index padding
+  local hash index padding length spacing
+
+  if [ "$silent" ]; then
+    return 0
+  fi
 
   index=1
   padding="    "
+  padding="${padding:1:${##}}"
+  spacing="${#padding}"
+
+  ((length=80-2-spacing))
 
   for hash in "$@"; do
     git show \
       --reverse \
       --quiet \
-      --color=always \
+      --color="${color:-never}" \
       --date=format:'%Y-%m-%d %H:%M:%S' \
-      --pretty="${padding:${#index}}%C(auto,green)$index%Creset  %<(74,trunc)%s%n${padding:-}  %C(auto,yellow)%h%Creset  %C(auto,magenta)%ad%Creset  %<(40,trunc)%an" \
+      --pretty="${padding:${#index}}%C(auto,green)$index%Creset  %<($length,trunc)%s%n$padding  %C(auto,yellow)%h%Creset  %C(auto,magenta)%ad%Creset  %<(40,trunc)%an" \
       "$hash"
 
     ((index++))
@@ -140,20 +224,42 @@ selection () {
   return 0
 }
 
-skip () {
-  local answer
+cherry-pick () {
+  local abort hash
 
-  err "Failed to cherry-pick $hash"
-  commit "$hash" >&2
-  read -r -p "Skip and continue from the next commit (Yes/no)? " answer
+  hash="${1:-}"
 
-  case "$answer" in
-    Y|y)
-      git cherry-pick --abort 2> /dev/null \
-        || fatal "Aborting cherry-pick failed."
+  log "${magenta}↯${reset} Cherry-picking ${yellow}$hash${reset}"
+
+  run cherry-pick -x "$hash" && return 0
+
+  err "${red}✘${reset} Cherry-picking ${yellow}$hash${reset} failed"
+
+  read -r -p "Skip and continue from the next commit (Yes/no)? " abort
+
+  case "$abort" in
+    Y*|y*)
+      run cherry-pick --abort \
+        || fatal "${red}✘${reset} Aborting cherry-pick failed"
         ;;
-    *) fatal ;;
+    *)
+      fatal "${red}✘${reset} Exiting and leaving cherry-pick in progress"
+      ;;
   esac
+}
+
+run () {
+  if [ "$dryrun" ]; then
+    return 0
+  fi
+
+  if [ "$verbose" ]; then
+    git "$@"
+  else
+    git "$@" > /dev/null 2>&1
+  fi
+
+  return "$?"
 }
 
 hashes () {
