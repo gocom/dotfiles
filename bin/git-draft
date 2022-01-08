@@ -79,7 +79,7 @@ main () {
   done
 
   shift "$((OPTIND - 1))"
-  set -- "${args[@]}"
+  set -- "${args[@]}" "$@"
 
   if [ "$color" ]; then
     reset="$(tput sgr0)"
