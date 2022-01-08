@@ -149,7 +149,7 @@ pick() {
 
   case "$selected" in
     e*|E*|"") exit 0 ;;
-    *) selection "$selected" "$@" || fatal ;;
+    *) selection "$selected" "$@" ;;
   esac
 
   for hash in "${selection[@]}"; do
@@ -160,30 +160,46 @@ pick() {
 }
 
 commits() {
-  local hash index padding length spacing
+  local hash index
+
+  index=1
+
+  for hash in "$@"; do
+    commit "$hash" "$index" "${##}"
+    ((index++))
+  done
+}
+
+commit () {
+  local index paddingLength padding width spacing pretty
 
   if [ "$silent" ]; then
     return 0
   fi
 
-  index=1
+  index="${2:-}"
+  paddingLength="${3:-0}"
+
   padding="    "
-  padding="${padding:1:${##}}"
+  padding="${padding:1:$paddingLength}"
   spacing="${#padding}"
 
-  ((length=80-2-spacing))
+  ((width=80-2-spacing))
 
-  for hash in "$@"; do
-    git show \
-      --reverse \
-      --quiet \
-      --color="${color:-never}" \
-      --date=format:'%Y-%m-%d %H:%M:%S' \
-      --pretty="${padding:${#index}}%C(auto,green)$index%Creset  %<($length,trunc)%s%n$padding  %C(auto,yellow)%h%Creset  %C(auto,magenta)%ad%Creset  %<(40,trunc)%an" \
-      "$hash"
+  pretty="$(printf '%s  %s  %s  %s  %s' \
+    "${padding:${#index}}%C(auto,green)$index%Creset"\
+    "%<($width,trunc)%s%n$padding"\
+    "%C(auto,yellow)%h%Creset"\
+    "%C(auto,magenta)%ad%Creset"\
+    "%<(40,trunc)%an")"
 
-    ((index++))
-  done
+  git show \
+    --reverse \
+    --quiet \
+    --color="${color:-never}" \
+    --date=format:'%Y-%m-%d %H:%M:%S' \
+    --pretty="${pretty[*]}" \
+    "$1"
 }
 
 selection () {
@@ -201,21 +217,28 @@ selection () {
       min="$(echo "$row" | awk -F '-' '{print $1}')"
       max="$(echo "$row" | awk -F '-' '{print $2}')"
       ;;
-    [0-9]*)
+    *)
       min="$row"
       max="$row"
       ;;
-    *) return 1 ;;
   esac
 
   min="${min:-1}"
   max="${max:-$#}"
 
+  if ! [[ "$min" =~ ^[0-9]+$ ]] || [ "$min" -lt 1 ]; then
+    fatal "${red}✘${reset} Invalid minimum selection range '$min'"
+  fi
+
+  if ! [[ "$max" =~ ^[0-9]+$ ]] || [ "$max" -gt "$#" ]; then
+    fatal "${red}✘${reset} Invalid maximum selection range '$max'"
+  fi
+
   for ((i=min;i<=max;i++)); do
     hash="${*:$i:1}"
 
     if ! [ "$hash" ]; then
-      return 1
+      fatal "${red}✘${reset} Invalid row number '$i'"
     fi
 
     selection+=("$hash")
@@ -230,6 +253,10 @@ cherry-pick () {
   hash="${1:-}"
 
   log "${magenta}↯${reset} Cherry-picking ${yellow}$hash${reset}"
+
+  if [ "$verbose" ]; then
+    commit "$hash"
+  fi
 
   run cherry-pick -x "$hash" && return 0
 
@@ -253,10 +280,12 @@ run () {
     return 0
   fi
 
-  if [ "$verbose" ]; then
+  if [ "$silent" ]; then
+    git "$@" > /dev/null 2>&1
+  elif [ "$verbose" ]; then
     git "$@"
   else
-    git "$@" > /dev/null 2>&1
+    git "$@" > /dev/null
   fi
 
   return "$?"
