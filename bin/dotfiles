@@ -64,7 +64,7 @@ prefix () {
 main () {
   local args OPTIND OPTARG OPTERR option options \
     color directory dryrun force silent verbose prefix physical \
-    reset red green yellow blue magenta cyan
+    reset red green yellow blue magenta cyan cmd
 
   args=()
 
@@ -112,6 +112,9 @@ main () {
 
   shift "$((OPTIND - 1))"
   set -- "${args[@]}" "$@"
+
+  cmd="${1:-}"
+  shift
 
   if [ "$color" ]; then
     reset="$(tput sgr0)"
@@ -180,7 +183,7 @@ main () {
 
   unique="$(date +"%s")"
 
-  case "${1:-}" in
+  case "$cmd" in
     docs) docs "$@" ;;
     dump) dump ;;
     install) install ;;
