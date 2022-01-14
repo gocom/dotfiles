@@ -95,6 +95,7 @@ main () {
           force) force=1 ;;
           verbose) verbose=1 ;;
           quiet|silent) silent=1 ;;
+          *) fatal "Invalid option: --$OPTARG" ;;
         esac;;
       h) usage; exit 0 ;;
       v) echo "$app_version"; exit 0 ;;
@@ -110,7 +111,21 @@ main () {
   done
 
   shift "$((OPTIND - 1))"
-  set -- "${args[@]}"
+  set -- "${args[@]}" "$@"
+
+  if [ "$color" ]; then
+    reset="$(tput sgr0)"
+    red="$(tput setaf 1)"
+    green="$(tput setaf 2)"
+    yellow="$(tput setaf 3)"
+    blue="$(tput setaf 4)"
+    magenta="$(tput setaf 5)"
+    cyan="$(tput setaf 6)"
+  fi
+
+  if [ "$dryrun" ]; then
+    log "${blue}ℹ${reset} Running with ${yellow}--dry-run${reset}, nothing will be written."
+  fi
 
   if [ "${XDG_CONFIG_HOME:-}" ]; then
     prefix="$XDG_CONFIG_HOME/dotfiles"
@@ -124,10 +139,8 @@ main () {
     physical="$prefix"
   fi
 
-  if [ "$directory" ]; then
-    if ! [ -r "$directory/home/.bashrc" ]; then
-      fatal "Given directory '$directory' does not contain dotfiles"
-    fi
+  if [ "$directory" ] && ! valid "$directory/home/.bashrc"; then
+    fatal "${red}✘${reset} Given directory ${yellow}$directory${reset} does not contain dotfiles."
   fi
 
   if ! [ "$directory" ]; then
@@ -142,8 +155,16 @@ main () {
     fi
 
     options+=("$HOME/.config/dotfiles")
+    options+=("$HOME/.local/dotfiles")
     options+=("$HOME/.dotfiles")
     options+=("$PWD")
+
+    verbose "${blue}ℹ${reset} Searching dotfiles directory location variants." \
+      "${blue}ℹ${reset} Use ${yellow}-d /path/to${reset} if you want to manually set one."
+
+    for option in "${options[@]}"; do
+      verbose "${magenta}·${reset} $option"
+    done
 
     for option in "${options[@]}"; do
       valid "$option" && directory="$option" && break
@@ -151,26 +172,16 @@ main () {
   fi
 
   if ! [ "$directory" ]; then
-    fatal "Could not find dotfiles."
+    fatal "${red}✘${reset} Could not find dotfiles directory."
   fi
 
-  cd "$directory" || exit 1
-  verbose "Found: $directory"
-
-  if [ "$color" ]; then
-    reset="$(tput sgr0)"
-    red="$(tput setaf 1)"
-    green="$(tput setaf 2)"
-    yellow="$(tput setaf 3)"
-    blue="$(tput setaf 4)"
-    magenta="$(tput setaf 5)"
-    cyan="$(tput setaf 6)"
-  fi
+  cd "$directory" || fatal "${red}✘${reset} Could not change working directory to ${yellow}$directory${reset}."
+  verbose "${blue}ℹ${reset} Using ${yellow}$directory${reset} as the directory."
 
   unique="$(date +"%s")"
 
-  case "${args[0]}" in
-    docs) docs "${@:2}" ;;
+  case "${1:-}" in
+    docs) docs "$@" ;;
     dump) dump ;;
     install) install ;;
     install-deps) install_dependencies ;;
@@ -179,7 +190,7 @@ main () {
     prefix) prefix ;;
     test) suite ;;
     unit) unit ;;
-    watch) watch "${@:2}" ;;
+    watch) watch "$@" ;;
     *) usage ;;
   esac
 }
@@ -187,29 +198,17 @@ main () {
 # Install script.
 
 install () {
+  local line
+
   chmod +x bin/*
 
   base "$directory"
-  link "home/.atom/config.cson"
-  link "home/.man/style.css"
-  link "home/.ssh/config"
-  link "home/.bash_completion"
-  link "home/.bash_profile"
-  link "home/.bashrc"
-  link "home/.curlrc"
-  link ".editorconfig"
-  link "home/.gitconfig"
-  link "home/.gitignore"
-  link "home/.hushlogin"
-  link "home/.inputrc"
-  link "home/.lnav/formats/monolog.json"
-  link "home/.nanorc.d"
-  link "home/.nanorc"
-  link "home/.netrc"
-  link "home/.profile"
-  link "home/.project"
-  link "home/.tm_properties"
-  link "home/.wgetrc"
+
+  while read -r line; do
+    if [ "$line" ]; then
+      link "$line"
+    fi
+  done < "$directory/.dotfile-links"
 }
 
 install_dependencies () {
@@ -263,8 +262,9 @@ base () {
     return 0
   fi
 
+  backup "$path"
+
   if ! [ "$dryrun" ]; then
-    backup "$path"
     ln -s "$path" "$prefix" || fatal "${yellow}✘${reset} ― unable to link"
   fi
 
@@ -360,19 +360,22 @@ link () {
     fi
   fi
 
-  if ! [ "$dryrun" ]; then
-    if ! [ -e "$directory" ]; then
+  if ! [ -e "$directory" ]; then
+    log "${blue}↳${reset} $directory"
+
+    if ! [ "$dryrun" ]; then
       mkdir -p "$directory" || return 1
     fi
+  fi
 
-    if [ -e "$where" ]; then
-      backup "$where" || status=1
-    fi
+  backup "$where" || status=1
 
-    if [ "$status" ] && ! [ "$force" ]; then
-      return 1
-    fi
+  if [ "$status" ] && ! [ "$force" ]; then
+    error "${red}✘${reset} $path ${yellow}―${reset} unable to backup"
+    return 1
+  fi
 
+  if ! [ "$dryrun" ]; then
     ln -s "$origin" "$where" || status=1
 
     if [ "$status" ]; then
@@ -391,17 +394,19 @@ backup () {
 
   origin="${1:-}"
 
-  if [ "$dryrun" ] || ! [ "$origin" ] || ! [ -e "$origin" ]; then
+  if ! [ "$origin" ] || ! [ -e "$origin" ]; then
     return 0
   fi
 
   backup="backups/$unique/$origin"
   parent="$(dirname "$backup")"
 
-  mkdir -p "$parent" || return 1
-  mv "$origin" "$backup" || return 1
+  log "${magenta}↺${reset} $origin ${yellow}―${reset} $backup"
 
-  log "${magenta}↺${reset} $backup"
+  if ! [ "$dryrun" ]; then
+    mkdir -p "$parent" || return 1
+    mv "$origin" "$backup" || return 1
+  fi
 }
 
 # Generate docs.
@@ -448,7 +453,7 @@ doc () {
   status=0
 
   if ! [ -e "$f" ]; then
-    log "${yellow}✘${reset} $f ${yellow}―${reset} not readable document"
+    error "${yellow}✘${reset} $f ${yellow}―${reset} not readable document"
     return 1
   fi
 
@@ -524,13 +529,13 @@ lint () {
 
     case "$bang" in
       *sh) shellcheck "$f" || status=1 ;;
-      *) echo "${blue}⋯${reset} $f" ;;
+      *) log "${blue}⋯${reset} $f" ;;
     esac
 
     if [ "$status" -eq 0 ]; then
-      echo "${green}✓${reset} $f"
+      log "${green}✓${reset} $f"
     else
-      echo "${red}✘${reset} $f"
+      log "${red}✘${reset} $f"
     fi
 
     if [ "$status" -gt "$code" ]; then
@@ -546,15 +551,15 @@ unit () {
 }
 
 suite () {
-  echo "Lint ⬎"
+  log "Lint ⬎"
   lint
-  echo "Unit ⬎"
+  log "Unit ⬎"
   unit
 }
 
 watch () {
   if ! [ "$(command -v entr)" ]; then
-    fatal "'entr' not installed."
+    fatal "${red}✘${reset} 'entr' not installed."
   fi
 
   if [ "${1:-}" = "run" ]; then
