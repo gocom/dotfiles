@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Get requested server certificate.
+
+Usage:
+  $ $app_name [command] [options]
+
+Commands:
+  $ $app_name download  <hostname>:<port>
+  Download certificate.
+
+  $ $app_name info  <hostname>:<port>
+  Prints certificate information.
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ $app_name example.tld:443
+EOF
+}
+
+download () {
+  info "$@" \
+    | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'
+
+  exit "$?"
+}
+
+info () {
+  local server
+
+  server="$1"
+  shift 1
+
+  if ! [[ "$server" == *:* ]]; then
+    server="$server:443"
+  fi
+
+  openssl s_client -connect "$server" "$@" < /dev/null 2> /dev/null
+
+  exit "$?"
+}
+
+main () {
+  local cmd
+
+  cmd="${1:-}"
+
+  shift 1
+
+  case "$cmd" in
+    -h|--help|"") usage ;;
+    -v|--version) echo "$app_version" ;;
+    download) download "$@" ;;
+    info) "$@" ;;
+    *) info "$cmd" "$@" ;;
+  esac
+}
+
+main "$@"
