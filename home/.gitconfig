@@ -77,7 +77,6 @@
   #: back             Back to the previous git branch
   #: branch-create    Create a new branch
   #: branch-name      Get the name of the current branch
-  #: branch-orphan    Create a new orphan branch
   #: branch-rebase    Rebase all commit in the current branch
   #: branch-tag       Get the name of last tag in the current branch
   #: branches         List branches
@@ -97,7 +96,6 @@
   #: fork-point-ref   Fork point commit hash
   #: files            List files
   #: find             Search file names and contents
-  #: find-commit      Search commit by message
   #: find-contents    Search file contents
   #: find-name        Find file by name
   #: history          Compact commit history
@@ -114,7 +112,7 @@
   #: merge-span       Commit range originating from a merge
   #: missing          List commits that are missing from the current branch
   #: move             Move a file
-  #: orphan           Create orphan branch
+  #: orphan           Create new orphan branch
   #: patch            Output a patch commit email
   #: publish          Push the current branch to the origin
   #: release          Create an annotated tag
@@ -142,7 +140,6 @@
   back = checkout -
   branch-create = checkout -b
   branch-name = "!git rev-parse --abbrev-ref HEAD"
-  branch-orphan = checkout --orphan
   branch-rebase = "!git rebase --interactive $(git merge-base master HEAD)"
   branch-tag = describe --tags --abbrev=0
   branches = branch --all --list
@@ -159,7 +156,6 @@
   directory = "!f() { cd -- "$1" > /dev/null && git ls-files . | sed 's,/.*,/,' | uniq; }; f"
   files = ls-files
   find = "!f() { git find-name "$1"; git find-contents "$1"; return 0; }; f"
-  find-commit = "!git history --grep"
   fd = "!git find-commit"
   fork-point = "!f () { git history -1 "$(git fork-point-ref "$@")"; }; f"
   fork-point-ref = "!git merge-base "$(git branch-name)""
