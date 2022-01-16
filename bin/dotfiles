@@ -28,6 +28,12 @@ Commands:
   $app_name dump
   Dumps dependencies to lockfiles.
 
+  $app_name install
+  Install dotfiles to the user's home directory.
+
+  $app_name install-deps
+  Install third-party dependencies through package managers.
+
   $app_name lint
   Lint codebase.
 
@@ -45,12 +51,6 @@ Commands:
 
   $app_name watch
   Watch for file changes.
-
-  $app_name install
-  Install dotfiles to the user's home directory.
-
-  $app_name install-deps
-  Install third-party dependencies through package managers.
 
 Examples:
   $app_name install absolute/path/to/dotfiles

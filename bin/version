@@ -8,7 +8,7 @@ usage () {
 Print a version number for the specified project directory.
 
 Usage:
-  $ $app_name [options]
+  $ $app_name [options] [directory]
 
 Options:
   -h, --help     Print this message
@@ -38,23 +38,22 @@ main () {
         case "$OPTARG" in
           help) usage; exit 0 ;;
           version) echo "$app_version"; exit 0 ;;
-          *)
-            if [ "$OPTERR" = 1 ] ; then
-              echo "Unknown option --$OPTARG"
-              exit 1
-            fi
-            ;;
+          *) fatal "Unknown option --$OPTARG" ;;
         esac;;
       h) usage; exit 0 ;;
       v) echo "$app_version"; exit 0 ;;
-      \?) echo "Invalid option: -$OPTARG"; exit 1 ;;
-      :) echo "Option -$OPTARG requires an argument."; exit 1 ;;
-      *) echo "Unexpected: -$OPTARG"; exit 1 ;;
+      \?) fatal "Invalid option: -$OPTARG" ;;
+      :) fatal "Option -$OPTARG requires an argument." ;;
+      *) fatal "Unexpected: -$OPTARG" ;;
     esac
   done
 
   shift "$((OPTIND - 1))"
   set -- "${args[@]}" "$@"
+
+  if [ "$#" -ge 1 ]; then
+    cd "$1" || fatal "Invalid directory '$1'."
+  fi
 
   while true; do
     parse_json "package.json"
@@ -63,6 +62,23 @@ main () {
     parse_git
     up
   done
+}
+
+log () {
+  local message
+
+  for message in "$@"; do
+    echo "$message"
+  done
+}
+
+error () {
+  log "$@" >&2
+}
+
+fatal () {
+  error "$@"
+  exit 1
 }
 
 parse_json () {
@@ -107,7 +123,7 @@ up () {
   cd ".." > /dev/null 2>&1 || exit 1
 
   if [ "$cwd" = "$PWD" ]; then
-    exit 1
+    fatal "No version number is available."
   fi
 }
 

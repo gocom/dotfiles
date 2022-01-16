@@ -1,6 +1,6 @@
 % VERSION(1)
 % Jukka Svahn
-% October 2018
+% January 2022
 
 # NAME
 
@@ -14,7 +14,7 @@ is extracted from any found package manifest file such as `composer.json`,
 
 # SYNOPSIS
 
-**version** [*options*]
+**version** [*options*] [*directory*]
 
 # OPTIONS
 
@@ -23,6 +23,9 @@ is extracted from any found package manifest file such as `composer.json`,
 
 `-v`, `--version`
 : Print version number.
+
+*directory*
+: Project directory to scan. If omitted, uses the current working directory.
 
 # ENVIRONMENT
 

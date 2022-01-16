@@ -1,6 +1,6 @@
 % DOTFILES(1)
 % Jukka Svahn
-% October 2018
+% January 2022
 
 # NAME
 
@@ -27,33 +27,45 @@ Install and manage dotfiles.
 `docs` [*filename* ...]
 : Generate documentation such as man pages.
 
+`dump`
+: Dump dependencies to lock files.
+
 `install`
 : Install dotfiles to the current user's home directory. Installation is done by
 generating symbolic links and replacing `.bashrc`.
 
-`build`
-: Generate a singular, portable bash profile file.
+`install-deps`
+: Install third-party dependencies through package managers.
+
+`lint`
+: Lint codebase.
+
+`prefix`
+: Print dotfiles install path.
+
+`pull`
+: Pull dotfiles from remote.
+
+`test`
+: Run test suite.
+
+`unit`
+: Run unit tests.
+
+`watch`
+: Watch for file changes.
 
 # ENVIRONMENT
 
-`DOTFILES_COLOR`
-: Whether `TERM` says that it supports color.
-
-`DOTFILES_DISPLAY`
-: Whether `DISPLAY` is set.
-
 `DOTFILES_HOME`
 : Absolute path to dotfiles directory.
-
-`DOTFILES_INTERACTIVE`
-: Whether running in interactive shell.
-
-`DOTFILES_PLATFORM`
-: Name of the platform. Could be one of `solaris`, `macos`, `linux`, `freebsd`,
-`bsd` or `win`.
 
 # EXAMPLES
 
 Navigate to `dotfiles` directory and install it:
 
     $ cd "path/to/dotfiles" && dotfiles install
+
+Self-update dotfiles if they were cloned using git:
+
+    $ dotfiles pull
