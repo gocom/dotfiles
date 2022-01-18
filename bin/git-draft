@@ -15,15 +15,17 @@ Usage:
   $ $app_name [options] <source-branch> <keyword ...>
 
 Options:
-  -h, --help      Print this message
-  -v, --version   Print version number
-  -D, --dry-run   Dry-run without writing
-  -S, --silent    Silent mode
-  -V, --verbose   Verbose output
-      --color     Enable colors
-      --no-color  Disable colors
+  -h, --help           Print this message
+  -v, --version        Print version number
+  -D, --dry-run        Dry-run without writing
+  -S, --silent         Silent mode
+  -V, --verbose        Verbose output
+      --color          Enable colors
+      --no-color       Disable colors
 
-      --all       Select all matching commits
+      --all            Select all matching commits
+      --new            Select all matching new commits
+      --skip-existing  Skip existing commits based on message subject
 
 Examples:
   $ git checkout release/2022-01
@@ -34,7 +36,7 @@ EOF
 
 main () {
   local args OPTIND OPTARG OPTERR option \
-    color dryrun silent verbose all \
+    color dryrun silent verbose all skip_existing \
     reset red green yellow blue magenta cyan
 
   args=()
@@ -58,11 +60,13 @@ main () {
         case "$OPTARG" in
           help) usage; exit 0 ;;
           version) echo "$app_version"; exit 0 ;;
+          skip-existing) skip_existing=1 ;;
           color) color="always" ;;
           dryrun|dry-run) dryrun=1 ;;
           no-color) color="" ;;
           verbose) verbose=1 ;;
           quiet|silent) silent=1 ;;
+          new) skip_existing=1; all=1 ;;
           all) all=1 ;;
           *) fatal "Invalid option: --$OPTARG" ;;
         esac
@@ -144,7 +148,7 @@ pick() {
   if [ "$all" ] || [ "$silent" ]; then
     selected="all"
   else
-    read -r -p "Cherry-pick commit row (1-n, all, exit): " selected
+    read -r -p "Cherry-pick commit row (1-n, all, new, exit): " selected
   fi
 
   case "$selected" in
@@ -171,7 +175,7 @@ commits() {
 }
 
 commit () {
-  local index paddingLength padding width spacing pretty
+  local index paddingLength padding width spacing pretty marker markerLength
 
   if [ "$silent" ]; then
     return 0
@@ -180,21 +184,28 @@ commit () {
   index="${2:-}"
   paddingLength="${3:-0}"
 
+  if contains "$1"; then
+    marker="✿"
+  else
+    marker=" "
+  fi
+
   padding="    "
   padding="${padding:1:$paddingLength}"
   spacing="${#padding}"
+  markerLength="${#marker}"
 
-  ((width=80-2-spacing))
+  ((width=80-2-spacing-markerLength))
 
-  pretty="$(printf '%s  %s  %s  %s  %s' \
-    "${padding:${#index}}%C(auto,green)$index%Creset"\
-    "%<($width,trunc)%s%n$padding"\
-    "%C(auto,yellow)%h%Creset"\
-    "%C(auto,magenta)%ad%Creset"\
+  pretty="$(printf '%s%s %s  %s  %s  %s' \
+    "${padding:${#index}}%C(auto,green)$index%Creset" \
+    "${cyan}$marker${reset}" \
+    "%<($width,trunc)%s%n$padding" \
+    "%C(auto,yellow)%h%Creset" \
+    "%C(auto,magenta)%ad%Creset" \
     "%<(40,trunc)%an")"
 
   git show \
-    --reverse \
     --quiet \
     --color="${color:-never}" \
     --date=format:'%Y-%m-%d %H:%M:%S' \
@@ -212,6 +223,7 @@ selection () {
   shift 1
 
   case "$row" in
+    n*) skip_existing=1 ;;
     a*|"") ;;
     *-*)
       min="$(echo "$row" | awk -F '-' '{print $1}')"
@@ -251,6 +263,11 @@ cherry-pick () {
   local abort hash
 
   hash="${1:-}"
+
+  if [ "$skip_existing" ] && contains "$hash"; then
+    log "${cyan}✿${reset} Skipping ${yellow}$hash${reset}"
+    return 0
+  fi
 
   log "${magenta}↯${reset} Cherry-picking ${yellow}$hash${reset}"
 
@@ -305,7 +322,20 @@ hashes () {
     args+=("--grep=^${option}$")
   done
 
-  git --no-pager log --pretty=tformat:"%H" "${args[@]}" "$branch"
+  git --no-pager log --reverse --pretty=tformat:"%H" "${args[@]}" "$branch"
+}
+
+contains () {
+  local result find
+
+  find="$(git --no-pager log -1 --pretty=tformat:"%s" "$1")"
+  result="$(git --no-pager log --pretty=tformat:"%H" --grep="^$find$")"
+
+  if ! [ "$result" ]; then
+    return 1
+  fi
+
+  return 0
 }
 
 main "$@"
