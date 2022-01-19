@@ -112,6 +112,12 @@ log () {
   fi
 }
 
+verbose () {
+  if [ "$verbose" ]; then
+    log "$@"
+  fi
+}
+
 err () {
   log "$@" >&2
 }
@@ -175,7 +181,8 @@ commits() {
 }
 
 commit () {
-  local index paddingLength padding width spacing pretty marker markerLength
+  local index paddingLength padding width spacing pretty marker markerLength \
+    existing
 
   if [ "$silent" ]; then
     return 0
@@ -183,8 +190,9 @@ commit () {
 
   index="${2:-}"
   paddingLength="${3:-0}"
+  existing="$(contains "$1")"
 
-  if contains "$1"; then
+  if [ "$existing" ]; then
     marker="✿"
   else
     marker=" "
@@ -199,7 +207,7 @@ commit () {
 
   pretty="$(printf '%s%s %s  %s  %s  %s' \
     "${padding:${#index}}%C(auto,green)$index%Creset" \
-    "${cyan}$marker${reset}" \
+    "%C(auto,cyan)$marker%Creset" \
     "%<($width,trunc)%s%n$padding" \
     "%C(auto,yellow)%h%Creset" \
     "%C(auto,magenta)%ad%Creset" \
@@ -211,6 +219,10 @@ commit () {
     --date=format:'%Y-%m-%d %H:%M:%S' \
     --pretty="${pretty[*]}" \
     "$1"
+
+  if [ "$existing" ]; then
+    verbose "${padding}  ${cyan}@${reset} ${yellow}$existing${reset}"
+  fi
 }
 
 selection () {
@@ -260,13 +272,18 @@ selection () {
 }
 
 cherry-pick () {
-  local abort hash
+  local abort hash existing
 
   hash="${1:-}"
 
-  if [ "$skip_existing" ] && contains "$hash"; then
-    log "${cyan}✿${reset} Skipping ${yellow}$hash${reset}"
-    return 0
+  if [ "$skip_existing" ]; then
+    existing="$(contains "$hash")"
+
+    if [ "$existing" ]; then
+      log "${cyan}✿${reset} Skipping ${yellow}$hash${reset}"
+      verbose "  Exists as ${yellow}$existing${reset}"
+      return 0
+    fi
   fi
 
   log "${magenta}↯${reset} Cherry-picking ${yellow}$hash${reset}"
@@ -335,7 +352,7 @@ contains () {
     return 1
   fi
 
-  return 0
+  echo "$result"
 }
 
 main "$@"
