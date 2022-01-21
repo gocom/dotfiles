@@ -142,6 +142,8 @@ pick() {
 
   shift 1
 
+  log "${cyan}↻${reset} Searching for matching commits, this may take a while…"
+
   # shellcheck disable=SC2046
   set -- $(hashes "$@")
 
@@ -218,7 +220,8 @@ commit () {
     --color="${color:-never}" \
     --date=format:'%Y-%m-%d %H:%M:%S' \
     --pretty="${pretty[*]}" \
-    "$1"
+    "$1" \
+    || fatal "${red}✘${reset} Failed to get commit ${yellow}$1${reset}"
 
   if [ "$existing" ]; then
     verbose "${padding}  ${cyan}@${reset} ${yellow}$existing${reset}"
