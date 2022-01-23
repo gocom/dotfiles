@@ -139,21 +139,11 @@ fatal () {
 }
 
 pick() {
-  local branch selection hash
-
-  if [ "$#" -eq 0 ]; then
-    fatal "${red}✘${reset} Branch is required."
-  fi
-
-  branch="${1:-}"
-
-  shift 1
+  local selection hash
 
   hashes "$@"
 
-  set -- "${hashes[@]}"
-
-  commits "$@"
+  commits "${hashes[@]}"
 
   if ! [ "$selected" ] && ! [ "$silent" ]; then
     read -r -p "Cherry-pick commit row (1-n, all, new, exit): " selected
@@ -162,7 +152,7 @@ pick() {
   case "$selected" in
     "") fatal "${red}✘${reset} No selection given." ;;
     e*|E*) fatal "${cyan}·${reset} Goodbye." ;;
-    *) selection "$selected" "$@" ;;
+    *) selection "$selected" "${hashes[@]}" ;;
   esac
 
   for hash in "${selection[@]}"; do
@@ -330,9 +320,17 @@ run () {
 }
 
 hashes () {
-  local args option delimiters
+  local args option delimiters branch
+
+  if [ "$#" -eq 0 ]; then
+    fatal "${red}✘${reset} Branch is required."
+  fi
 
   log "${cyan}↻${reset} Searching for matching commits, this may take a while…"
+
+  branch="${1:-}"
+
+  shift 1
 
   args=()
   hashes=()
