@@ -15,17 +15,17 @@ Usage:
   $ $app_name [options] <source-branch> <keyword ...>
 
 Options:
-  -h, --help           Print this message
-  -v, --version        Print version number
-  -D, --dry-run        Dry-run without writing
-  -S, --silent         Silent mode
-  -V, --verbose        Verbose output
-      --color          Enable colors
-      --no-color       Disable colors
+  -h, --help      Print this message
+  -v, --version   Print version number
+  -D, --dry-run   Dry-run without writing
+  -S, --silent    Silent mode
+  -V, --verbose   Verbose output
+      --color     Enable colors
+      --no-color  Disable colors
+      --stdin     Branch name and keywords from standard input
 
-      --all            Select all matching commits
-      --new            Select all matching new commits
-      --skip-existing  Skip existing commits based on message subject
+      --all       Select all matching commits
+      --new       Select all matching new commits
 
 Examples:
   $ git checkout release/2022-01
@@ -36,7 +36,7 @@ EOF
 
 main () {
   local args OPTIND OPTARG OPTERR option \
-    color dryrun silent verbose all skip_existing \
+    color dryrun silent verbose skip_existing stdin hashes selected \
     reset red green yellow blue magenta cyan
 
   args=()
@@ -60,14 +60,14 @@ main () {
         case "$OPTARG" in
           help) usage; exit 0 ;;
           version) echo "$app_version"; exit 0 ;;
-          skip-existing) skip_existing=1 ;;
           color) color="always" ;;
           dryrun|dry-run) dryrun=1 ;;
           no-color) color="" ;;
           verbose) verbose=1 ;;
           quiet|silent) silent=1 ;;
-          new) skip_existing=1; all=1 ;;
-          all) all=1 ;;
+          new) selected="new" ;;
+          all) selected="all" ;;
+          stdin) stdin=1 ;;
           *) fatal "Invalid option: --$OPTARG" ;;
         esac
         ;;
@@ -82,6 +82,13 @@ main () {
     esac
   done
 
+  if [ "$stdin" ]; then
+    while read -r line; do
+      # shellcheck disable=SC2206
+      args+=($line)
+    done < /dev/stdin
+  fi
+
   shift "$((OPTIND - 1))"
   set -- "${args[@]}" "$@"
 
@@ -93,6 +100,10 @@ main () {
     blue="$(tput setaf 4)"
     magenta="$(tput setaf 5)"
     cyan="$(tput setaf 6)"
+  fi
+
+  if [ "$dryrun" ]; then
+    log "${blue}ℹ${reset} Running with ${yellow}--dry-run${reset}, nothing will be written."
   fi
 
   pick "$@"
@@ -128,39 +139,29 @@ fatal () {
 }
 
 pick() {
-  local branch selected selection hash
+  local branch selection hash
 
   if [ "$#" -eq 0 ]; then
     fatal "${red}✘${reset} Branch is required."
-  fi
-
-  if [ "$dryrun" ]; then
-    log "${blue}ℹ${reset} Running with ${yellow}--dry-run${reset}, nothing will be written."
   fi
 
   branch="${1:-}"
 
   shift 1
 
-  log "${cyan}↻${reset} Searching for matching commits, this may take a while…"
+  hashes "$@"
 
-  # shellcheck disable=SC2046
-  set -- $(hashes "$@")
-
-  if [ "$#" -eq 0 ]; then
-    fatal "${cyan}·${reset} No commits found matching the given criteria."
-  fi
+  set -- "${hashes[@]}"
 
   commits "$@"
 
-  if [ "$all" ] || [ "$silent" ]; then
-    selected="all"
-  else
+  if ! [ "$selected" ] && ! [ "$silent" ]; then
     read -r -p "Cherry-pick commit row (1-n, all, new, exit): " selected
   fi
 
   case "$selected" in
-    e*|E*|"") exit 0 ;;
+    "") fatal "${red}✘${reset} No selection given." ;;
+    e*|E*) fatal "${cyan}·${reset} Goodbye." ;;
     *) selection "$selected" "$@" ;;
   esac
 
@@ -168,7 +169,7 @@ pick() {
     cherry-pick "$hash"
   done
 
-  log "${green}✓${reset} All selected commits processed"
+  log "${green}✓${reset} All selected commits processed."
 }
 
 commits() {
@@ -331,18 +332,31 @@ run () {
 hashes () {
   local args option delimiters
 
+  log "${cyan}↻${reset} Searching for matching commits, this may take a while…"
+
   args=()
+  hashes=()
 
   delimiters="[/-?!:., ]"
 
+  verbose "${cyan}·${reset} Grepping word delimiters are ${yellow}$delimiters${reset}"
+
   for option in "$@"; do
+    verbose "${cyan}·${reset} Grepping commit log for ${yellow}$option${reset}"
+
     args+=("--grep=^${option}${delimiters}")
     args+=("--grep=${delimiters}${option}$")
     args+=("--grep=${delimiters}${option}${delimiters}")
     args+=("--grep=^${option}$")
   done
 
-  git --no-pager log --reverse --pretty=tformat:"%H" "${args[@]}" "$branch"
+  while read -r line; do
+    hashes+=("$line")
+  done < <(git --no-pager log --reverse --pretty=tformat:"%H" "${args[@]}" "$branch")
+
+  if [ "${#hashes}" -eq 0 ]; then
+    fatal "${cyan}·${reset} No commits found matching the given criteria."
+  fi
 }
 
 contains () {
