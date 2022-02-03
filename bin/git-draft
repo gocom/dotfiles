@@ -337,12 +337,13 @@ hashes () {
 
   delimiters=("/" "-" "?" "!" ":" " " "." ",")
 
-  verbose "${cyan}·${reset} Grepping word delimiters are ${yellow}$delimiters${reset}"
+  verbose "${cyan}·${reset} Grepping word delimiters are ${yellow}${delimiters[*]}${reset}"
 
   for option in "$@"; do
     verbose "${cyan}·${reset} Grepping commit log for ${yellow}$option${reset}"
 
     for delimiter in "${delimiters[@]}"; do
+      delimiter="[$delimiter]"
       args+=("--grep=^${option}${delimiter}")
       args+=("--grep=${delimiter}${option}$")
       args+=("--grep=${delimiter}${option}${delimiter}")
@@ -352,8 +353,21 @@ hashes () {
   done
 
   while read -r line; do
-    hashes+=("$line")
-  done < <(git --no-pager log --reverse --pretty=tformat:"%H" "${args[@]}" "$branch")
+    hash="${line%% *}"
+    message="${line#* }"
+
+    for delimiter in "${delimiters[@]}"; do
+      for option in "$@"; do
+        if [[ "$message" == "$option" \
+          || "$message" == "${option}${delimiter}"* \
+          || "$message" == *"${delimiter}${option}" \
+          || $message == *"${delimiter}${option}${delimiter}"* \
+        ]]; then
+          hashes+=("$hash")
+        fi
+      done
+    done
+  done < <(git --no-pager log --reverse --pretty=tformat:"%H %s" "$branch")
 
   if [ "${#hashes}" -eq 0 ]; then
     fatal "${cyan}·${reset} No commits found matching the given criteria."
