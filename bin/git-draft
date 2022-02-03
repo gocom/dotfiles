@@ -335,16 +335,19 @@ hashes () {
   args=()
   hashes=()
 
-  delimiters="[/-?!:., ]"
+  delimiters=("/" "-" "?" "!" ":" " " "." ",")
 
   verbose "${cyan}·${reset} Grepping word delimiters are ${yellow}$delimiters${reset}"
 
   for option in "$@"; do
     verbose "${cyan}·${reset} Grepping commit log for ${yellow}$option${reset}"
 
-    args+=("--grep=^${option}${delimiters}")
-    args+=("--grep=${delimiters}${option}$")
-    args+=("--grep=${delimiters}${option}${delimiters}")
+    for delimiter in "${delimiters[@]}"; do
+      args+=("--grep=^${option}${delimiter}")
+      args+=("--grep=${delimiter}${option}$")
+      args+=("--grep=${delimiter}${option}${delimiter}")
+    done
+
     args+=("--grep=^${option}$")
   done
 
