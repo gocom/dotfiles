@@ -130,6 +130,7 @@
   #: unpublish        Unpublish a branch from the origin
   #: unstage          Unstage the staged changes
   #: up               Rebase and update submodules
+  #: upstream         Sets upstream to point to identically named branch
   #: worklog          Worklog between commits
 
   aliases = "!awk '/^\\s*#:/{print $0}' < ~/.gitconfig | sed 's/[[:space:]]*#:[[:space:]]*//'"
