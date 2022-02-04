@@ -9,6 +9,7 @@ bshtr::ignore "&" " *" "\\\\t*"
 
 # Common commands
 bshtr::remove "forget" "forget .*" \
+  "\?" "\? .*" \
   "history" "history.*" \
   "l" "la" "ll" "ls" "ls -." \
   "man" "man .*" \

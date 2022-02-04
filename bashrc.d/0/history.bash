@@ -84,6 +84,23 @@ bshtr::list() {
   echo "$(history "$@" | sed 's/^[0-9 ]*//')"
 }
 
+# Searches history.
+#
+# ```
+# bshtr::search keyword
+# ```
+#
+# @see history
+# @api
+
+bshtr::search() {
+  if [ "$#" -eq 0 ]; then
+    return 1
+  fi
+
+  history | grep -i "$1"
+}
+
 # Forgets the last, or matching, item from command history.
 #
 # If no arguments are provided, removes the last command from history.
@@ -431,6 +448,9 @@ bshtr::on() {
 
   # Forget alias.
   alias forget="bshtr::forget"
+
+  # Search alias
+  alias ?="bshtr::search"
 }
 
 # Disables history control.
