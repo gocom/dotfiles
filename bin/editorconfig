@@ -6,8 +6,9 @@ usage () {
   cat <<EOF
 Creates .editorconfig file.
 
-Uses $EDITORCONFIG file as template and
-creates it to the current working directory.
+If .editorconfig does not exist in the current working directory, it will be
+created based on a template. Template file can be set with \$EDITORCONFIG
+environment variable, or it will default to ~/.editorconfig.
 
 Usage:
   $ ${0##*/} [options]
