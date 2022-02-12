@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+EDITORCONFIG="${EDITORCONFIG:-$HOME/.editorconfig}"
+
+usage () {
+  cat <<EOF
+Creates .editorconfig file.
+
+Uses $EDITORCONFIG file as template and
+creates it to the current working directory.
+
+Usage:
+  $ ${0##*/} [options]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ ${0##*/}
+EOF
+}
+
+main () {
+  if [ -e .editorconfig ]; then
+    echo "'.editorconfig' already in current working directory." >&2
+    exit 1
+  fi
+
+  cp -L "$EDITORCONFIG" .editorconfig || exit 1
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "0.0.0" ;;
+  *) main "$@" ;;
+esac
