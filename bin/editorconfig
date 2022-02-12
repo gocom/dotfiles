@@ -24,7 +24,7 @@ EOF
 
 main () {
   if [ -e .editorconfig ]; then
-    echo "'.editorconfig' already in current working directory." >&2
+    echo "'.editorconfig' already exists in the current working directory." >&2
     exit 1
   fi
 
