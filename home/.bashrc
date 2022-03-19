@@ -24,12 +24,6 @@ IGNOREEOF=1
 # Check window size on prompt and update columns if needed.
 shopt -s checkwinsize
 
-# If not running interactively, don't do anything
-# [ "${PS1:-}" ] && return
-
-# Lesspipe.
-# [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
-
 # Figure out whether the terminal supports color or not.
 case "$TERM" in
   xterm-color|*-256color) DOTFILES_COLOR=1 ;;

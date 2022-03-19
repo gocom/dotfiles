@@ -4,6 +4,3 @@ df::path --prepend "$HOME/bin" "$HOME/.local/bin" \
     "$DOTFILES_HOME/bin" \
     "/usr/bin" "/usr/sbin" "/usr/games" \
     "/bin" "/sbin" "/snap/bin"
-
-df::path "/Applications/Firefox Developer Edition.app/Contents/MacOS" \
-  "/Applications/Firefox.app/Contents/MacOS"
