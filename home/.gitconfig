@@ -115,6 +115,7 @@
   #: orphan           Create new orphan branch
   #: patch            Output a patch commit email
   #: publish          Push the current branch to the origin
+  #: recent           List recently updated branches
   #: release          Create an annotated tag
   #: release-latest   Latest release tag
   #: releases         List tags resembling a version number
@@ -181,6 +182,7 @@
   orphan = "!f() { if ! [ "$1" ]; then echo 'Branch name required'; exit 1; fi; read -r -p 'Create an orphan branch and delete all files (Y/n): ' answer; case "$answer" in y*|Y*) git checkout --orphan $1 && git rm -rf . && echo '/*' > .gitignore && echo '.*' >> .gitignore && echo '!.gitignore' >> .gitignore && git add .gitignore ;; esac; }; f"
   patch = format-patch --stdout
   publish = "!git push --set-upstream origin "$(git branch-name)""
+  recent = "!f() { git for-each-ref --sort=-committerdate --format='%(refname)' --count=10 refs/heads/ | sed 's/refs\\/heads\\///'; }; f;"
   release = tag -a -m
   release-latest = "!git tag-info $(git describe --tags --abbrev=0 $(git rev-list --glob='tags/*[0-9]*.*'))"
   latest = "!git release-latest"
