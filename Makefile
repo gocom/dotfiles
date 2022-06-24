@@ -7,6 +7,7 @@ install:
 	bin/dotfiles install
 
 build:
+	bin/dotfiles install-packages
 	bin/dotfiles docs
 
 lint:

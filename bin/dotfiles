@@ -258,7 +258,7 @@ install_packages () {
     mkdir -p "$package" > /dev/null \
       || fatal "${red}✘${reset} Failed to create directory ${yellow}$package${reset}"
 
-    curl-checksum "$url" "$download" "$checksum" \
+    bin/curl-checksum "$url" "$download" "$checksum" \
       || fatal "${red}✘${reset} Downloading file failed"
 
     cd "$package" > /dev/null \
