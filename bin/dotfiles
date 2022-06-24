@@ -219,7 +219,7 @@ install () {
 }
 
 install_packages () {
-  local line name checkum url current_checksum download package meta file
+  local line name checksum url current_checksum download package meta file
 
   while read -r line; do
     if ! [ "$line" ]; then
