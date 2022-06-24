@@ -5,53 +5,56 @@ usage () {
 Download and SHA-256 checksum-validate a file.
 
 The requested URL is validated against the given SHA-256 checksum before
-the contents are returned. If the file does not match the checkum, the program
+the contents are returned. If the file does not match the checksum, the program
 exits with error code 1.
 
 If no checksum argument is given, prints out the current checksum for the
 requested URL to STDOUT.
 
 Usage:
-  $ ${0##*/} [options] <url> [sha-256] [curl-options]
+  $ ${0##*/} [options] <url> [output-file] [sha-256]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Examples:
-  $ ${0##*/} https://localhost/file.zip
+  $ ${0##*/} https://localhost/file.zip file.zip
   > ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
-  $ ${0##*/} https://localhost/file.zip 788eb2...be65 > file.zip
+  $ ${0##*/} https://localhost/file.zip file.zip 788eb2...be65
 EOF
 }
 
 main () {
-  local url sha256 contents checksum
+  local url sha256 checksum file
 
   url="${1:-}"
-  shift
+  file="${2:-}"
+  sha256="${3:-}"
 
-  if [ "${1:-}" ] && ! [ "${1:0:1}" = "-" ]; then
-    sha256="$1"
-    shift
+  if ! [ "$url" ] || ! [ "$file" ]; then
+    echo "URL and output file are required." >&2
+    exit 1
   fi
 
-  contents="$(curl -qfsSL "$@" -- "$url")" || exit 1
-  checksum="$(printf '%s' "$contents" | shasum -a 256 | awk '{print $1}')" || exit 1
+  curl -qfSL --progress-bar --output "$file" -- "$url" || exit 1
 
-  if ! [ "${sha256:-}" ]; then
+  checksum="$(shasum -a 256 -- "$file" | awk '{print $1}')" || exit 1
+
+  if ! [ "$sha256" ]; then
     echo "$checksum"
+    rm "$file" || exit 1
     exit 0
   fi
 
   if [ "$checksum" = "$sha256" ]; then
-    echo "$contents"
     exit 0
   fi
 
   echo "SHA-256 checksum mismatch." >&2
   echo "⋯ Expected: $sha256" >&2
   echo "⋯ Received: $checksum" >&2
+  rm "$file" || exit 1
   exit 1
 }
 

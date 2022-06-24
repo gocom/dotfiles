@@ -1,6 +1,7 @@
 .DS_Store
 /.*
 !.dotfile-links
+!.dotfile-packages
 !.editorconfig
 !.github
 !.gitignore
@@ -12,6 +13,7 @@ dotfiles.bash
 /share/man/man1/*/
 /bin/_*
 /bin/.*
+/packages/
 /package-lock.json
 /composer.lock
 /share/man/*/

@@ -1,6 +1,6 @@
 % DOTFILES(1)
 % Jukka Svahn
-% January 2022
+% June 2022
 
 # NAME
 
@@ -36,6 +36,9 @@ generating symbolic links and replacing `.bashrc`.
 
 `install-deps`
 : Install third-party dependencies through package managers.
+
+`install-packages`
+: Install packages.
 
 `lint`
 : Lint codebase.

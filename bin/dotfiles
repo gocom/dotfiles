@@ -34,6 +34,9 @@ Commands:
   $app_name install-deps
   Install third-party dependencies through package managers.
 
+  $app_name install-packages
+  Install packages.
+
   $app_name lint
   Lint codebase.
 
@@ -188,6 +191,7 @@ main () {
     dump) dump ;;
     install) install ;;
     install-deps) install_dependencies ;;
+    install-packages) install_packages ;;
     lint) lint ;;
     pull) pull ;;
     prefix) prefix ;;
@@ -212,6 +216,70 @@ install () {
       link "$line"
     fi
   done < "$directory/.dotfile-links"
+}
+
+install_packages () {
+  local line name checkum url current_checksum download package meta file
+
+  while read -r line; do
+    if ! [ "$line" ]; then
+      continue
+    fi
+
+    name="$(echo "$line" | cut -d' ' -f1)"
+    checksum="$(echo "$line" | cut -d' ' -f2)"
+    url="$(echo "$line" | cut -d' ' -f3)"
+    file="__download.zip"
+    download="packages/$name/$file"
+    package="packages/$name"
+    meta="packages/$name.meta"
+
+    if ! [ "$url" ]; then
+      continue
+    fi
+
+    if [ -e "$meta" ]; then
+      current_checksum="$(cut -d' ' -f2 < "$meta")"
+
+      if [ "$checksum" = "$current_checksum" ]; then
+        log "${blue}↯${reset} Package ${yellow}$name${reset} is up-to-date"
+        log "${blue}·${reset} Checksum: $current_checksum"
+        continue
+      fi
+    fi
+
+    log "${blue}↯${reset} Installing ${yellow}$name${reset} to ${yellow}$package${reset}..."
+    log "${blue}·${reset} URL: $url"
+    log "${blue}·${reset} Checksum: $checksum"
+
+    rm -rf "$package" > /dev/null \
+      || fatal "${red}✘${reset} Failed to remove old ${yellow}$package${reset}"
+
+    mkdir -p "$package" > /dev/null \
+      || fatal "${red}✘${reset} Failed to create directory ${yellow}$package${reset}"
+
+    curl-checksum "$url" "$download" "$checksum" \
+      || fatal "${red}✘${reset} Downloading file failed"
+
+    cd "$package" > /dev/null \
+      || fatal "${red}✘${reset} Navigating to directory ${yellow}$package${reset} failed"
+
+    unzip "$file" > /dev/null \
+      || fatal "${red}✘${reset} Extracting ${yellow}$package${reset} failed"
+
+    rm "$file" > /dev/null \
+      || fatal "${red}✘${reset} Removing ${yellow}$package${reset} failed"
+
+    cd ../.. > /dev/null \
+      || fatal "${red}✘${reset} Failed navigating back"
+
+    echo "$line" > "$meta" \
+      || fatal "${red}✘${reset} Failed to create file ${yellow}$meta${reset}"
+  done < "$directory/.dotfile-packages"
+
+  chmod +x packages/*/bin/*
+
+  log "${green}✓${reset} Packages installed"
 }
 
 install_dependencies () {
