@@ -15,34 +15,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Ruby
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: '2.6'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12.x'
-
-      - name: Install shellcheck
-        run: sudo apt-get install shellcheck
-
-      - name: Install bats
-        run: sudo npm install -g bats
-
-      - name: Install Pandoc
-        run: sudo apt-get install pandoc
-
-      - name: Install help2man
-        run: sudo apt-get install help2man
-
-      - name: Install Gemfile bundle
-        run: bundle install
-
-      - name: Install Node modules
-        run: npm install
-
       - name: Test
         run: make test
 

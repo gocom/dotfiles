@@ -17,9 +17,11 @@ EOF
 }
 
 main () {
-  local f
+  local f paths
 
-  for f in "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; do
+  paths=("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+
+  for f in "${paths[@]}"; do
     if [ -x "$f" ]; then
       exec "$f"
       exit "$?"
