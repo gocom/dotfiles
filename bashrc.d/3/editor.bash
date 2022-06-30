@@ -1,5 +1,5 @@
 if [ "$DOTFILES_DISPLAY" ]; then
-  for i in "subl" "atom" "mate" "emacs" "gedit" "vim"; do
+  for i in "subl" "mate" "emacs" "gedit" "vim"; do
     i="$(command -v $i)"
     if [ -x "$i" ]; then
       export EDITOR="$i"

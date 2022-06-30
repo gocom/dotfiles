@@ -645,7 +645,6 @@ watch () {
 # Dump dependencies.
 
 dump () {
-  apm-pkg dump "Atomfile" 2> /dev/null
   brew bundle dump --force 2> /dev/null
   return 0
 }

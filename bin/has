@@ -28,7 +28,6 @@ table () {
 # <progam>  [regex:<expression>]  <argument ...>
 ant             -version
 apm             --version
-atom            --version
 autoconf        --version
 awk             --version
 bash            --version

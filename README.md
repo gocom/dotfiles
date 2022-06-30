@@ -39,7 +39,6 @@ $ brew install
 $ bundle install
 $ composer install
 $ npm install
-$ apm-pkg install
 ```
 
 Customizing Bash configuration
