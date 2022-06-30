@@ -9,12 +9,15 @@ install: link build
 link:
 	bin/dotfiles install
 
-build:
+build: node_modules
 	$(RUN) bin/dotfiles install-packages
 	$(RUN) bin/dotfiles docs
 
 lint:
 	$(RUN) bin/dotfiles lint
+
+node_modules:
+	$(RUN) npm install
 
 test-unit:
 	$(RUN) bin/dotfiles unit
