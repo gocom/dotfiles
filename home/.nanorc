@@ -11,7 +11,6 @@ set tabsize 4
 set tabstospaces
 set titlecolor magenta,normal
 set nowrap
-set morespace
 set quickblank
 set mouse
 set nohelp
