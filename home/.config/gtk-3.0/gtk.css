@@ -1,0 +1,39 @@
+/**
+ * gnome-terminal styles.
+ * 
+ * Makes bottom corners rounded,
+ * and adds bit of padding around
+ * the terminal.
+ * 
+ * Terminal background color should
+ * be set to '#1e1e1e' which is the
+ * background that is used with the
+ * window. #1e1e1e is the background
+ * color of the tabs in Adwaita.
+ * 
+ * Downside is that this also affects
+ * maximized and fullscreen styles
+ * of the window. The state can be
+ * detected from the window with
+ * classes, but changing the corner
+ * radius will break restoring window
+ * size.
+ */
+
+terminal-window {
+    background-color: #1e1e1e;
+}
+
+terminal-window,
+terminal-window decoration {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+terminal-window stack {
+    background: none;
+}
+
+terminal-window terminal-screen-container box {
+    padding: 4px;
+}
