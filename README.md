@@ -8,6 +8,7 @@ Supported OS
 -----
 
 * Ubuntu 20.04 LTS
+* Ubuntu 20.04 LTS in WSL2
 * Ubuntu 22.04 LTS
 * Mac OS 10.15
 
