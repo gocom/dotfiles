@@ -5,6 +5,8 @@ else
 fi
 
 if [ "$DOTFILES_WSL" -eq 1 ]; then
+  df::path --append "$DOTFILES_HOME/platform/wsl/bin"
+
   # Tell Windows Terminal where the current working
   # directory is mounted in Windows, so that the correct
   # directory is open when a tab is duplicated.
@@ -16,9 +18,11 @@ if [ "$DOTFILES_WSL" -eq 1 ]; then
 
   # Use keychain as a secret storage and SSH agent.
   if [ "$(command -v keychain)" ]; then
+    keychain -q --clear 2> /dev/null
+
     for f in "$HOME/.ssh/id_"*; do
       if [ -f "$f" ] && [ -f "$f.pub" ]; then
-        keychain -q --nogui "$f" 2> /dev/null
+        wsl-keychain-load "$f" 2> /dev/null
       fi
     done
 

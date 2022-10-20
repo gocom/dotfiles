@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Loads SSH key passphrases from Windows Credential Manager to Keychain.
+
+Usage:
+  $ $app_name [options] <filename>
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ $app_name "$HOME/.ssh/id_rsa"
+EOF
+}
+
+main() {
+  local credential status filename script password
+
+  script="/tmp/keychain-load-ssh-askpass"
+  filename="${1:-}"
+
+  if ! [ "$filename" ]; then
+    echo "SSH key filename required." >&2
+    exit 1
+  fi
+
+  credential="$(wslpath -w "$filename")"
+  credential="${credential:2}"
+  password="$(wsl-credential-manager.ps1 -credential "$credential" && echo "yes")"
+
+  if ! [ "$password" ]; then
+    echo "Credential '$credential' not found in Windows Credential Manager for SSH key '$filename'."
+    echo "Prompting for password instead as a fallback..."
+    echo ""
+
+    keychain -q --nogui "$filename" || exit 1
+    exit 0
+  fi
+
+  cat > "$script" <<EOL || exit 1
+#!/usr/bin/env bash
+wsl-credential-manager.ps1 -credential "$credential"
+EOL
+
+  chmod u+x "$script" || exit 1
+
+  export DISPLAY=0
+  export SSH_ASKPASS="$script"
+
+  keychain -q "$filename" || status=1
+
+  rm -f "$script" || exit 1
+
+  exit "${status:-0}"
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  *) main "$@" ;;
+esac
