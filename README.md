@@ -64,7 +64,6 @@ package managers:
 $ brew install
 $ bundle install
 $ composer install
-$ npm install
 ```
 
 Customizing Bash configuration
