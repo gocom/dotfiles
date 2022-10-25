@@ -280,6 +280,8 @@ df::prompt_command_add () {
   local list
   local out=""
 
+  df::prompt_command_init
+
   if [ "$1" = ":append" ] || [ "$1" = ":prepend" ]; then
     position="$1"
     shift || return 1
@@ -305,7 +307,7 @@ df::prompt_command_add () {
     fi
   fi
 
-  PROMPT_COMMAND="$out"
+  DOTFILES_PROMPT_COMMAND="$out"
 }
 
 # Appends a prompt command.
@@ -361,6 +363,8 @@ df::prompt_command_remove () {
   local IFS=";"
   local i
 
+  df::prompt_command_init
+
   for i in $list; do
     item="$( printf '%s' "$i" | sed 's/^[ ]*//' )"
     item="$( printf '%s' "$item" | sed 's/[ ]*$//' )"
@@ -374,7 +378,7 @@ df::prompt_command_remove () {
     fi
   done
 
-  PROMPT_COMMAND="$out"
+  DOTFILES_PROMPT_COMMAND="$out"
 }
 
 # Lists prompt commands.
@@ -387,7 +391,25 @@ df::prompt_command_remove () {
 # @private
 
 df::prompt_command_list () {
-  echo "$( printf '%s' "${PROMPT_COMMAND:-}" | sed 's/;[ ]*$//' )"
+  df::prompt_command_init
+  echo "$( printf '%s' "${DOTFILES_PROMPT_COMMAND:-}" | sed 's/;[ ]*$//' )"
+}
+
+# Initializes prompt commands.
+#
+# Sets the initial state to PROMPT_COMMAND environment variable.
+#
+# ```
+# df::prompt_command_init
+# ```
+#
+# @private
+
+df::prompt_command_init () {
+  if [ "${DOTFILES_PROMPT_COMMAND_INITIALIZED:-0}" -eq 0 ]; then
+    DOTFILES_PROMPT_COMMAND_INITIALIZED=1
+    DOTFILES_PROMPT_COMMAND="${PROMPT_COMMAND:-}"
+  fi
 }
 
 # Sets or gets the window title.
@@ -579,12 +601,17 @@ df::prompt_on () {
 
   DOTFILES_PROMPT_ENABLED=1
   DOTFILES_PROMPT_BAK_PS1="${PS1:-}"
+  DOTFILES_PROMPT_BAK_PROMPT_COMMAND="${PROMPT_COMMAND:-}"
 
   if shopt -q promptvars; then
     DOTFILES_PROMPT_BAK_PROMPTVARS=1
   else
     DOTFILES_PROMPT_BAK_PROMPTVARS=0
   fi
+
+  # Register prompt commands.
+  df::prompt_command_init
+  PROMPT_COMMAND="${DOTFILES_PROMPT_COMMAND:-}"
 
   # Load colors.
   df::prompt_set_colors
@@ -631,6 +658,7 @@ df::prompt_off () {
   fi
 
   PS1="$DOTFILES_PROMPT_BAK_PS1"
+  PROMPT_COMMAND="$DOTFILES_PROMPT_BAK_PROMPT_COMMAND"
   unset DOTFILES_PROMPT_ENABLED
 }
 

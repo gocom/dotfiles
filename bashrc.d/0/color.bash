@@ -103,49 +103,32 @@ df::color_table () {
 df::color () {
   local OPTIND OPTARG OPTERR args option color escape colors f b action
 
-  DOTFILES_COLOR_INIT=""
-  export DOTFILES_COLOR=""
-  export DOTFILES_COLORS=0
+  export DOTFILES_COLOR
+  export DOTFILES_COLORS
 
   color=1
-  escape=""
-  colors=0
+  escape=0
 
   setaf=()
   setab=()
-  reset=""
-  red=""
-  green=""
-  yellow=""
-  blue=""
-  magenta=""
-  cyan=""
 
-  if ! [ "$DOTFILES_COLOR_INIT" ]; then
-    for DOTFILES_COLOR in 1; do
-      case "${TERM:-}" in
-        xterm-color|*-256color) ;;
-        *) DOTFILES_COLOR=""; break ;;
-      esac
+  if [ "${DOTFILES_COLOR_INIT:-0}" -eq 0 ]; then
+    DOTFILES_COLOR=0
+    DOTFILES_COLORS=0
 
-      if ! [ "$(command -v tput)" ] || ! tput setaf 1 > /dev/null 2>&1; then
-        DOTFILES_COLOR=""
-        break
-      fi
+    case "${TERM:-}" in
+      xterm-color|*-256color)
+        if [ "$(command -v tput)" ] && tput setaf 1 > /dev/null 2>&1; then
+          DOTFILES_COLORS="$(tput colors 2> /dev/null)"
 
-      DOTFILES_COLORS="$(tput colors 2> /dev/null)"
-
-      if [ "${DOTFILES_COLORS:-0}" -lt 8 ]; then
-        DOTFILES_COLOR=""
-        break
-      fi
-    done
+          if [ "${DOTFILES_COLORS:-0}" -gt 7 ]; then
+              DOTFILES_COLOR=1
+          fi
+        fi
+      ;;
+    esac
 
     DOTFILES_COLOR_INIT=1
-  fi
-
-  if [ "${TERM:-}" = "dumb" ] || [ "${NO_COLOR:-}" ]; then
-    color=""
   fi
 
   args=()
@@ -163,7 +146,7 @@ df::color () {
         case "$OPTARG" in
           color) color=1 ;;
           escape) escape=1 ;;
-          no-color) color="" ;;
+          no-color) color=0 ;;
         esac;;
       e) escape=1 ;;
     esac
@@ -176,7 +159,7 @@ df::color () {
 
   case "$action" in
     support)
-      if [ "$DOTFILES_COLOR" ]; then
+      if [ "$DOTFILES_COLOR" -eq 1 ]; then
         return 0
       fi
 
@@ -185,44 +168,47 @@ df::color () {
     unset)
       unset reset red green yellow blue magenta cyan white black \
         bgred bggreen bgyellow bgblue bgmagenta bgcyan bgwhite bgblack \
-        setaf setab
+        setaf setab DOTFILES_COLOR_INIT DOTFILES_COLOR DOTFILES_COLORS
       return 0
     ;;
   esac
 
-  if ! [ "$DOTFILES_COLOR" ]; then
-    color=""
+  if [ "$color" -eq 1 ] && [ "$DOTFILES_COLOR" -eq 1 ] && ! [ "${NO_COLOR:-}" ]; then
+    color=1
+  else
+    color=0
   fi
 
+  colors=0
+
   while [ "$colors" -le 8 ]; do
-    if ! [ "$color" ]; then
-      setaf+=("")
-      setab+=("")
-      continue
-    fi
-
-    if [ "$colors" -eq 0 ]; then
-      f="$(tput sgr0)"
-      b="$f"
+    if [ "$color" -eq 0 ]; then
+      f=""
+      b=""
     else
-      f="$(tput setaf "$colors")"
-      b="$(tput setab "$colors")"
-    fi
+      if [ "$colors" -eq 0 ]; then
+        f="$(tput sgr0)"
+        b="$f"
+      else
+        f="$(tput setaf "$colors")"
+        b="$(tput setab "$colors")"
+      fi
 
-    if [ "$escape" ]; then
-      f="$(printf '\[%s\]' "$f")"
-      b="$(printf '\[%s\]' "$b")"
+      if [ "$escape" -eq 1 ]; then
+        if [ "$f" ]; then
+          f="$(printf '\[%s\]' "$f")"
+        fi
+
+        if [ "$b" ]; then
+          b="$(printf '\[%s\]' "$b")"
+        fi
+      fi
     fi
 
     setaf+=("$f")
     setab+=("$b")
     ((colors++))
   done
-
-  if ! [ "$color" ]; then
-    colors=0
-    return 0
-  fi
 
   reset="${setaf[0]}"
   red="${setaf[1]}"

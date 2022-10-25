@@ -14,7 +14,7 @@ if ! [ "$DOTFILES_HOME" ]; then
   if [ "${XDG_CONFIG_HOME:-}" ]; then
     DOTFILES_HOME="$XDG_CONFIG_HOME/dotfiles"
   else
-    DOTFILES_HOME="$HOME/.dotfiles"
+    DOTFILES_HOME=~/.dotfiles
   fi
 fi
 
