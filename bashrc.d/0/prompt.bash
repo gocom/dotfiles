@@ -255,7 +255,7 @@ df::prompt_status () {
     echo "${PROMPT_STATUS:-}"
   fi
 
-  if [ "${PROMPT_STATUS:-}" -eq 0 ]; then
+  if [ "${PROMPT_STATUS:-0}" -eq 0 ]; then
     return 0
   fi
 
@@ -461,7 +461,7 @@ df::prompt_has_colors () {
 
   colors="$(tput colors)"
 
-  if [ "$colors" -lt 8 ]; then
+  if [ "${colors:-0}" -lt 8 ]; then
     return 1
   fi
 
@@ -551,11 +551,15 @@ df::prompt_unset_colors () {
 # @private
 
 df::prompt_tput () {
-  if ! [ "${PROMPT_COLORS:-}" ]; then
-    PROMPT_COLORS="$(df::prompt_has_colors && echo 1)"
+  if ! [ "${DOTFILES_PROMPT_COLORS:-}" ]; then
+    if df::prompt_has_colors; then
+      DOTFILES_PROMPT_COLORS=1
+    else
+      DOTFILES_PROMPT_COLORS=0
+    fi
   fi
 
-  if [ "$PROMPT_COLORS" -eq 1 ]; then
+  if [ "$DOTFILES_PROMPT_COLORS" -eq 1 ]; then
     printf '\[%s\]' "$(tput "$@")"
   fi
 }
@@ -569,13 +573,18 @@ df::prompt_tput () {
 # @api
 
 df::prompt_on () {
-  if [ "${DOTFILES_PROMPT_ENABLED:-}" = "yes" ]; then
+  if [ "${DOTFILES_PROMPT_ENABLED:-0}" -eq 1 ]; then
     return 1
   fi
 
-  DOTFILES_PROMPT_ENABLED="yes"
+  DOTFILES_PROMPT_ENABLED=1
   DOTFILES_PROMPT_BAK_PS1="${PS1:-}"
-  DOTFILES_PROMPT_BAK_PROMPTVARS="$(shopt -q promptvars && echo "yes")"
+
+  if shopt -q promptvars; then
+    DOTFILES_PROMPT_BAK_PROMPTVARS=1
+  else
+    DOTFILES_PROMPT_BAK_PROMPTVARS=0
+  fi
 
   # Load colors.
   df::prompt_set_colors
@@ -608,7 +617,7 @@ df::prompt_on () {
 # @api
 
 df::prompt_off () {
-  if ! [ "${DOTFILES_PROMPT_ENABLED:-}" = "yes" ]; then
+  if [ "${DOTFILES_PROMPT_ENABLED:-0}" -eq 0 ]; then
     return 1
   fi
 
@@ -617,7 +626,7 @@ df::prompt_off () {
   df::prompt_command_remove 'df::prompt_reset'
   df::prompt_command_remove 'df::prompt_run'
 
-  if [ "$DOTFILES_PROMPT_BAK_PROMPTVARS" ]; then
+  if [ "${DOTFILES_PROMPT_BAK_PROMPTVARS:-0}" -eq 1 ]; then
     shopt -s promptvars
   fi
 

@@ -135,7 +135,7 @@ df::color () {
 
       DOTFILES_COLORS="$(tput colors 2> /dev/null)"
 
-      if [ "$DOTFILES_COLORS" -lt 8 ]; then
+      if [ "${DOTFILES_COLORS:-0}" -lt 8 ]; then
         DOTFILES_COLOR=""
         break
       fi
