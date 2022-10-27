@@ -21,40 +21,59 @@ Options:
 Examples:
   $ ${0##*/} https://localhost/file.zip file.zip
   > ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
+  $ ${0##*/} https://localhost/document.text 788eb2...be65
   $ ${0##*/} https://localhost/file.zip file.zip 788eb2...be65
 EOF
 }
 
 main () {
-  local url sha256 checksum file
+  local url sha256 checksum file status temporary
 
   url="${1:-}"
   file="${2:-}"
   sha256="${3:-}"
+  status=0
 
-  if ! [ "$url" ] || ! [ "$file" ]; then
-    echo "URL and output file are required." >&2
+  if [ "$file" ]; then
+    temporary=".cc-$file.tmp"
+  else
+    temporary="$(mktemp)"
+  fi
+
+  if ! [ "$url" ]; then
+    echo "URL is required." >&2
     exit 1
   fi
 
-  curl -qfSL --progress-bar --output "$file" -- "$url" || exit 1
+  curl -qfSL --progress-bar --output "$temporary" -- "$url" || exit 1
 
-  checksum="$(shasum -a 256 -- "$file" | awk '{print $1}')" || exit 1
+  checksum="$(shasum -a 256 -- "$temporary" | awk '{print $1}')" || status=1
+
+  if [ "$status" -eq 1 ]; then
+    rm "$temporary"
+    exit 1
+  fi
 
   if ! [ "$sha256" ]; then
-    echo "$checksum"
-    rm "$file" || exit 1
+    echo "SHA-256: $checksum"
+    rm "$temporary" || exit 1
     exit 0
   fi
 
   if [ "$checksum" = "$sha256" ]; then
+    if [ "$file" ]; then
+      mv "$temporary" "$file" || exit 1
+    else
+      cat "$temporary" || exit 1
+    fi
+
     exit 0
   fi
 
   echo "SHA-256 checksum mismatch." >&2
   echo "⋯ Expected: $sha256" >&2
   echo "⋯ Received: $checksum" >&2
-  rm "$file" || exit 1
+  rm "$temporary" || exit 1
   exit 1
 }
 

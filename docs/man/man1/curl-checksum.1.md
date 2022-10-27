@@ -48,5 +48,9 @@ Download a `file.zip`, validate it against a checksum and save it as `a.zip`:
 
 Generate a checksum for `file.zip`:
 
-    $ curl-checksum https://localhost/file.zip a.zip
+    $ curl-checksum https://localhost/file.zip
     > ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
+
+Downloads `example.txt` and outputs it to STDOUT:
+
+    $ curl-checksum https://localhost/example.txt ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
