@@ -1,6 +1,6 @@
-.PHONY: all build install link lint test test-unit package
+.PHONY: all build install link lint shell test test-unit package
 
-RUN = docker-compose run --rm build
+RUN = docker-compose run -u "$$(id -u):$$(id -g)" --rm build
 
 all: test
 
@@ -15,6 +15,9 @@ build:
 
 lint:
 	$(RUN) bin/dotfiles lint
+
+shell:
+	$(RUN) bash
 
 test-unit:
 	$(RUN) bin/dotfiles unit
@@ -43,6 +46,9 @@ help:
 	@echo ""
 	@echo "  $$ make lint"
 	@echo "  Lint code style"
+	@echo ""
+	@echo "  $$ make shell"
+	@echo "  Login to build container"
 	@echo ""
 	@echo "  $$ make test"
 	@echo "  Run linter unit tests"
