@@ -27,7 +27,7 @@ EOF
 }
 
 main () {
-  local url sha256 checksum file status temporary
+  local url sha256 checksum file status temporary directory basename
 
   url="${1:-}"
   file="${2:-}"
@@ -35,7 +35,14 @@ main () {
   status=0
 
   if [ "$file" ]; then
-    temporary=".cc-$file.tmp"
+    directory="$(dirname "$file")"
+    basename="$(basename "$file")"
+
+    if ! [ "$directory" ]; then
+      directory="${directory}/"
+    fi
+
+    temporary="${directory}.cc-${basename}.tmp"
   else
     temporary="$(mktemp)"
   fi
