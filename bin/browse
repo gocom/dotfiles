@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Opens a file in \$BROWSER.
 
 Usage:
-  $ ${0##*/} [options] [uri]
+  $ $app_name [options] [uri]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Examples:
-  $ ${0##*/} https://example.com
-  $ cd path/to/project/generator-output && ${0##*/}
-  $ echo "https://example.com" | ${0##*/} -
+  $ $app_name https://example.com
+  $ cd path/to/project/generator-output && $app_name
+  $ echo "https://example.com" | $app_name -
 EOF
 }
 
@@ -54,6 +57,6 @@ main () {
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   *) main "$@" ;;
 esac

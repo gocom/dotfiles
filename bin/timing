@@ -1,25 +1,28 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Time HTTP responses in seconds.
 
 Usage:
-  $ ${0##*/} [options] [benchmark|request] [sequences] <url>
+  $ $app_name [options] [benchmark|request] [sequences] <url>
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Commands:
-  $ ${0##*/} benchmark [sequences] <url>
+  $ $app_name benchmark [sequences] <url>
   Run a benchmark specified number of sequences.
 
-  $ ${0##*/} request <url>
+  $ $app_name request <url>
   Run a single request and prints raw results in columns.
 
 Examples:
-  $ ${0##*/} https://localhost.test/example
+  $ $app_name https://localhost.test/example
 EOF
 }
 
@@ -53,7 +56,7 @@ main () {
 
 case "${1:-}" in
   ""|-h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   benchmark) main "${@:2}" ;;
   request) request "${@:2}" ;;
   *) main "$@" ;;

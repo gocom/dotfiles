@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Connects GTK 3 theme to all snaps.
 
 Usage:
-  $ ${0##*/} [options] [theme]
+  $ $app_name [options] [theme]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Examples:
-  $ ${0##*/} canta-themes
+  $ $app_name canta-themes
 EOF
 }
 
@@ -33,6 +36,6 @@ main () {
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   *) main "$@" ;;
 esac

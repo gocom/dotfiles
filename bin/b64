@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Extends base64 with the ability to handle URLs and input strings as an argument.
@@ -8,46 +11,46 @@ By default outputs the encoded string on a single line, primed for data-uri
 usage.
 
 Usage:
-  $ ${0##*/} [options] [file|input|url] [resource] [base64-options]
+  $ $app_name [options] [file|input|url] [resource] [base64-options]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Commands:
-  $ ${0##*/} file [path]
+  $ $app_name file [path]
   Encodes or decodes a file.
 
-  $ ${0##*/} input [value]
+  $ $app_name input [value]
   Encodes or decodes an input value.
 
-  $ ${0##*/} url [url]
+  $ $app_name url [url]
   Encodes or decodes an URL's response body.
 
 Examples:
-  $ ${0##*/} file ~/.gitconfig
+  $ $app_name file ~/.gitconfig
   > SGVsbG8gV29ybGQhCg==
 
-  $ ${0##*/} input "Hello world!"
+  $ $app_name input "Hello world!"
   > SGVsbG8gV29ybGQh
 
-  $ ${0##*/} input "SGVsbG8gV29ybGQh" --decode
+  $ $app_name input "SGVsbG8gV29ybGQh" --decode
   > "Hello World!"
 
-  $ ${0##*/} url https://localhost/image.png
+  $ $app_name url https://localhost/image.png
   > SGVsbG8gV29ybGQh
 
-  $ ${0##*/} https://localhost/with/protocol/scheme.png
+  $ $app_name https://localhost/with/protocol/scheme.png
   > SGVsbG8gV29ybGQh
 
-  $ ${0##*/} url
+  $ $app_name url
   ? URL:
 
-  $ ${0##*/} input
+  $ $app_name input
   ? Input:
 
   $ echo "Hello World!" > "filename.txt"
-  $ ${0##*/} filename.txt
+  $ $app_name filename.txt
   > SGVsbG8gV29ybGQhCg==
 
   $ echo "Hello World!" | b64
@@ -81,7 +84,7 @@ file () {
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   f|file) file "${@:2}" ;;
   *://*) url "$@" ;;
   i|input) input "${@:2}" ;;

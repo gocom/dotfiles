@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Download and SHA-256 checksum-validate a file.
@@ -12,17 +15,17 @@ If no checksum argument is given, prints out the current checksum for the
 requested URL to STDOUT.
 
 Usage:
-  $ ${0##*/} [options] <url> [output-file] [sha-256]
+  $ $app_name [options] <url> [output-file] [sha-256]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Examples:
-  $ ${0##*/} https://localhost/file.zip file.zip
+  $ $app_name https://localhost/file.zip file.zip
   > ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
-  $ ${0##*/} https://localhost/document.text 788eb2...be65
-  $ ${0##*/} https://localhost/file.zip file.zip 788eb2...be65
+  $ $app_name https://localhost/document.text 788eb2...be65
+  $ $app_name https://localhost/file.zip file.zip 788eb2...be65
 EOF
 }
 
@@ -86,6 +89,6 @@ main () {
 
 case "${1:-}" in
   ""|-h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   *) main "$@" ;;
 esac

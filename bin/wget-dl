@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 if [ "${WGET_COOKIES:-}" ]; then
   cookies="$WGET_COOKIES"
 else
@@ -11,21 +14,21 @@ usage () {
 Download files using wget.
 
 Usage:
-  $ ${0##*/} [options] [command] <url>
+  $ $app_name [options] [command] <url>
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Commands:
-  $ ${0##*/} auth <url>
+  $ $app_name auth <url>
   Prompt for username and password, download a file using basic HTTP
   authentication.
 
-  $ ${0##*/} download <url>
+  $ $app_name download <url>
   Download a file.
 
-  $ ${0##*/} login <url[?<post-data>]>
+  $ $app_name login <url[?<post-data>]>
   Establish a login session and store cookies in \$WGET_COOKIES.
 
 Login:
@@ -34,8 +37,8 @@ Login:
   cookies are stored in ~/.wget-cookies or \$WGET_COOKIES, if set.
 
 Example:
-  $ ${0##*/} login "https://localhost/login?user={u}&pass={p}"
-  $ ${0##*/} download "https://example.com/download/3451"
+  $ $app_name login "https://localhost/login?user={u}&pass={p}"
+  $ $app_name download "https://example.com/download/3451"
 EOF
 }
 
@@ -100,7 +103,7 @@ login () {
 
 case "${1:-}" in
   ""|-h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   auth) auth "${@:2}" ;;
   login) login "${@:2}" ;;
   download) download "${@:2}" ;;

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 if [ "${SEARCH_ENGINE:-}" ]; then
   engine="$SEARCH_ENGINE"
 else
@@ -12,15 +15,15 @@ Quickly search web in \$BROWSER using \$SEARCH_ENGINE:
   $engine
 
 Usage:
-  $ ${0##*/} [options] [query]
+  $ $app_name [options] [query]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Examples:
-  $ ${0##*/} "my search"
-  $ cd "application-src" && ${0##*/}
+  $ $app_name "my search"
+  $ cd "application-src" && $app_name
 EOF
 }
 
@@ -32,6 +35,6 @@ main () {
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   *) main "$@" ;;
 esac

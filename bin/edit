@@ -1,19 +1,22 @@
 #!/usr/bin/env sh
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Opens a file in \$EDITOR.
 
 Usage:
-  $ ${0##*/} [options] [filename]
+  $ $app_name [options] [filename]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Examples:
-  $ cd path/to/project && ${0##*/}
-  $ ${0##*/} config.xml
+  $ cd path/to/project && $app_name
+  $ $app_name config.xml
 EOF
 }
 
@@ -34,6 +37,6 @@ main () {
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   *) main "$@" ;;
 esac

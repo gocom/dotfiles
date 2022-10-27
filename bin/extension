@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Print extension from the given filename.
 
 Usage:
-  $ ${0##*/} [options] <filename>
+  $ $app_name [options] <filename>
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Example:
-  $ ${0##*/} /home/name/somefile.txt
+  $ $app_name /home/name/somefile.txt
   > txt
 EOF
 }
@@ -54,7 +57,7 @@ fi
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   --) main "${@:2}" ;;
   *) main "$@" ;;
 esac

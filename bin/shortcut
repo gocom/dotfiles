@@ -1,28 +1,31 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Creates an internet shortcut.
 
 Usage:
-  $ ${0##*/} [options] [create|url] [url]
+  $ $app_name [options] [create|url] [url]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Commands:
-  $ ${0##*/} create [url]
+  $ $app_name create [url]
   Create a internet shortcut.
 
-  $ ${0##*/} url [filename]
+  $ $app_name url [filename]
   Extract an URL from a file.
 
 Examples:
-  $ ${0##*/}
-  $ ${0##*/} https://example.com
-  $ ${0##*/} example.com > bookmark.url
-  $ ${0##*/} url bookmark.url
+  $ $app_name
+  $ $app_name https://example.com
+  $ $app_name example.com > bookmark.url
+  $ $app_name url bookmark.url
 EOF
 }
 
@@ -53,7 +56,7 @@ url () {
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   create) shortcut "${@:2}" ;;
   url) url "${@:2}" ;;
   *.url) url "$@" ;;

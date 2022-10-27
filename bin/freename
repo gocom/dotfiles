@@ -1,27 +1,30 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Print unused filename.
 
 Usage:
-  $ ${0##*/} [options] [filename ...]
+  $ $app_name [options] [filename ...]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Examples:
-  $ ${0##*/} archive.zip
+  $ $app_name archive.zip
   > archive-32.xml
 
-  $ ${0##*/} document.md picture.jpg directory/ nonexisting
+  $ $app_name document.md picture.jpg directory/ nonexisting
   > document-1.md
     picture-24.jpg
     directory-2/
     nonexisting
 
-  $ touch \$(${0##*/} config.xml)
+  $ touch \$($app_name config.xml)
 EOF
 }
 
@@ -95,6 +98,6 @@ freename () {
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   *) main "$@" ;;
 esac

@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Query Gravatar images and profiles.
 
 Usage:
-  $ ${0##*/} [-h|--help|-v|--version] [avatar|path|profile|url] email [
+  $ $app_name [-h|--help|-v|--version] [avatar|path|profile|url] email [
     [-r <[avatar|profile]>] [-s <size>] [-u <md5>] [-t <[json|xml|php|vcf|qr]>]]
 
 Options:
@@ -19,35 +22,35 @@ Options:
   -u <md5>       Request using md5 hash rather than email.
 
 Commands:
-  $ ${0##*/} avatar <email> [-s <size>]
+  $ $app_name avatar <email> [-s <size>]
   Downloads avatar image.
 
-  $ ${0##*/} profile <profile> [type]
+  $ $app_name profile <profile> [type]
   Downloads profile data.
 
-  $ ${0##*/} path [[-h] [-r <resource>] [-e <email>] [-u <md5>] [-s <size>]
+  $ $app_name path [[-h] [-r <resource>] [-e <email>] [-u <md5>] [-s <size>]
     [-t <type>]]
   Builds resource paths from the given options.
 
-  $ ${0##*/} url <profile> [[-r <resource>] [-s <size>] [-t <type>]]
+  $ $app_name url <profile> [[-r <resource>] [-s <size>] [-t <type>]]
   Prints an URL to the resource.
 
 Examples:
-  $ ${0##*/} john.doe@example.com
+  $ $app_name john.doe@example.com
   > https://www.gravatar.com/avatar/b2bf7d6a6e99765b683061e5ac50df40
 
-  $ ${0##*/} url john.doe@example.com -r profile -t json
+  $ $app_name url john.doe@example.com -r profile -t json
   > https://www.gravatar.com/b2bf7d6a6e99765b683061e5ac50df40.json
 
-  > $ ${0##*/} url
+  > $ $app_name url
   ? Email:
 
-  $ ${0##*/} avatar john.doe@example.com -s 512 > image.jpg
+  $ $app_name avatar john.doe@example.com -s 512 > image.jpg
 
-  $ ${0##*/} profile beautesting1blog
+  $ $app_name profile beautesting1blog
   > {"entry":[{}]}
 
-  $ ${0##*/} path -h
+  $ $app_name path -h
   > https://www.gravatar.com/
 EOF
 }
@@ -118,7 +121,7 @@ fi
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   avatar|download) avatar "${@:2}" ;;
   path) resource "${@:2}" ;;
   profile) profile "${@:2}" ;;

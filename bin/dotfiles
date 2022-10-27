@@ -52,6 +52,9 @@ Commands:
   $app_name unit
   Run unit tests.
 
+  $app_name version
+  Prints dotfiles version number.
+
   $app_name watch
   Watch for file changes.
 
@@ -197,6 +200,7 @@ main () {
     prefix) prefix ;;
     test) suite ;;
     unit) unit ;;
+    version) version ;;
     watch) watch "$@" ;;
     *) usage ;;
   esac
@@ -651,6 +655,19 @@ dump () {
 
 pull () {
   git pull
+}
+
+version () {
+  if [ -e "$directory/VERSION" ]; then
+    cat "$directory/VERSION" 2> /dev/null && return 0
+  fi
+
+  if [ "$(command -v git)" ]; then
+    git describe --tags --first-parent --abbrev=11 --long --dirty --always 2> /dev/null && return 0
+  fi
+
+  echo "dev"
+  return 0
 }
 
 main "$@"

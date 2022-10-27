@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+app_name="${0##*/}"
+app_version="0.0.0"
+
 usage () {
   cat <<EOF
 Get weather report from wttr.in.
 
 Usage:
-  $ ${0##*/} [options] [location]
+  $ $app_name [options] [location]
 
 Options:
   -h, --help     Print this message
@@ -13,8 +16,8 @@ Options:
   -n, --now      Print current temperature instead of forecast
 
 Example:
-  $ ${0##*/}
-  $ ${0##*/} London
+  $ $app_name
+  $ $app_name London
 EOF
 }
 
@@ -45,6 +48,6 @@ main () {
 
 case "${1:-}" in
   -h|--help) usage ;;
-  -v|--version) echo "0.0.0" ;;
+  -v|--version) echo "$app_version" ;;
   *) main "$@" ;;
 esac
