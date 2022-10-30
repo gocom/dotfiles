@@ -572,7 +572,7 @@ doc () {
     return 1
   fi
 
-  log "${green}✔${reset} $f ${green}―${reset} $format"
+  log "${green}✓${reset} $f ${green}―${reset} $format"
 }
 
 lint () {
@@ -674,7 +674,6 @@ package() {
     bin/ \
     docker/ \
     home/ \
-    lib/ \
     packages/ \
     platform/ \
     share/ \
@@ -694,7 +693,7 @@ package() {
     return 1
   fi
 
-  log "${green}✔${reset} Packaged $version to $target"
+  log "${green}✓${reset} Packaged ${blue}$version${reset} to $target"
 }
 
 main "$@"
