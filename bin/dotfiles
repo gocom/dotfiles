@@ -208,7 +208,7 @@ main () {
 }
 
 build () {
-  install-packages || return 1
+  install_packages || return 1
   docs || return 1
 }
 
