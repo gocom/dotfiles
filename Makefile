@@ -1,6 +1,8 @@
 .PHONY: all build install link lint shell test test-unit package
 
-RUN = docker-compose run -u "$$(id -u):$$(id -g)" --rm build
+HOST_UID ?= "$$(id -u)"
+HOST_GID ?= "$$(id -g)"
+RUN = docker-compose run -u "$(HOST_UID):$(HOST_GID)" --rm build
 
 all: test
 
@@ -10,8 +12,7 @@ link:
 	bin/dotfiles install
 
 build:
-	$(RUN) bin/dotfiles install-packages
-	$(RUN) bin/dotfiles docs
+	$(RUN) bin/dotfiles build
 
 lint:
 	$(RUN) bin/dotfiles lint
@@ -25,7 +26,7 @@ test-unit:
 test: lint test-unit
 
 package:
-	$(RUN) bash -c 'mkdir -p dist && rm -f dist/dotfiles.zip && zip --symlinks -r dist/dotfiles.zip bin/ home/ lib/ platform/ share/ .editorconfig Aptfile Brewfile composer.json Gemfile LICENSE Makefile package.json README.md'
+	$(RUN) bin/dotfiles package
 
 help:
 	@echo "Manage dotfiles"

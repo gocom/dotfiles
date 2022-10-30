@@ -15,3 +15,4 @@ dotfiles.bash
 /bin/.*
 /packages/
 /share/man/*/
+VERSION

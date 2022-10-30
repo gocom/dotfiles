@@ -24,6 +24,9 @@ Install and manage dotfiles.
 
 # COMMANDS
 
+`build`
+: Builds dotfiles.
+
 `docs` [*filename* ...]
 : Generate documentation such as man pages.
 
@@ -39,6 +42,9 @@ generating symbolic links and replacing `.bashrc`.
 
 `lint`
 : Lint codebase.
+
+`package`
+: Packages a distributable file.
 
 `prefix`
 : Print dotfiles install path.

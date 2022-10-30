@@ -190,11 +190,13 @@ main () {
   unique="$(date +"%s")"
 
   case "$cmd" in
+    build) build ;;
     docs) docs "$@" ;;
     dump) dump ;;
     install) install ;;
     install-packages) install_packages ;;
     lint) lint ;;
+    package) package ;;
     pull) pull ;;
     prefix) prefix ;;
     test) suite ;;
@@ -203,6 +205,11 @@ main () {
     watch) watch "$@" ;;
     *) usage ;;
   esac
+}
+
+build () {
+  install-packages || return 1
+  docs || return 1
 }
 
 # Install script.
@@ -219,6 +226,8 @@ install () {
       link "$line"
     fi
   done < "$directory/.dotfile-links"
+
+  log "${green}✓${reset} Dotfiles linked"
 }
 
 install_packages () {
@@ -486,7 +495,12 @@ docs () {
     fi
   done
 
-  return "$status"
+  if [ "$status" -eq 1 ]; then
+    error "${yellow}✘${reset} Not all man pages were created successfully"
+    return 1
+  fi
+
+  log "${green}✓${reset} Man pages generated"
 }
 
 # Generate documentation from the given file.
@@ -630,8 +644,8 @@ pull () {
 }
 
 version () {
-  if [ -e "$directory/VERSION" ]; then
-    cat "$directory/VERSION" 2> /dev/null && return 0
+  if [ -e "VERSION" ]; then
+    cat "VERSION" 2> /dev/null && return 0
   fi
 
   if [ "$(command -v git)" ]; then
@@ -640,6 +654,47 @@ version () {
 
   echo "dev"
   return 0
+}
+
+package() {
+  local target version status
+
+  target="dist/dotfiles.zip"
+  version="$(version)"
+  status=0
+
+  mkdir -p dist || return 1
+
+  rm -f dist/dotfiles.zip || return 1
+
+  echo "$version" > VERSION || return 1
+
+  zip --symlinks -r "$target" \
+    bashrc.d/ \
+    bin/ \
+    docker/ \
+    home/ \
+    lib/ \
+    packages/ \
+    platform/ \
+    share/ \
+    .editorconfig \
+    Aptfile \
+    Brewfile \
+    CHANGELOG.md \
+    docker-compose.yml \
+    LICENSE \
+    Makefile \
+    README.md \
+    VERSION || status=1
+
+  rm -f VERSION || return 1
+
+  if [ "$status" -eq 1 ]; then
+    return 1
+  fi
+
+  log "${green}✔${reset} Packaged $version to $target"
 }
 
 main "$@"
