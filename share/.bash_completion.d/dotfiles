@@ -20,7 +20,7 @@ _dotfiles () {
   esac
 
   if [ "$cword" -eq 1 ]; then
-    COMPREPLY=($(compgen -W 'docs dump install install-deps install-packages lint pull prefix test unit watch' -- "$cur"))
+    COMPREPLY=($(compgen -W 'docs dump install install-packages lint pull prefix test unit watch' -- "$cur"))
     return;
   fi
 } && complete -F _dotfiles dotfiles

@@ -193,7 +193,6 @@ main () {
     docs) docs "$@" ;;
     dump) dump ;;
     install) install ;;
-    install-deps) install_dependencies ;;
     install-packages) install_packages ;;
     lint) lint ;;
     pull) pull ;;
@@ -284,33 +283,6 @@ install_packages () {
   chmod +x packages/*/bin/*
 
   log "${green}✓${reset} Packages installed"
-}
-
-install_dependencies () {
-  if [ "$(command -v brew)" ]; then
-    brew install
-  else
-    error "${yellow}·${reset} brew not installed"
-  fi
-
-  if [ "$(command -v composer)" ]; then
-    composer install
-    composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs
-  else
-    error "${yellow}·${reset} composer not installed"
-  fi
-
-  if [ "$(command -v npm)" ]; then
-    npm install
-  else
-    error "${yellow}·${reset} npm not installed"
-  fi
-
-  if [ "$(command -v apm)" ]; then
-    apm-pkg install
-  else
-    error "${yellow}·${reset} apm not installed"
-  fi
 }
 
 valid () {

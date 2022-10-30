@@ -54,18 +54,6 @@ Building and installing requires:
 * Docker
 * docker-compose
 
-Optional setup
------
-
-The repository also contains set of tools that can be installed with various
-package managers:
-
-```
-$ brew install
-$ bundle install
-$ composer install
-```
-
 Customizing Bash configuration
 -----
 

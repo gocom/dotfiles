@@ -34,9 +34,6 @@ Install and manage dotfiles.
 : Install dotfiles to the current user's home directory. Installation is done by
 generating symbolic links and replacing `.bashrc`.
 
-`install-deps`
-: Install third-party dependencies through package managers.
-
 `install-packages`
 : Install packages.
 
