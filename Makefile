@@ -1,8 +1,8 @@
 .PHONY: all build install link lint shell test test-unit package
 
-HOST_UID ?= "$$(id -u)"
-HOST_GID ?= "$$(id -g)"
-RUN = docker-compose run -u "$(HOST_UID):$(HOST_GID)" --rm build
+DOTFILES_UID ?= "$$(id -u)"
+DOTFILES_GID ?= "$$(id -g)"
+RUN = docker-compose run -u "$(DOTFILES_UID):$(DOTFILES_GID)" --rm build
 
 all: test
 
