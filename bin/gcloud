@@ -3,6 +3,10 @@
 app_name="${0##*/}"
 app_version="0.0.0"
 
+config_directory="${XDG_CONFIG_HOME:-$HOME/.config}"
+data_directory="${XDG_DATA_HOME:-$HOME/.local/share}"
+executable="${EXECUTABLE:-$app_name}"
+
 usage () {
   cat <<EOF
 Launch gcloud shell.
@@ -31,29 +35,25 @@ install () {
   docker pull google/cloud-sdk:latest
 }
 
-run () {
-  docker run -it \
-  	-v "$HOME/.config/gcloud:/root/.config/gcloud" \
-  	-v "$HOME/.ssh:/root/.ssh" \
-  	google/cloud-sdk "$@"
-}
-
 main () {
-  if [ "$#" -eq 0 ]; then
-  	set -- "bash"
-  fi
-
-  if ! [ -e "$HOME/.config/gcloud" ]; then
+  if ! [ -e "$data_directory/google-cloud-sdk-docker" ]; then
   	install || return 1
-  	mkdir -p "$HOME/.config/gcloud" || return 1
+  	mkdir -p "$data_directory/google-cloud-sdk-docker" || return 1
+  	mkdir -p "$config_directory/gcloud" || return 1
   fi
 
-  run "$@"
+  cd "$data_directory/google-cloud-sdk-docker" || return 1
+
+  docker run -it \
+    -v "$config_directory/gcloud:/root/.config/gcloud" \
+    -v "$HOME/.ssh:/root/.ssh" \
+    google/cloud-sdk "$executable" "$@"
 }
 
 case "${1:-}" in
   -h|--help) usage ;;
   -v|--version) echo "$app_version" ;;
   install|update) install ;;
+  shell) executable=bash main "${@:2}" ;;
   *) main "$@" ;;
 esac
