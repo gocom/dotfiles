@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Launch gcloud shell.
+
+Usage:
+  $ $app_name [options] [command]
+
+Commands:
+  install  Install gcloud
+  update   Update gcloud
+  shell    Login to gcloud image
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ $app_name
+EOF
+}
+
+install () {
+  docker pull google/cloud-sdk:latest
+}
+
+run () {
+  docker run -it \
+  	-v "$HOME/.config/gcloud:/root/.config/gcloud" \
+  	-v "$HOME/.ssh:/root/.ssh" \
+  	google/cloud-sdk "$@"
+}
+
+main () {
+  if [ "$#" -eq 0 ]; then
+  	set -- "bash"
+  fi
+
+  if ! [ -e "$HOME/.config/gcloud" ]; then
+  	install || return 1
+  	mkdir -p "$HOME/.config/gcloud" || return 1
+  fi
+
+  run "$@"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  install|update) install ;;
+  *) main "$@" ;;
+esac
