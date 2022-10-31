@@ -7,6 +7,9 @@ usage () {
   cat <<EOF
 Launch gcloud shell.
 
+Runs gcloud inside a container to avoid conflicts with host system
+dependencies.
+
 Usage:
   $ $app_name [options] [command]
 
