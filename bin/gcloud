@@ -7,20 +7,39 @@ config_directory="${XDG_CONFIG_HOME:-$HOME/.config}"
 data_directory="${XDG_DATA_HOME:-$HOME/.local/share}"
 executable="${EXECUTABLE:-$app_name}"
 
+workdir="$data_directory/google-cloud-sdk-docker/app"
+config="$config_directory/gcloud"
+ssh="$HOME/.ssh"
+
 usage () {
   cat <<EOF
 Launch gcloud shell.
 
 Runs gcloud inside a container to avoid conflicts with host system
-dependencies.
+dependencies. Commands arguments given to this wrapper command
+will be passed to the gcloud CLI running inside a Docker container.
+
+Host working directory:
+$workdir
+
+Host config directory:
+$config
+
+Files that need to be mounted inside the image can be created to
+host working directory, and they will be available in /app from
+within the container, and it is also the working directory when
+the container is launched.
+
+Configuration is mounted from the host config directory, and
+all gcloud CLI configuration is written there.
 
 Usage:
   $ $app_name [options] [command]
 
 Commands:
-  install  Install gcloud
-  update   Update gcloud
-  shell    Login to gcloud image
+  self-install  Install gcloud
+  self-update   Update gcloud
+  shell         Login to gcloud image
 
 Options:
   -h, --help     Print this message
@@ -32,28 +51,35 @@ EOF
 }
 
 install () {
-  docker pull google/cloud-sdk:latest
+  docker pull google/cloud-sdk:latest || return 1
 }
 
 main () {
-  if ! [ -e "$data_directory/google-cloud-sdk-docker" ]; then
-  	install || return 1
-  	mkdir -p "$data_directory/google-cloud-sdk-docker" || return 1
-  	mkdir -p "$config_directory/gcloud" || return 1
+  if ! [ -d "$ssh" ]; then
+    echo "Host directory '$ssh' does not exist." >&2
+    exit 1
   fi
 
-  cd "$data_directory/google-cloud-sdk-docker" || return 1
+  if ! [ -e "$workdir" ]; then
+  	install || return 1
+  	mkdir -p "$workdir" || return 1
+  	mkdir -p "$config" || return 1
+  fi
+
+  cd "$workdir" || return 1
 
   docker run -it \
-    -v "$config_directory/gcloud:/root/.config/gcloud" \
-    -v "$HOME/.ssh:/root/.ssh" \
+    -v "$config:/root/.config/gcloud" \
+    -v "$workdir:/app" \
+    -v "$ssh:/root/.ssh" \
+    -w "/app" \
     google/cloud-sdk "$executable" "$@"
 }
 
 case "${1:-}" in
   -h|--help) usage ;;
   -v|--version) echo "$app_version" ;;
-  install|update) install ;;
+  self-install|self-update) install ;;
   shell) executable=bash main "${@:2}" ;;
   *) main "$@" ;;
 esac
