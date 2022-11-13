@@ -214,3 +214,11 @@
   path = ~/.gitconfig_local
 [push]
   default = current
+[merge]
+    tool = meld
+[mergetool "meld"]
+    cmd = meld --diff \"$BASE\" \"$LOCAL\" \"$REMOTE\" --output \"$MERGED\"
+[diff]
+    tool = meld
+[difftool "meld"]
+    cmd = meld "$LOCAL" "$REMOTE"
