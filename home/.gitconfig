@@ -122,6 +122,7 @@
   #: rmfile           Remove a file, keep the file in the filesystem
   #: rmdir            Remove a directory, keep the files in the filesystem
   #: squash           Squash last two, or given number of, commits
+  #: squash-fork      Squash commits after the fork point
   #: staged           Compare differences in staging
   #: submodules       List submodules in staging or current working tree
   #: spork            Commits in the given source branch after fork
@@ -191,6 +192,7 @@
   rmfile = rm -r --cached --
   rmdir = rm -rf --cached --
   squash = "!f(){ git reset --soft HEAD~${1:-2} && git commit --edit -m\"$(git log --format=%B --reverse HEAD..HEAD@{1})\"; };f"
+  squash-fork = "!f(){ git reset --soft "$(git fork-point-ref "$@")" && git commit --edit -m\"$(git log --format=%B --reverse HEAD..HEAD@{1})\"; };f"
   spork = "!f () { git history --reverse "$(git fork-point-ref "$@")" ... "$@"; }; f"
   staged = diff --cached --
   submodules = "!git ls-files --stage | grep '^160000 '"
