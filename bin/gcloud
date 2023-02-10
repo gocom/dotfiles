@@ -68,7 +68,7 @@ main () {
 
   cd "$workdir" || return 1
 
-  docker run -it \
+  docker run --rm -it \
     -v "$config:/root/.config/gcloud" \
     -v "$workdir:/app" \
     -v "$ssh:/root/.ssh" \
