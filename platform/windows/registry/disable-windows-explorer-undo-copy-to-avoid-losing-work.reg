@@ -1,0 +1,4 @@
+Windows Registry Editor Version 5.00
+
+[HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+"MaxUndoItems"=dword:00000000
