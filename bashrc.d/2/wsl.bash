@@ -1,4 +1,4 @@
-if grep -qi microsoft /proc/version; then
+if grep -qi microsoft /proc/version 2> /dev/null; then
   export DOTFILES_WSL=1
 else
   export DOTFILES_WSL=0

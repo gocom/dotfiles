@@ -10,6 +10,32 @@ Supported OS
 * Ubuntu 22.04 LTS
 * Ubuntu 20.04 LTS in WSL2
 * Ubuntu 22.04 LTS in WSL2
+* macOS 13.0 on Apple Silicon
+
+Prerequisites
+-----
+
+Dotfiles require:
+
+* [Bash](https://www.gnu.org/software/bash/) >= 4.3
+* GNU awk
+* [GNU Coreutils](https://www.gnu.org/software/coreutils/coreutils.html)
+* perl
+
+Building and installing requires:
+
+* GNU make
+* Docker and docker-compose, or [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+### On macOS
+
+On macOS, you may want:
+
+* Xcode
+* [Homebrew](https://brew.sh/) package manager
+
+You can then use Homebrew to install [bash](https://formulae.brew.sh/formula/bash)
+and [coreutils](https://formulae.brew.sh/formula/coreutils).
 
 Install
 -----
@@ -36,22 +62,6 @@ $ make link
 
 The above avoids Docker requirement and all actions are
 performed on the host system.
-
-Requirements
------
-
-Dotfiles require:
-
-* [Bash](https://www.gnu.org/software/bash/) >= 4.3
-* [Coreutils](https://www.gnu.org/software/coreutils/coreutils.html)
-* perl
-* GNU awk
-
-Building and installing requires:
-
-* GNU make
-* Docker
-* docker-compose
 
 Customizing Bash configuration
 -----
