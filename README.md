@@ -10,7 +10,7 @@ Supported OS
 * Ubuntu 22.04 LTS
 * Ubuntu 20.04 LTS in WSL2
 * Ubuntu 22.04 LTS in WSL2
-* macOS 13.0 on Apple Silicon
+* macOS 13 on Apple Silicon
 
 Prerequisites
 -----
