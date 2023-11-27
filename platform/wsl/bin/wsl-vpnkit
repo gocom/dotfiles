@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+WSL_VNPKIT_HOME="${WSL_VNPKIT_HOME:-$HOME/.wsl-vpnkit}"
+
+usage () {
+  cat <<EOF
+wsl-vpnkit
+
+The wsl-vpnkit script uses gvisor-tap-vsock to provide network connectivity to
+the WSL 2 VM while connected to VPNs on the Windows host. This requires no
+settings changes or admin privileges on the Windows host.
+
+Usage:
+  $ $app_name [options] [command]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ $app_name start
+  Start wsl-vpnkit, making VPN connections available inside WSL VM.
+  Will automatically install wsl-vpnkit, if it hasn't already.
+
+  $ $app_name install
+  Installs wsl-vpnkit.
+
+Example:
+  $ $app_name start
+EOF
+}
+
+prepare () {
+  mkdir -p "$WSL_VNPKIT_HOME" || return 1
+  cd "$WSL_VNPKIT_HOME" || return 1
+}
+
+install () {
+  prepare || return 1
+
+  sudo apt-get install \
+      iproute2 \
+      iptables \
+      iputils-ping \
+      dnsutils \
+      wget || return 1
+
+  rm -f wsl-vpnkit.tar.gz || return 1
+
+  curl-checksum \
+    "https://github.com/sakai135/wsl-vpnkit/releases/download/v0.4.1/wsl-vpnkit.tar.gz" \
+    "wsl-vpnkit.tar.gz" \
+    "509ef76e6fc0d4d945247b08f323de5b34c6c7ce0b57376680eb8ad7e3a74ed5" || return 1
+
+  tar --strip-components=1 -xf wsl-vpnkit.tar.gz \
+    app/wsl-vpnkit \
+    app/wsl-gvproxy.exe \
+    app/wsl-vm app/wsl-vpnkit.service || return 1
+
+  rm wsl-vpnkit.tar.gz || return 1
+
+  chmod +x wsl-vpnkit || return 1
+}
+
+start () {
+  if ! [ -e "$WSL_VNPKIT_HOME" ]; then
+    install || return 1
+  else
+    prepare || return 1
+  fi
+
+  sudo VMEXEC_PATH="$(pwd)/wsl-vm" \
+    GVPROXY_PATH="$(pwd)/wsl-gvproxy.exe" \
+    ./wsl-vpnkit || return 1
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  install) install "$@" ;;
+  start) start "$@" ;;
+  *) usage; exit 1 ;;
+esac
