@@ -4,4 +4,20 @@ for f in "$DOTFILES_HOME/share/.bash_completion.d/"*; do
   fi
 done
 
+if [ "${DOTFILES_PLATFORM:-}" ]; then
+    for f in "$DOTFILES_HOME/platform/$DOTFILES_PLATFORM/share/.bash_completion.d/"*; do
+      if [ -f "$f" ] && [ -r "$f" ]; then
+        . "$f"
+      fi
+    done
+fi
+
+if [ "${DOTFILES_WSL:-0}" -eq 1 ]; then
+    for f in "$DOTFILES_HOME/platform/wsl/share/.bash_completion.d/"*; do
+      if [ -f "$f" ] && [ -r "$f" ]; then
+        . "$f"
+      fi
+    done
+fi
+
 unset f

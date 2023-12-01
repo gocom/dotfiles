@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+_wsl-vpnkit () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$cur" in
+    -*)
+      COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
+      return
+      ;;
+  esac
+
+  if [ "$cword" -eq 1 ]; then
+    COMPREPLY=($(compgen -W 'install start' -- "$cur"))
+  fi
+} && complete -F _wsl-vpnkit wsl-vpnkit

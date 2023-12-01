@@ -2,15 +2,18 @@
 
 app_name="${0##*/}"
 app_version="0.0.0"
-WSL_VNPKIT_HOME="${WSL_VNPKIT_HOME:-$HOME/.wsl-vpnkit}"
+WSL_VNPKIT_HOME="${WSL_VNPKIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/wsl-vpnkit}"
+WSL_VPNKIT_VERSION="${WSL_VPNKIT_VERSION:-0.4.1}"
+WSL_VPNKIT_CHECKSUM="${WSL_VPNKIT_CHECKSUM:-509ef76e6fc0d4d945247b08f323de5b34c6c7ce0b57376680eb8ad7e3a74ed5}"
 
 usage () {
   cat <<EOF
 wsl-vpnkit
 
-The wsl-vpnkit script uses gvisor-tap-vsock to provide network connectivity to
-the WSL 2 VM while connected to VPNs on the Windows host. This requires no
-settings changes or admin privileges on the Windows host.
+Wrapper for wsl-vpnkit. wsl-vpnkit is a tool that uses gvisor-tap-vsock to
+provide network connectivity to the WSL 2 VM while connected to VPNs on
+the Windows host. This requires no settings changes or admin privileges on
+the Windows host.
 
 Usage:
   $ $app_name [options] [command]
@@ -20,44 +23,91 @@ Options:
   -v, --version  Print version number
 
 Commands:
-  $ $app_name start
-  Start wsl-vpnkit, making VPN connections available inside WSL VM.
-  Will automatically install wsl-vpnkit, if it hasn't already.
-
   $ $app_name install
   Installs wsl-vpnkit.
 
-Example:
   $ $app_name start
+  Starts wsl-vpnkit.
+
+Example:
+  $ $app_name install
+  $ $app_name start
+
+Environment:
+  WSL_VNPKIT_HOME
+    Specifies wsl-vpnkit installation directory.
+    Current value:
+    $WSL_VNPKIT_HOME
+
+  WSL_VPNKIT_VERSION
+    Specifies wsl-vpnkit version that is downloaded during install.
+    Current value:
+    $WSL_VPNKIT_VERSION
+
+  WSL_VPNKIT_CHECKSUM
+    Specifies wsl-vpnkit downloads SHA-256 checksum.
+    Current value:
+    $WSL_VPNKIT_CHECKSUM
 EOF
 }
 
 prepare () {
-  mkdir -p "$WSL_VNPKIT_HOME" || return 1
-  cd "$WSL_VNPKIT_HOME" || return 1
+  mkdir -p "$WSL_VNPKIT_HOME" || exit 1
+  cd "$WSL_VNPKIT_HOME" || exit 1
 }
 
-install () {
-  prepare || return 1
+depends () {
+  local name
 
-  sudo apt-get install \
+  for name in "awk" "cat" "iptables" "nslookup" "ping" "tar" "wget"; do
+    if ! [ "$(command -v "$name")" ]; then
+      echo "Dependency missing: $name" >&1
+      exit 1
+    fi
+  done
+}
+
+install-dependencies () {
+  read -r -p "Want to automatically install dependencies via apt (y/N)? " answer
+
+  if [[ "$answer" == [Yy]* ]]; then
+    sudo apt-get install \
       iproute2 \
       iptables \
       iputils-ping \
       dnsutils \
       wget || return 1
+  fi
+}
+
+install () {
+  if [ -e "$WSL_VNPKIT_HOME" ]; then
+    echo "wsl-vpnkit is already installed." >&2
+    return 1
+  fi
+
+  local answer
+
+  prepare
+
+  install-dependencies || return 1
 
   rm -f wsl-vpnkit.tar.gz || return 1
 
+  echo "Downloading wsl-vpnkit version ${WSL_VPNKIT_VERSION}..."
+
   curl-checksum \
-    "https://github.com/sakai135/wsl-vpnkit/releases/download/v0.4.1/wsl-vpnkit.tar.gz" \
+    "https://github.com/sakai135/wsl-vpnkit/releases/download/v${WSL_VPNKIT_VERSION}/wsl-vpnkit.tar.gz" \
     "wsl-vpnkit.tar.gz" \
-    "509ef76e6fc0d4d945247b08f323de5b34c6c7ce0b57376680eb8ad7e3a74ed5" || return 1
+    "$WSL_VPNKIT_CHECKSUM" || return 1
+
+  echo "Installing to ${WSL_VNPKIT_HOME}..."
 
   tar --strip-components=1 -xf wsl-vpnkit.tar.gz \
     app/wsl-vpnkit \
     app/wsl-gvproxy.exe \
-    app/wsl-vm app/wsl-vpnkit.service || return 1
+    app/wsl-vm \
+    app/wsl-vpnkit.service || return 1
 
   rm wsl-vpnkit.tar.gz || return 1
 
@@ -66,10 +116,13 @@ install () {
 
 start () {
   if ! [ -e "$WSL_VNPKIT_HOME" ]; then
-    install || return 1
-  else
-    prepare || return 1
+    echo "wsl-vpnkit is not installed. To install run:" >&2
+    echo "$ $app_name install" >&2
+    return 1
   fi
+
+  depends
+  prepare
 
   sudo VMEXEC_PATH="$(pwd)/wsl-vm" \
     GVPROXY_PATH="$(pwd)/wsl-gvproxy.exe" \
