@@ -217,10 +217,10 @@
 [push]
   default = current
 [merge]
-    tool = meld
+  tool = meld
 [mergetool "meld"]
-    cmd = meld --diff \"$BASE\" \"$LOCAL\" \"$REMOTE\" --output \"$MERGED\"
+  cmd = meld --diff \"$BASE\" \"$LOCAL\" \"$REMOTE\" --output \"$MERGED\"
 [diff]
-    tool = meld
+  tool = meld
 [difftool "meld"]
-    cmd = meld "$LOCAL" "$REMOTE"
+  cmd = meld "$LOCAL" "$REMOTE"
