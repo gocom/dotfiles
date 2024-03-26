@@ -98,7 +98,7 @@
   #: find             Search file names and contents
   #: find-contents    Search file contents
   #: find-name        Find file by name
-  #: fix-object       Fix corrupt loose objects
+  #: fix-objects      Fix corrupt loose objects
   #: history          Compact commit history
   #: history-diff     History with diffs
   #: history-refs     History with references
