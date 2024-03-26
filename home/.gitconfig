@@ -98,6 +98,7 @@
   #: find             Search file names and contents
   #: find-contents    Search file contents
   #: find-name        Find file by name
+  #: fix-object       Fix corrupt loose objects
   #: history          Compact commit history
   #: history-diff     History with diffs
   #: history-refs     History with references
@@ -160,6 +161,7 @@
   directory = "!f() { cd -- "$1" > /dev/null && git ls-files . | sed 's,/.*,/,' | uniq; }; f"
   files = ls-files
   find = "!f() { git find-name "$1"; git find-contents "$1"; return 0; }; f"
+  fix-objects = "!find .git/objects/ -empty -delete && git init && git fetch && git status"
   fd = "!git find-commit"
   fork-point = "!f () { git history -1 "$(git fork-point-ref "$@")"; }; f"
   fork-point-ref = "!git merge-base "$(git branch-name)""
