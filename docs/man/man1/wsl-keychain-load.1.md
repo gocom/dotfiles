@@ -1,6 +1,6 @@
 % WSL-KEYCHAIN-LOAD(1)
 % Jukka Svahn
-% October 2022
+% June 2024
 
 # NAME
 
@@ -8,7 +8,7 @@ wsl-keychain-load -- Store SSH key passphrases in Windows Credential Manager
 
 # SYNOPSIS
 
-**wsl-keychain-load** [*options*] `<`*filename*`>`
+**wsl-keychain-load** [*command*] [*options*]
 
 # DESCRIPTION
 
@@ -35,6 +35,12 @@ The **Internet or network address** used in Credential Manager would be:
 If the used Distribution was Ubuntu. Within WSL, you can ask use `wslpath`
 to help to translate Linux paths to Windows' paths.
 
+For Keychain to pass the credentials to the SSH key agent, make sure you have
+sourced keychain initialization script in your active shell session.
+To automate this, you can do the following to your bash profile:
+
+    . "$HOME/.keychain/$HOSTNAME-sh"
+
 # OPTIONS
 
 `-h`, `--help`
@@ -43,7 +49,12 @@ to help to translate Linux paths to Windows' paths.
 `-v`, `--version`
 : Print version number.
 
-*filename*
+# COMMANDS
+
+`init`
+: Loads all SSH key passphrases.
+
+`load` `<`*filename*`>`
 : Path to SSH private key to be loaded. The given path should
 be absolute path as seen from Linux, rather than Windows-side mount path.
 

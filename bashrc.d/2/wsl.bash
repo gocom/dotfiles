@@ -18,15 +18,7 @@ if [ "$DOTFILES_WSL" -eq 1 ]; then
 
   # Use keychain as a secret storage and SSH agent.
   if [ "$(command -v keychain)" ]; then
-    keychain -q --clear 2> /dev/null
-
-    for f in "$HOME/.ssh/id_"*; do
-      if [ -f "$f" ] && [ -f "$f.pub" ]; then
-        wsl-keychain-load "$f" 2> /dev/null
-      fi
-    done
-
-    unset f
+    wsl-keychain-load init 2> /dev/null
 
     if [ -f "$HOME/.keychain/$HOSTNAME-sh" ]; then
       . "$HOME/.keychain/$HOSTNAME-sh"

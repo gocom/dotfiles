@@ -7,27 +7,68 @@ usage () {
   cat <<EOF
 Loads SSH key passphrases from Windows Credential Manager to Keychain.
 
+For Keychain to pass the credentials to the SSH key agent, make sure you have
+sourced keychain initialization script in your active shell session.
+To automate this, you can do the following to your bash profile:
+
+  . "$HOME/.keychain/$HOSTNAME-sh"
+
 Usage:
-  $ $app_name [options] <filename>
+  $ $app_name <command> [options]
+
+Commands:
+  $ $app_name init
+  Loads all SSH key passphrases.
+
+  $ $app_name load <filename>
+  Loads passphrases for the given SSH key.
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Example:
-  $ $app_name "$HOME/.ssh/id_rsa"
+  $ $app_name init
+  $ $app_name load "$HOME/.ssh/id_rsa"
 EOF
 }
 
-main() {
+depends () {
+  local name
+
+  for name in "cat" "chmod" "keychain" "pwsh.exe" "rm" "wslpath" "wsl-credential-manager.ps1"; do
+    if ! [ "$(command -v "$name")" ]; then
+      echo "Dependency missing: $name" >&1
+      exit 1
+    fi
+  done
+}
+
+init () {
+  local file
+
+  depends
+
+  keychain -q --clear 2> /dev/null
+
+  for file in "$HOME/.ssh/id_"*; do
+    if [ -f "$file" ] && [ -f "$file.pub" ]; then
+      load "$file"
+    fi
+  done
+}
+
+load() {
   local credential status filename script password
+
+  depends
 
   script="/tmp/keychain-load-ssh-askpass"
   filename="${1:-}"
 
-  if ! [ "$filename" ]; then
+  if ! [ "$filename" ] || ! [ -f "$filename" ]; then
     echo "SSH key filename required." >&2
-    exit 1
+    return 1
   fi
 
   credential="$(wslpath -w "$filename")"
@@ -40,7 +81,7 @@ main() {
     echo ""
 
     keychain -q --nogui "$filename" || exit 1
-    exit 0
+    return 0
   fi
 
   cat > "$script" <<EOL || exit 1
@@ -57,11 +98,12 @@ EOL
 
   rm -f "$script" || exit 1
 
-  exit "${status:-0}"
+  return "${status:-0}"
 }
 
 case "${1:-}" in
   ""|-h|--help) usage ;;
   -v|--version) echo "$app_version" ;;
-  *) main "$@" ;;
+  init) init ;;
+  *) load "$@" ;;
 esac
