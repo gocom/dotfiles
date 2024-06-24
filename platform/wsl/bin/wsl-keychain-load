@@ -80,23 +80,23 @@ load() {
     echo "Prompting for password instead as a fallback..."
     echo ""
 
-    keychain -q --nogui "$filename" || exit 1
+    keychain -q --nogui "$filename" || return 1
     return 0
   fi
 
-  cat > "$script" <<EOL || exit 1
+  cat > "$script" <<EOL || return 1
 #!/usr/bin/env bash
 wsl-credential-manager.ps1 -credential "$credential"
 EOL
 
-  chmod u+x "$script" || exit 1
+  chmod u+x "$script" || return 1
 
   export DISPLAY=0
   export SSH_ASKPASS="$script"
 
   keychain -q "$filename" || status=1
 
-  rm -f "$script" || exit 1
+  rm -f "$script" || return 1
 
   return "${status:-0}"
 }
