@@ -2,7 +2,7 @@
 
 DOTFILES_UID ?= "$$(id -u)"
 DOTFILES_GID ?= "$$(id -g)"
-RUN = docker-compose run -u "$(DOTFILES_UID):$(DOTFILES_GID)" --rm build
+RUN = docker compose run -u "$(DOTFILES_UID):$(DOTFILES_GID)" --rm build
 
 all: test
 
