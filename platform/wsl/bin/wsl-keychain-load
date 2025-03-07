@@ -63,6 +63,8 @@ load() {
 
   depends
 
+  cd || return 1
+
   script="/tmp/keychain-load-ssh-askpass"
   filename="${1:-}"
 
