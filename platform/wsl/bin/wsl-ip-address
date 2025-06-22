@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Print WSL VM IP address from within WSL instance
+
+Usage:
+  $ $app_name
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ $app_name
+EOF
+}
+
+main () {
+  ip addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  *) main ;;
+esac
