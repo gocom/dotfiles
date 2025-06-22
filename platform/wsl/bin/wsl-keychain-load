@@ -38,7 +38,7 @@ depends () {
 
   for name in "cat" "chmod" "keychain" "pwsh.exe" "rm" "wslpath" "wsl-credential-manager.ps1"; do
     if ! [ "$(command -v "$name")" ]; then
-      echo "Dependency missing: $name" >&1
+      echo "Dependency missing: $name" >&2
       exit 1
     fi
   done
