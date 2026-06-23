@@ -51,14 +51,14 @@ EOF
 }
 
 download () {
-  local status urls continue remove
+  local status urls confirm
 
   urls=".wget-urls"
 
   if [ -e "$urls" ]; then
-    read -r -p "Use found '$urls' file (Yes/no)? " continue
+    read -r -p "Use found '$urls' file (Yes/no)? " confirm
 
-    case "$continue" in
+    case "$confirm" in
       Y*|y*)
         echo "Downloading URLs from '$urls'..." >&2
       ;;
