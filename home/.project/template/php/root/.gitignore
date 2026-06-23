@@ -1,7 +1,0 @@
-.*
-!.gitignore
-!.editorconfig
-!.travis
-/dist/
-/vendor/
-composer.lock
