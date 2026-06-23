@@ -1,6 +1,6 @@
 % WGET-DL(1)
 % Jukka Svahn
-% July 2026
+% June 2026
 
 # NAME
 
