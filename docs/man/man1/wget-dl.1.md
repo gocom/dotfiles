@@ -1,14 +1,14 @@
 % WGET-DL(1)
 % Jukka Svahn
-% October 2018
+% July 2026
 
 # NAME
 
-wget-dl -- Download login protected files
+wget-dl -- Download files
 
 # SYNOPSIS
 
-**wget-dl** [*options*] [*command*] `<`*url*`>`
+**wget-dl** [*command*] [*options*]
 
 # DESCRIPTION
 
@@ -28,11 +28,11 @@ terminal history. Received login cookies are stored in `$WGET_COOKIES`, or
 
 # COMMANDS
 
-`auth` [*options*] `<`*url*`>`
+`auth` [*options*]
 : Prompt for username and password, download a file using basic HTTP
 authentication.
 
-`download` [*options*] `<`*url*`>`
+`download` [*options*]
 : Download a file, using any previously established login cookies.
 
 `login` [*options*] `<`*url*[`?<`*post-data*`>`]`>`
@@ -47,7 +47,7 @@ with prompted *username* and *password* respectively, if present.
 
 # FILES
 
-Depends on external programs `bash`, `cat`, `perl` and `wget`.
+Depends on external programs `bash`, `cat`, `nano`, `perl` and `wget`.
 
 # EXAMPLES
 
@@ -56,11 +56,11 @@ containing prompted username `{u}` and password `{p}`:
 
     $ wget-dl login "https://example.test/login?user={u}&pass={p}"
 
-Download item `3451` from `example.test`, using any previously established login
-cookies:
+Prompts for download URLs. Downloads them using any previously established
+login cookies:
 
-    $ wget-dl download "https://example.test/download/3451"
+    $ wget-dl download
 
-Download `file.zip` protected by basic HTTP authentication:
+Download file protected by basic HTTP authentication:
 
-    $ wget-dl auth "https://example.test/file.zip"
+    $ wget-dl auth

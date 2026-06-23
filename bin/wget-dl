@@ -9,6 +9,10 @@ else
   cookies="$HOME/.wget-cookies"
 fi
 
+if ! [ -e "$cookies" ]; then
+  touch "$cookies"
+fi
+
 usage () {
   cat <<EOF
 Download files using wget.
@@ -21,12 +25,15 @@ Options:
   -v, --version  Print version number
 
 Commands:
-  $ $app_name auth <url>
+  $ $app_name auth
   Prompt for username and password, download a file using basic HTTP
   authentication.
 
-  $ $app_name download <url>
-  Download a file.
+  $ $app_name download
+  Download files. Prompts for list of URLs, which are saved into
+  temporary '.wget-urls' file in the current working directory.
+  If '.wget-urls' already exists, downloads are resumed from it.
+  Files downloaded, are saved into the current working directory.
 
   $ $app_name login <url[?<post-data>]>
   Establish a login session and store cookies in \$WGET_COOKIES.
@@ -38,25 +45,39 @@ Login:
 
 Example:
   $ $app_name login "https://localhost/login?user={u}&pass={p}"
-  $ $app_name download "https://example.com/download/3451"
+  $ $app_name auth
+  $ $app_name download
 EOF
 }
 
 download () {
+  local status urls
+
+  urls=".wget-urls"
+
+  if [ -e "$urls" ]; then
+    echo "File '$urls' found in the current working directory, resuming..." >&2
+  else
+    touch "$urls" || return 1
+    nano "$urls" || return 1
+  fi
+
   exec wget \
     --adjust-extension \
     --load-cookies="$cookies" \
-    --max-redirect="30" \
-    --no-cache \
+    --max-redirect=30 \
     --no-verbose \
     --quiet \
     --random-wait \
     --referer="${*:$#}" \
     --show-progress \
-    --tries="10" \
-    --trust-server-names \
-    --wait="30" \
-    "${@:1:(($#-1))}" -- "${@:$#:1}"
+    --tries=3 \
+    --wait=3 \
+    --waitretry=15 \
+    -i "$urls" || status="$?"
+
+  rm -f "$urls"
+  return "${status:-0}"
 }
 
 auth () {
@@ -90,7 +111,7 @@ login () {
     --http-password="$password" \
     --keep-session-cookies \
     --load-cookies="$cookies" \
-    --max-redirect="30" \
+    --max-redirect=30 \
     --no-cache \
     --output-document=- \
     --referer="$url" \
@@ -98,11 +119,11 @@ login () {
     --post-data="$data" \
     --quiet \
     --tries=1 \
-    "${@:1:(($#-1))}" -- "$url" > /dev/null
+    "$@" > /dev/null
 }
 
 case "${1:-}" in
-  ""|-h|--help) usage ;;
+  -h|--help) usage ;;
   -v|--version) echo "$app_version" ;;
   auth) auth "${@:2}" ;;
   login) login "${@:2}" ;;
