@@ -51,18 +51,29 @@ EOF
 }
 
 download () {
-  local status urls
+  local status urls continue remove
 
   urls=".wget-urls"
 
   if [ -e "$urls" ]; then
-    echo "File '$urls' found in the current working directory, resuming..." >&2
+    read -r -p "Use found '$urls' file (Yes/no)? " continue
+
+    case "$continue" in
+      Y*|y*)
+        echo "Downloading URLs from '$urls'..." >&2
+      ;;
+      *)
+        echo "Aborting." >&2
+        return 1
+        ;;
+    esac
   else
     touch "$urls" || return 1
     nano "$urls" || return 1
   fi
 
-  exec wget \
+  wget \
+    --no-clobber \
     --adjust-extension \
     --load-cookies="$cookies" \
     --max-redirect=30 \
