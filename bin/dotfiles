@@ -227,6 +227,12 @@ install () {
     fi
   done < "$directory/.dotfile-links"
 
+  while read -r line; do
+    if [ "$line" ]; then
+      copy "$line"
+    fi
+  done < "$directory/.dotfile-copy"
+
   log "${green}✓${reset} Dotfiles linked"
 }
 
@@ -436,6 +442,85 @@ link () {
 
     if [ "$status" ]; then
       error "${red}✘${reset} $path ${yellow}―${reset} unable to link"
+      verbose "${yellow}·${reset} $where" "${yellow}↳${reset} $origin"
+      return 1
+    fi
+  fi
+
+  log "${blue}↯${reset} $path"
+  verbose "${magenta}·${reset} $where" "${magenta}↳${reset} $origin"
+}
+
+copy () {
+  local name where origin directory parent path status current content
+
+  name="${1:-}"
+  origin="$prefix/$name"
+  where=""
+  parent="${name%%/*}"
+  path="${name#*/}"
+
+  if ! [ "$name" ]; then
+    fatal "Origin must be given for the copy operation."
+  fi
+
+  if [ "$parent" = "$path" ]; then
+    parent="home"
+  fi
+
+  case "$parent" in
+    home) where="$HOME/$path" ;;
+  esac
+
+  if ! [ "$where" ]; then
+    fatal "Origin directory does not have target mapping"
+  fi
+
+  directory="$(dirname -- "$where")"
+
+  case "$origin" in
+    "$HOME"*) origin="$(relpath "$origin" "$directory")" || return 1 ;;
+  esac
+
+  if [ -e "$where" ]; then
+    current="$(cat "$where")" || fatal "Unable to read file '$where'"
+    content="$(cat "$origin")" || fatal "Unable to read file '$origin'"
+
+    if ! [ -h "$where" ] && [ "$current" = "$content" ]; then
+      log "${green}✓${reset} $path"
+      verbose \
+        "${magenta}·${reset} $where" \
+        "${magenta}↳${reset} $origin"
+      return 0
+    else
+      log "${blue}↷${reset} $path"
+      verbose \
+        "${magenta}·${reset} $where" \
+        "${yellow}―${reset} $current" \
+        "${magenta}↳${reset} $where"
+    fi
+  fi
+
+  if ! [ -e "$directory" ]; then
+    log "${blue}↳${reset} $directory"
+
+    if ! [ "$dryrun" ]; then
+      mkdir -p "$directory" || return 1
+    fi
+  fi
+
+  backup "$where" || status=1
+
+  if [ "$status" ] && ! [ "$force" ]; then
+    error "${red}✘${reset} $path ${yellow}―${reset} unable to backup"
+    return 1
+  fi
+
+  if ! [ "$dryrun" ]; then
+    cat "$origin" > "$where" || status=1
+
+    if [ "$status" ]; then
+      error "${red}✘${reset} $path ${yellow}―${reset} unable to copy"
       verbose "${yellow}·${reset} $where" "${yellow}↳${reset} $origin"
       return 1
     fi

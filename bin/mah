@@ -69,6 +69,18 @@ main () {
   return "$status"
 }
 
+open-page () {
+  local path
+
+  path="$1"
+
+  if [ "$(command -v wslpath)" ]; then
+    path="$(wslpath -aw "$1")"
+  fi
+
+  $BROWSER "file://$path"
+}
+
 html () {
   local page man path generator
 
@@ -85,12 +97,12 @@ html () {
   man="$HOME/.man/$directory/$basename.html"
 
   if [ -e "$path.html" ]; then
-    $BROWSER "file://$path.html"
+    open-page "$path.html" || return 1
     return 0
   fi
 
   if ! [ "$force" ] && [ -e "$man" ]; then
-    $BROWSER "file://$man" || return 1
+    open-page "$man" || return 1
     return 0
   fi
 
@@ -107,7 +119,7 @@ html () {
     *) $generator -Thtml < "$path" > "$man" ;;
   esac
 
-  $BROWSER "file://$man" || return 1
+  open-page "$man" || return 1
 }
 
 uri () {

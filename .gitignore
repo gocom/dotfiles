@@ -1,5 +1,6 @@
 .DS_Store
 /.*
+!.dotfile-copy
 !.dotfile-links
 !.dotfile-packages
 !.editorconfig
