@@ -593,7 +593,7 @@ docs () {
 # The file can be either a executable binary, or .md/.ronn document.
 
 doc () {
-  local c f d b o t c n format status option
+  local c f d b o t n format status option
 
   f="${1:-}"
   status=0
@@ -614,7 +614,6 @@ doc () {
 
   o="share/man/$d/$b"
   t="share/man/pandoc.html"
-  c="../style.css"
 
   mkdir -p "share/man/$d" || return 1
 
