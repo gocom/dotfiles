@@ -11,8 +11,14 @@ The requested URL is validated against the given SHA-256 checksum before
 the contents are returned. If the file does not match the checksum, the program
 exits with error code 1.
 
-If no checksum argument is given, prints out the current checksum for the
-requested URL to STDOUT.
+If no sha-256 checksum argument is given, prints out the current checksum for
+the requested URL to STDOUT.
+
+If no output-file argument is given, but checksum is, the file contents
+are printed to STDOUT, if they match the given checksum.
+
+If url, output-file and sha-256 argument are all given, the file is saved as
+the specified output-file, if the file matches the given checksum.
 
 Usage:
   $ $app_name [options] <url> [output-file] [sha-256]
@@ -22,10 +28,24 @@ Options:
   -v, --version  Print version number
 
 Examples:
-  $ $app_name https://localhost/file.zip file.zip
-  > ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
-  $ $app_name https://localhost/document.text 788eb2...be65
-  $ $app_name https://localhost/file.zip file.zip 788eb2...be65
+
+  The following prints SHA-256 checksum for the requested document.csv file:
+
+    $ $app_name https://example.tld/document.csv
+    > ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
+
+  The following would print document.csv contents to STDOUT, if it matches
+  the given SHA-256 checksum:
+
+    $ $app_name https://example.tld/document.csv \
+      ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
+
+  The following would download document.csv and save it as file.csv to the
+  current working directory. Before saving, the file is validated against
+  the given SHA-256 checksum:
+
+    $ $app_name https://example.tld/document.csv file.csv \
+      ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
 EOF
 }
 
@@ -33,19 +53,20 @@ main () {
   local url sha256 checksum file status temporary directory basename
 
   url="${1:-}"
-  file="${2:-}"
-  sha256="${3:-}"
   status=0
+
+  if [ "$#" -eq 2 ]; then
+    file=""
+    sha256="${2:-}"
+  else
+    file="${2:-}"
+    sha256="${3:-}"
+  fi
 
   if [ "$file" ]; then
     directory="$(dirname "$file")"
     basename="$(basename "$file")"
-
-    if ! [ "$directory" ]; then
-      directory="${directory}/"
-    fi
-
-    temporary="${directory}.cc-${basename}.tmp"
+    temporary="${directory:-.}/.cc-${basename}.tmp"
   else
     temporary="$(mktemp)"
   fi
