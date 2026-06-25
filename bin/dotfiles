@@ -593,7 +593,7 @@ docs () {
 # The file can be either a executable binary, or .md/.ronn document.
 
 doc () {
-  local c f d b o t n format status option
+  local f d b o n format status option
 
   f="${1:-}"
   status=0
@@ -613,7 +613,6 @@ doc () {
   esac
 
   o="share/man/$d/$b"
-  t="share/man/pandoc.html"
 
   mkdir -p "share/man/$d" || return 1
 
