@@ -2,6 +2,7 @@
 
 app_name="${0##*/}"
 app_version="0.0.0"
+app_data_directory="$HOME/.mah"
 
 usage () {
   cat <<EOF
@@ -82,7 +83,7 @@ open-page () {
 }
 
 html () {
-  local page man path generator
+  local page man path generator directory basename
 
   page="${1:-}" || return 0
   path="$(man -w "$page")" || return 1
@@ -92,21 +93,16 @@ html () {
     return 1
   fi
 
-  directory="$(basename "$(dirname "$path")")"
+  directory="$app_data_directory/$(basename "$(dirname "$path")")"
   basename="$(basename "$path")"
-  man="$HOME/.man/$directory/$basename.html"
-
-  if [ -e "$path.html" ]; then
-    open-page "$path.html" || return 1
-    return 0
-  fi
+  man="$directory/$basename.html"
 
   if ! [ "$force" ] && [ -e "$man" ]; then
     open-page "$man" || return 1
     return 0
   fi
 
-  mkdir -p "$HOME/.man/$directory" || exit 1
+  mkdir -p "$directory" || return 1
 
   if [ "$(command -v mandoc)" ]; then
     generator="mandoc -Oman='../man%S/%N.%S.html' -Ostyle=../style.css"

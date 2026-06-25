@@ -634,13 +634,11 @@ doc () {
   esac
 
   if [ "$format" = "ronn" ]; then
-    ronn -r "$f" || status=1
+    ronn < "$f" > "$o" || status=1
   fi
 
   if [ "$format" = "pandoc" ]; then
     pandoc -s -f markdown -t man -o "$o" "$f" || status=1
-    pandoc -s -f markdown -t html --toc \
-      --template="$t" --css "$c" -o "$o.html" "$f" || status=1
   fi
 
   if [ "$format" = "help2man" ]; then
