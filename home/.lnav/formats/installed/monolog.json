@@ -1,11 +1,12 @@
 {
+  "$schema": "https://lnav.org/schemas/format-v1.schema.json",
   "monolog": {
     "title": "Monolog",
     "description": "Monolog log format",
     "url": "https://github.com/Seldaek/monolog",
     "regex": {
       "default": {
-        "pattern": "\\[(?P<timestamp>.*)\\] (?P<logger>\\w+).(?P<level>\\w+): (?P<message>[^\\[\\{]+) (?P<context>[\\[\\{].*[\\]\\}]) (?P<extra>[\\[\\{].*[\\]\\}])"
+        "pattern": "\\[(?P<timestamp>.*?)\\] (?P<logger>\\w+).(?P<level>\\w+): (?P<message>[^\\[\\{]+) (?P<context>[\\[\\{].*[\\]\\}]) (?P<extra>[\\[\\{].*[\\]\\}])"
       }
     },
     "level-field": "level",
@@ -30,10 +31,10 @@
         "kind": "string"
       },
       "context": {
-        "kind": "string"
+        "kind": "json"
       },
       "extra": {
-        "kind": "string"
+        "kind": "json"
       }
     },
     "sample": [

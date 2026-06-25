@@ -8,7 +8,7 @@ home/.gitconfig
 home/.gitignore
 home/.hushlogin
 home/.inputrc
-home/.lnav/formats/monolog.json
+home/.lnav/formats/installed/monolog.json
 home/.nanorc.d
 home/.nanorc
 home/.netrc
