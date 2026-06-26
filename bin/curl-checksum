@@ -37,14 +37,14 @@ Examples:
   The following would print document.csv contents to STDOUT, if it matches
   the given SHA-256 checksum:
 
-    $ $app_name https://example.tld/document.csv \
+    $ $app_name https://example.tld/document.csv \\
       ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
 
   The following would download document.csv and save it as file.csv to the
   current working directory. Before saving, the file is validated against
   the given SHA-256 checksum:
 
-    $ $app_name https://example.tld/document.csv file.csv \
+    $ $app_name https://example.tld/document.csv file.csv \\
       ecf701f727d9e2d77c4aa49ac6fbbcc997278aca010bddeeb961c10cf54d435a
 EOF
 }
