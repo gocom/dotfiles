@@ -57,14 +57,21 @@ prepare () {
 }
 
 depends () {
-  local name
+  local name abort
+
+  abort=0
 
   for name in "awk" "cat" "iptables" "nslookup" "ping" "tar" "wget"; do
     if ! [ "$(command -v "$name")" ]; then
-      echo "Dependency missing: $name" >&1
-      exit 1
+      echo "Dependency missing: $name" >&2
+      abort=1
     fi
   done
+
+  if [ "$abort" -eq 1 ]; then
+    echo "Some dependencies not found, aborting." >&2
+    exit 1
+  fi
 }
 
 install-dependencies () {

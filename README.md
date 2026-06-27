@@ -9,7 +9,7 @@ Supported OS
 
 * Ubuntu 22.04 LTS
 * Ubuntu 22.04 LTS in WSL2
-* macOS 13 on Apple Silicon
+* macOS 26 on Apple Silicon
 
 Prerequisites
 -----
@@ -67,7 +67,7 @@ Customizing Bash configuration
 
 Local Bash configuration can be customized from `~/.bash_login`,
 `~/.bash_aliases` and `~/.bash_config` files.  If one of these exists, it is
-included in the login shell bashrc and never  overwritten by the installer.
+included in the login shell bashrc and never overwritten by the installer.
 
 ```
 echo 'export EDITOR=/usr/local/bin/atom' >> ~/.bash_config
