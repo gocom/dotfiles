@@ -1,0 +1,13 @@
+syntax "wget-urls" "\.wget-urls" ".*\.wget-urls"
+
+# Non-URL or comment lines
+color red "^.*"
+
+# URL lines
+color blue "^\w+://.*"
+
+# Lines with potentially multiple URLs
+color yellow "^\w+://.*\s+\w+://.*"
+
+# Comment lines
+color grey "^#.*"

@@ -60,15 +60,16 @@ download () {
 
     case "$confirm" in
       Y*|y*)
-        echo "Downloading URLs from '$urls'..." >&2
+        echo "Downloading URLs from '$urls' file..." >&2
       ;;
       *)
-        echo "Aborting." >&2
+        echo "Aborting. Remove or rename '$urls' file, if you want to download to this". >&2
+        echo "directory." >&2
         return 1
         ;;
     esac
   else
-    temporary="$(mktemp)" || return 1
+    temporary="$(mktemp --suffix=.wget-urls)" || return 1
 
     cat <<EOF > "$temporary" || return 1
 
@@ -83,7 +84,7 @@ EOF
     rm -f "$temporary" || return 1
   fi
 
-  wget \
+  awk '/^[^\s#]/' "$urls" | wget \
     --no-clobber \
     --adjust-extension \
     --load-cookies="$cookies" \
@@ -96,7 +97,7 @@ EOF
     --tries=3 \
     --wait=3 \
     --waitretry=15 \
-    -i "$urls" || status="$?"
+    -i - || status="$?"
 
   rm -f "$urls"
   return "${status:-0}"

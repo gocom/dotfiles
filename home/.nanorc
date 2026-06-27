@@ -15,4 +15,4 @@ set quickblank
 set mouse
 set nohelp
 
-include ~/.nanorc.d/git.nanorc
+include ~/.nanorc.d/*.nanorc
