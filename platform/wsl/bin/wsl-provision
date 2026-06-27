@@ -2,6 +2,7 @@
 
 app_name="${0##*/}"
 app_version="0.0.0"
+
 DEFAULT_TIMEZONE="${DEFAULT_TIMEZONE:-Europe/Helsinki}"
 DEFAULT_LOCALE="${DEFAULT_LOCALE:-en_GB.UTF-8}"
 
@@ -10,7 +11,7 @@ usage () {
 Provisions new Ubuntu based WSL image.
 
 Runs similar provision steps as Windows Store does. This can be used when
-installing custom WSL distribution. This command should be ran as root
+installing custom WSL distribution. This command should be run as root
 within a WSL image to provision it.
 
 Usage:
@@ -30,8 +31,27 @@ fatal () {
   exit 1
 }
 
+depends () {
+  local name abort
+
+  abort=0
+
+  for name in "adduser" "apt-get" "cat" "ln" "locale-gen" "update-locale" "usermod"; do
+    if ! [ "$(command -v "$name")" ]; then
+      echo "Dependency missing: $name" >&2
+      abort=1
+    fi
+  done
+
+  if [ "$abort" -eq 1 ]; then
+    fatal "Some dependencies not found, aborting."
+  fi
+}
+
 main () {
   local confirm username timezone locale
+
+  depends
 
   read -r -p "Do you want to provision the current image. This may cause data loss (y/N)? " confirm
 
@@ -52,8 +72,8 @@ main () {
   locale="${locale:-$DEFAULT_LOCALE}"
 
   # Install packages.
-  apt update || fatal "Unable to update apt repositories"
-  apt install -y \
+  apt-get update || fatal "Unable to update apt repositories"
+  apt-get install -y \
     locales \
     tzdata \
     ca-certificates \

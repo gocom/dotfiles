@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+_wsl-provision () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$cur" in
+    -*)
+      COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
+      return
+      ;;
+  esac
+} && complete -F _wsl-provision wsl-provision
