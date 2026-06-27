@@ -33,7 +33,7 @@ Commands:
   Download files. Prompts for list of URLs, which are saved into
   temporary '.wget-urls' file in the current working directory.
   If '.wget-urls' already exists, downloads are resumed from it.
-  Files downloaded, are saved into the current working directory.
+  Downloaded files are saved into the current working directory.
 
   $ $app_name login <url[?<post-data>]>
   Establish a login session and store cookies in \$WGET_COOKIES.
@@ -51,7 +51,7 @@ EOF
 }
 
 download () {
-  local status urls confirm
+  local status urls confirm temporary
 
   urls=".wget-urls"
 
@@ -68,8 +68,18 @@ download () {
         ;;
     esac
   else
-    touch "$urls" || return 1
-    nano "$urls" || return 1
+    temporary="$(mktemp)" || return 1
+
+    cat <<EOF > "$temporary" || return 1
+
+
+# Please enter URLs to download. Lines starting with with '#' or whitespace
+# will be ignored. An empty message aborts downloading.
+EOF
+
+    nano "$temporary" || return 1
+    awk '/^[^\s#]/' "$temporary" > "$urls" || return 1
+    rm -f "$temporary" || return 1
   fi
 
   wget \

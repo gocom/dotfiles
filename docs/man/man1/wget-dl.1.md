@@ -47,7 +47,8 @@ with prompted *username* and *password* respectively, if present.
 
 # FILES
 
-Depends on external programs `bash`, `cat`, `nano`, `perl` and `wget`.
+Depends on external programs `awk`, `bash`, `cat`, `mktemp`, `nano`, `perl`
+and `wget`.
 
 # EXAMPLES
 
