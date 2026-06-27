@@ -73,8 +73,9 @@ download () {
     cat <<EOF > "$temporary" || return 1
 
 
-# Please enter URLs to download. Lines starting with with '#' or whitespace
-# will be ignored. An empty message aborts downloading.
+# Please enter a list of URLs to download, one URL per line. Lines starting
+# with '#' or whitespace will be ignored. Save and close the document to start
+# the downloads. Leaving the document empty aborts downloading.
 EOF
 
     nano "$temporary" || return 1
