@@ -2,11 +2,21 @@
 
 app_name="${0##*/}"
 app_version="0.0.0"
-app_data_directory="$HOME/.mah"
+
+MAH_HOME="${MAH_HOME:-$HOME/.mah}"
 
 usage () {
   cat <<EOF
 View man pages in a \$BROWSER.
+
+Generates HTML document from the specified manpage using mandoc, and opens it
+using the configured \$BROWSER. Generated pages are saved to \$MAH_HOME
+directory to avoid having to generate HTML document again for once accessed
+manpage.
+
+Generated HTML document can be styled with CSS by placing css file
+to \$MAH_HOME/style.css, defaulting to ~/.mah/style.css, if \$MAH_HOME
+is not set.
 
 Usage:
   $ $app_name [options] [page ...]
@@ -15,15 +25,53 @@ Options:
   -h, --help     Print this message
   -v, --version  Print version number
   -f, --force    Overwrite cached page
-  -u, --uri      Open as x-man-page scheme
 
 Example:
-  $ ${0##*/} bash test
+  $ $app_name bash
+
+Environment:
+
+  BROWSER
+    Web browser the HTML formatted man page is opened in. The man page URL is
+    passed to the configured command as the first appended argument.
+    Current value: $BROWSER
+
+  MAH_HOME
+    Directory where $app_name stores generated and cached HTML pages, and it's
+    configuration options.
+    Current value: $MAH_HOME
 EOF
 }
 
+fatal () {
+  echo "$1" >&2
+  exit 1
+}
+
+depends () {
+  local name abort
+
+  abort=0
+
+  for name in "basename" "cat" "dirname" "gunzip" "man" "mandoc" "mkdir"; do
+    if ! [ "$(command -v "$name")" ]; then
+      echo "Dependency missing: $name" >&2
+      abort=1
+    fi
+  done
+
+  if ! [ "$BROWSER" ]; then
+    echo "BROWSER environment variable is not set." >&2
+    abort=1
+  fi
+
+  if [ "$abort" -eq 1 ]; then
+    fatal "Some dependencies not met, aborting."
+  fi
+}
+
 main () {
-  local status option force format args OPTIND OPTARG OPTERR
+  local status option force args OPTIND OPTARG OPTERR
 
   args=()
   status=0
@@ -42,29 +90,28 @@ main () {
           help) usage; exit 0 ;;
           version) echo "$app_version"; exit 0 ;;
           force) force=1 ;;
-          uri) format="uri" ;;
           *)
             if [ "$OPTERR" = 1 ] ; then
-              echo "Unknown option --$OPTARG"
-              exit 1
+              fatal "Unknown option --$OPTARG"
             fi
             ;;
         esac;;
       h) usage; exit 0 ;;
       v) echo "$app_version"; exit 0 ;;
       f) force=1 ;;
-      u) format="uri" ;;
-      \?) echo "Invalid option: -$OPTARG"; exit 1 ;;
-      :) echo "Option -$OPTARG requires an argument."; exit 1 ;;
-      *) echo "Unexpected: -$OPTARG"; exit 1 ;;
+      \?) fatal "Invalid option: -$OPTARG" ;;
+      :) fatal "Option -$OPTARG requires an argument." ;;
+      *) fatal "Unexpected: -$OPTARG" ;;
     esac
   done
 
   shift "$((OPTIND - 1))"
   set -- "${args[@]}" "$@"
 
+  depends
+
   for option in "$@"; do
-    "${format:-html}" "$option" || status=1
+    html "$option" || status=1
   done
 
   return "$status"
@@ -83,7 +130,7 @@ open-page () {
 }
 
 html () {
-  local page man path generator directory basename css head html
+  local page man path directory basename css head html
 
   page="${1:-}" || return 0
   path="$(man -w "$page")" || return 1
@@ -93,7 +140,7 @@ html () {
     return 1
   fi
 
-  directory="$app_data_directory/$(basename "$(dirname "$path")")"
+  directory="$MAH_HOME/cache/$(basename "$(dirname "$path")")"
   basename="$(basename "$path")"
   man="$directory/$basename.html"
 
@@ -104,19 +151,13 @@ html () {
 
   mkdir -p "$directory" || return 1
 
-  if [ "$(command -v mandoc)" ]; then
-    generator="mandoc -Oman='../man%S/%N.%S.html'"
-  else
-    generator="groff -mandoc"
-  fi
-
   case "$path" in
-    *.gz) gunzip --to-stdout "$path" | $generator -Thtml > "$man" ;;
-    *) $generator -Thtml < "$path" > "$man" ;;
+    *.gz) gunzip --to-stdout "$path" | mandoc -Oman='../man%S/%N.%S.html' -Thtml > "$man" ;;
+    *) mandoc -Oman='../man%S/%N.%S.html' -Thtml < "$path" > "$man" ;;
   esac
 
-  if [ -e "$app_data_directory/style.css" ]; then
-    css="$(cat "$app_data_directory/style.css")" || return 1
+  if [ -e "$MAH_HOME/style.css" ]; then
+    css="$(cat "$MAH_HOME/style.css")" || return 1
 
     read -r -d '' head <<EOF
 <style>
@@ -130,10 +171,6 @@ EOF
   fi
 
   open-page "$man" || return 1
-}
-
-uri () {
-  open "x-man-page://${1:-}"
 }
 
 main "$@"

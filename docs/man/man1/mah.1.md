@@ -1,6 +1,6 @@
 % MAH(1)
 % Jukka Svahn
-% November 2018
+% June 2026
 
 # NAME
 
@@ -14,6 +14,15 @@ mah -- Rich man page viewer
 
 View man pages as HTML documents in a `$BROWSER`.
 
+Generates HTML document from the specified manpage using **mandoc**, and opens
+it using the configured `$BROWSER`. Generated pages are saved to `$MAH_HOME`
+directory to avoid having to generate HTML document again for once accessed
+manpage.
+
+Generated HTML document can be styled with CSS by placing css file
+to `$MAH_HOME/style.css`, defaulting to `~/.mah/style.css`, if
+`MAH_HOME` is not set.
+
 # OPTIONS
 
 `-h`, `--help`
@@ -25,21 +34,25 @@ View man pages as HTML documents in a `$BROWSER`.
 `-f`, `--force`
 : Overwrite cached page.
 
-`-u`, `--uri`
-: Open as `x-man-page` scheme.
-
 *page*
 : Man page to view.
 
 # ENVIRONMENT
 
 `BROWSER`
-: Viewer the HTML formatted man page is opened in.
+: Web browser the HTML formatted man page is opened in. Standard `BROWSER`
+environment variable, which should contain full command that can be used
+to open a URL. The URL is passed to it as the first appended argument.
+
+`MAH_HOME`
+: Directory where **mah** stores generated and cached HTML pages,
+and it's configuration options. If not set, defaults to
+`~/.mah`.
 
 # FILES
 
-Depends on external programs `bash`, `basename`, `cat`, `dirname`, `groff`,
-`man`, `mandoc`, `mkdir` and `open`.
+Depends on external programs `bash`, `basename`, `cat`, `dirname`,
+`gunzip`, `man`, `mandoc` and `mkdir`.
 
 # EXAMPLES
 
