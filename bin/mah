@@ -83,7 +83,7 @@ open-page () {
 }
 
 html () {
-  local page man path generator directory basename
+  local page man path generator directory basename css head html
 
   page="${1:-}" || return 0
   path="$(man -w "$page")" || return 1
@@ -105,7 +105,7 @@ html () {
   mkdir -p "$directory" || return 1
 
   if [ "$(command -v mandoc)" ]; then
-    generator="mandoc -Oman='../man%S/%N.%S.html' -Ostyle=../style.css"
+    generator="mandoc -Oman='../man%S/%N.%S.html'"
   else
     generator="groff -mandoc"
   fi
@@ -114,6 +114,20 @@ html () {
     *.gz) gunzip --to-stdout "$path" | $generator -Thtml > "$man" ;;
     *) $generator -Thtml < "$path" > "$man" ;;
   esac
+
+  if [ -e "$app_data_directory/style.css" ]; then
+    css="$(cat "$app_data_directory/style.css")" || return 1
+
+    read -r -d '' head <<EOF
+<style>
+$css
+</style>
+EOF
+
+    html="$(cat "$man")" || return 1
+    html="${html//<\/head>/$head<\/head>}"
+    echo "$html" > "$man" || return 1
+  fi
 
   open-page "$man" || return 1
 }

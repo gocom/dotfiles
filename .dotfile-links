@@ -9,6 +9,7 @@ home/.gitignore
 home/.hushlogin
 home/.inputrc
 home/.lnav/formats/installed/monolog.json
+home/.mah/style.css
 home/.nanorc.d
 home/.nanorc
 home/.netrc

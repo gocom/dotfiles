@@ -64,6 +64,10 @@ pre code {
   font-weight: inherit;
 }
 
+dd pre {
+  margin: 1em 0;
+}
+
 /**
  * Main content page.
  */
@@ -82,7 +86,7 @@ main,
   margin: auto;
 }
 
-#content {
+#content:not(dt) {
   display: flex;
   justify-content: center;
   margin: 0 auto;
@@ -339,8 +343,6 @@ dt {
 
 dt > * {
   font-weight: inherit;
-  white-space: nowrap;
-  word-break: keep-all;
 }
 
 dd {
