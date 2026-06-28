@@ -3,51 +3,88 @@
 app_name="${0##*/}"
 app_version="0.0.0"
 
-if [ "${WGET_COOKIES:-}" ]; then
-  cookies="$WGET_COOKIES"
-else
-  cookies="$HOME/.wget-cookies"
-fi
-
-if ! [ -e "$cookies" ]; then
-  touch "$cookies"
-fi
+WGET_COOKIES="${WGET_COOKIES:-$HOME/.wget-cookies}"
 
 usage () {
   cat <<EOF
 Download files using wget.
 
 Usage:
-  $ $app_name [options] [command] <url>
+  $ $app_name [command] [options]
 
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
 
 Commands:
-  $ $app_name auth
-  Prompt for username and password, download a file using basic HTTP
-  authentication.
 
-  $ $app_name download
-  Download files. Prompts for list of URLs, which are saved into
-  temporary '.wget-urls' file in the current working directory.
-  If '.wget-urls' already exists, downloads are resumed from it.
-  Downloaded files are saved into the current working directory.
+  $ $app_name download [options]
+  Download multiple files. Prompts for list of URLs, which are saved into a
+  temporary '.wget-urls' file in the current working directory. If '.wget-urls'
+  file already exists, downloads are resumed from it. Downloaded files are
+  saved into the current working directory. Given options are passed down
+  to wget. This command is default, if $app_name is called without command
+  argument.
 
-  $ $app_name login <url[?<post-data>]>
-  Establish a login session and store cookies in \$WGET_COOKIES.
+  $ $app_name auth [options]
+  Prompt for username and password, and download prompted list of files using
+  basic HTTP authentication. Prompted list of download URLs are saved into a
+  temporary '.wget-urls' file in the current working directory. If '.wget-urls'
+  file already exists, downloads are resumed from it. Downloaded files are
+  saved into the current working directory. Given options are passed down
+  to wget.
 
-Login:
+  $ $app_name login [options] <url[?<post-data>]>
+  Establish a login session and store received cookies in \$WGET_COOKIES.
   The post-data can use '{u}' and '{p}' variables that are substituted with
-  prompted username and password, hiding them from terminal history. Retrieved
-  cookies are stored in ~/.wget-cookies or \$WGET_COOKIES, if set.
+  prompted username and password, hiding them from terminal history. The
+  stored cookies are automatically loaded when downloading files with the
+  download or auth commands.
 
-Example:
-  $ $app_name login "https://localhost/login?user={u}&pass={p}"
-  $ $app_name auth
-  $ $app_name download
+  $ $app_name logout
+  Resets \$WGET_COOKIES file, removing all existing cookies.
+
+  $ $app_name clear
+  Removes existing .wget-urls file, if one exists in the current working
+  directory.
+
+Examples:
+
+  The following is the simplest use case; Prompts for URLs ands
+  starts downloading them to the current working directory:
+
+    $ $app_name
+
+  Logins to the site with a HTTP POST request, sending prompted username and
+  password as user and pass form fields, saving the received HTTP cookies
+  to the local \$WGET_COOKIES file, from which download command will load
+  cookies from:
+
+    $ $app_name login "https://localhost.tld/login?user={u}&pass={p}"
+
+  The following downloads prompted URLs. Will use any existing login cookies,
+  if present:
+
+    $ $app_name download
+
+  Prompt for username and password, and try to download prompted URLs
+  while sending the username and password as HTTP Basic Authentication
+  headers:
+
+    $ $app_name auth
+
+Environment:
+
+  WGET_COOKIES
+    Specifies file used for storing HTTP cookies.
+    Current value: $WGET_COOKIES
 EOF
+}
+
+prepare () {
+  if ! [ -e "$WGET_COOKIES" ]; then
+    touch "$WGET_COOKIES"
+  fi
 }
 
 download () {
@@ -84,20 +121,22 @@ EOF
     rm -f "$temporary" || return 1
   fi
 
+  prepare
+
   awk '/^[^\s#]/' "$urls" | wget \
     --no-clobber \
     --adjust-extension \
-    --load-cookies="$cookies" \
+    --load-cookies="$WGET_COOKIES" \
     --max-redirect=30 \
     --no-verbose \
     --quiet \
     --random-wait \
-    --referer="${*:$#}" \
     --show-progress \
     --tries=3 \
     --wait=3 \
     --waitretry=15 \
-    -i - || status="$?"
+    -i - \
+    "$@" || status="$?"
 
   rm -f "$urls"
   return "${status:-0}"
@@ -129,27 +168,39 @@ login () {
     data="${data/\{p\}/"$param"}"
   fi
 
+  prepare
+
   exec wget \
     --http-user="$username" \
     --http-password="$password" \
     --keep-session-cookies \
-    --load-cookies="$cookies" \
+    --load-cookies="$WGET_COOKIES" \
     --max-redirect=30 \
     --no-cache \
     --output-document=- \
     --referer="$url" \
-    --save-cookies="$cookies" \
+    --save-cookies="$WGET_COOKIES" \
     --post-data="$data" \
     --quiet \
     --tries=1 \
-    "$@" > /dev/null
+    "${@:1:$(($#-1))}" -- "$url" > /dev/null
+}
+
+logout () {
+  echo "" > "$WGET_COOKIES"
+}
+
+clear () {
+  rm -f '.wget-urls'
 }
 
 case "${1:-}" in
   -h|--help) usage ;;
   -v|--version) echo "$app_version" ;;
   auth) auth "${@:2}" ;;
+  clear) clear ;;
   login) login "${@:2}" ;;
+  logout) logout ;;
   download) download "${@:2}" ;;
   *"{u}"*|*"{p}"*) login "$@" ;;
   *) download "$@" ;;
