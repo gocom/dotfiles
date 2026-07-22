@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Convert binary string into ASCII presentation.
+
+Running the command without passing any input arguments, prompts for the binary
+string to be converted.
+
+Usage:
+  $ $app_name [options] [input...]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ $app_name
+EOF
+}
+
+decode () {
+  local byte
+
+  set -o noglob
+
+  for byte in $1; do
+    # shellcheck disable=SC2046,SC2059
+    printf \\$(echo "ibase=2; obase=8; $byte" | bc)
+  done
+
+  echo ""
+}
+
+main () {
+  local encoded
+
+  if [ "$#" -gt 1 ]; then
+    decode "$*"
+    return 0
+  fi
+
+  read -r -p "Binary to decode: " encoded
+  decode "$encoded"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  --) main "${@:2}" ;;
+  *) main "$@" ;;
+esac

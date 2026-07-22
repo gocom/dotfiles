@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+LIPGENERATOR="${LIPGENERATOR:-/mnt/d/Steam/steamapps/common/Skyrim Special Edition/Tools/LipGen/LipGenerator/LipGenerator.exe}"
+
+usage () {
+  cat <<EOF
+Skyrim SE LipGenerator wrapper.
+
+Usage:
+  $ $app_name [options] [command]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ $app_name run
+  Run direct raw LipGenerator commands. Arguments are passed down to the
+  underlying LipGenerator.exe as-is.
+
+  $ $app_name dialogue
+  Generates dialogue text files next to wav files found in the current
+  working directory, if the dialogue text file is missing.
+
+  $ $app_name lip
+  Generates lip files from matching dialogue text files and wav files found
+  in the current working directory. If a matching .lip file already exists,
+  generation is skipped.
+
+Environment:
+  LIPGENERATOR
+    Specifies LipGenerator.exe location.
+    Current value: $LIPGENERATOR
+
+Example:
+  $ $app_name run --help
+EOF
+}
+
+fatal () {
+  echo "$1" >&2
+  exit 1
+}
+
+depends () {
+  if ! [ -e "$LIPGENERATOR" ]; then
+    fatal "LipGenerator.exe not found."
+  fi
+}
+
+line () {
+  echo "$1" \
+    | sed 's/__.*$/?/' \
+    | sed 's/_$/?/' \
+    | sed 's/_/ /g' \
+    | sed 's/  / /g'
+}
+
+dialogue () {
+  local f basename filename missing
+
+  missing=0
+
+  for f in *.wav; do
+    if [ -e "$f" ]; then
+      basename="$(basename -- "$f")"
+      filename="${basename%.*}"
+
+      if ! [ -e "$filename.txt" ]; then
+        echo "Creating $filename.txt..."
+        line "$filename" > "$filename.txt" || fatal "Unable to create $filename.txt"
+        missing=1
+      fi
+    fi
+  done
+
+  if [ "$missing" -eq 0 ]; then
+    echo "All matching dialogue text files already exist."
+    return 0
+  fi
+
+  echo "Done."
+}
+
+lip () {
+  local f basename filename generated line
+
+  generated=0
+
+  for f in *.wav; do
+    if [ -e "$f" ]; then
+      basename="$(basename -- "$f")"
+      filename="${basename%.*}"
+
+      if [ -e "$filename.txt" ] && ! [ -e "$filename.lip" ]; then
+        line="$(cat "$filename.txt")"
+
+        if [ "$line" ]; then
+          echo "Generating $filename.lip..."
+          "$LIPGENERATOR" "$basename" "$line" || fatal "Unable to create $filename.txt"
+          generated="1"
+        fi
+      fi
+    fi
+  done
+
+  if [ "$generated" -eq 0 ]; then
+    echo "All matching lip files already exist."
+    return 0
+  fi
+
+  rm -f "tmp16khz.wav"
+  echo "Done."
+}
+
+run () {
+  exec "$LIPGENERATOR" "$@"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  dialogue) dialogue "$@" ;;
+  lip) lip "$@" ;;
+  run) run "$@" ;;
+esac

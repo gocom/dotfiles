@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Convert NATO string into plain ASCII presentation.
+
+Running the command without passing any input arguments, prompts for the NATO
+string to be converted.
+
+Usage:
+  $ $app_name [options] [input...]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ $app_name
+EOF
+}
+
+decode () {
+  local word raw
+
+  set -o noglob
+
+  for raw in $1; do
+    word="$(echo "$raw" | tr '[:upper:]' '[:lower:]')"
+
+    case "$word" in
+      zero) printf 0 ;;
+      one) printf 1 ;;
+      two) printf 2 ;;
+      three) printf 3 ;;
+      four) printf 4 ;;
+      five) printf 5 ;;
+      six) printf 6 ;;
+      seven) printf 7 ;;
+      eight) printf 8 ;;
+      nine) printf 9 ;;
+      space|"(space)") printf " " ;;
+      [0-9]*) printf '%s' "$word" ;;
+      *) printf '%s' "${word:0:1}" ;;
+    esac
+  done
+
+  echo ""
+}
+
+main () {
+  local encoded
+
+  if [ "$#" -gt 1 ]; then
+    decode "$*"
+    return 0
+  fi
+
+  read -r -p "NATO to decode: " encoded
+  decode "$encoded"
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  --) main "${@:2}" ;;
+  *) main "$@" ;;
+esac
