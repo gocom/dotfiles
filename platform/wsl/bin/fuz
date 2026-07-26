@@ -1,0 +1,278 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+FUZ_FFMPEG="${FUZ_FFMPEG:-/mnt/c/Program Files/ffmpeg/bin/ffmpeg.exe}"
+FUZ_LIPFUZER="${FUZ_LIPFUZER:-/mnt/d/Steam/steamapps/common/Skyrim Special Edition/Tools/LipGen/LipFuzer/LIPFuzer.exe}"
+FUZ_LIPGENERATOR="${FUZ_LIPGENERATOR:-/mnt/d/Steam/steamapps/common/Skyrim Special Edition/Tools/LipGen/LipGenerator/LipGenerator.exe}"
+FUZ_XWMAENCODE="${FUZ_XWMAENCODE:-/mnt/d/Steam/steamapps/common/Skyrim Special Edition/Tools/Audio/xwmaencode.exe}"
+
+usage () {
+  cat <<EOF
+Skyrim SE LipGenerator wrapper.
+
+Allows generating fuz dialogue audio files for Skyrim SE from
+loose wav or mp3 files.
+
+Usage:
+  $ $app_name [options] [command]
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Commands:
+  $ $app_name generate
+  Runs all individual generate command in succession, generating
+  the final .fuz files from the current working directory contents.
+  Resulting .fuz files are saved to ./dist directory.
+
+  $ $app_name generate:dialogue
+  Generates dialogue text files next to wav files found in the current
+  working directory, if the dialogue text file is missing. The dialogue
+  file content defaults to the filename, with underscores (_) replaced
+  with spaces.
+
+  $ $app_name generate:fuz
+  Generates fuz files from matching lip and xwm files found
+  in the current working directory. Results are saved to ./dist/ directory.
+
+  $ $app_name generate:lip
+  Generates lip files from matching dialogue .txt files and .wav files found
+  in the current working directory. If a matching .lip file already exists,
+  generation is skipped.
+
+  $ $app_name generate:wav
+  Generates wav files from mp3 files in the current working directory. If a
+  matching .wav file already exists, generation is skipped.
+
+  $ $app_name generate:xwm
+  Generates xwm files from wav files in the current working directory. If a
+  matching .xwm file already exists, generation is skipped.
+
+Environment:
+  FUZ_FFMPEG
+    Specifies ffmpeg.exe location.
+    Current value: $FUZ_FFMPEG
+
+  FUZ_LIPFUZER
+    Specifies LIPFuzer.exe location.
+    Current value: $FUZ_LIPFUZER
+
+  FUZ_LIPGENERATOR
+    Specifies LipGenerator.exe location.
+    Current value: $FUZ_LIPGENERATOR
+
+  FUZ_XWMAENCODE
+    Specifies xwmaencode.exe location.
+    Current value: $FUZ_XWMAENCODE
+
+Example:
+  $ $app_name generate
+EOF
+}
+
+error () {
+  echo "$1" >&2
+}
+
+fatal () {
+  error "$1"
+  exit 1
+}
+
+depends () {
+  local f missing
+
+  missing=0
+
+  for f in "$FUZ_FFMPEG" "$FUZ_LIPFUZER" "$FUZ_LIPGENERATOR" "$FUZ_XWMAENCODE"; do
+    if ! [ -e "$f" ]; then
+      error "✘ Dependency not found: $f"
+      missing=1
+    fi
+  done
+
+  for f in "grep" "ls" "sed" "wc"; do
+    if ! [ "$(command -v "$f")" ]; then
+      error "✘ Dependency not found: $f"
+      missing=1
+    fi
+  done
+
+  if [ "$missing" -eq 1 ]; then
+    exit 1
+  fi
+}
+
+line () {
+  echo "$1" \
+    | sed 's/__.*$/?/' \
+    | sed 's/_$/?/' \
+    | sed 's/_/ /g' \
+    | sed 's/  / /g'
+}
+
+generate:dialogue () {
+  local f basename filename generated
+
+  generated=0
+
+  echo "⋯ Generating dialogue files..."
+
+  for f in *.wav; do
+    if [ -e "$f" ]; then
+      basename="$(basename -- "$f")"
+      filename="${basename%.*}"
+
+      if ! [ -e "$filename.txt" ]; then
+        echo "Creating $filename.txt..."
+        line "$filename" > "$filename.txt" || fatal "Unable to generate $filename.txt"
+        generated=1
+      fi
+    fi
+  done
+
+  if [ "$generated" -eq 0 ]; then
+    echo "✓ All matching dialogue files already exist."
+    return 0
+  fi
+
+  echo "✓ Generating dialogue files done."
+}
+
+generate:wav () {
+  local f basename filename generated
+
+  generated=0
+
+  echo "⋯ Generating wav files..."
+
+  for f in *.mp3; do
+    if [ -e "$f" ]; then
+      basename="$(basename -- "$f")"
+      filename="${basename%.*}"
+
+      if ! [ -e "$filename.wav" ]; then
+        echo "Creating $filename.wav..."
+        "$FUZ_FFMPEG" -i "$basename" -af "aformat=sample_fmts=s16:sample_rates=44100" "$filename.wav" || fatal "Unable to generate $filename.wav"
+        generated=1
+      fi
+    fi
+  done
+
+  if [ "$generated" -eq 0 ]; then
+    echo "✓ All matching wav files already exist."
+    return 0
+  fi
+
+  echo "✓ Generating wav files done."
+}
+
+generate:lip () {
+  local f basename filename generated line
+
+  generated=0
+
+  echo "⋯ Generating lip files..."
+
+  for f in *.wav; do
+    if [ -e "$f" ]; then
+      basename="$(basename -- "$f")"
+      filename="${basename%.*}"
+
+      if [ -e "$filename.txt" ] && ! [ -e "$filename.lip" ]; then
+        line="$(cat "$filename.txt")"
+
+        if [ "$line" ]; then
+          echo "Generating $filename.lip..."
+          "$FUZ_LIPGENERATOR" "$basename" "$line" || fatal "Unable to generate $filename.txt"
+          generated=1
+        fi
+      fi
+    fi
+  done
+
+  if [ "$generated" -eq 0 ]; then
+    echo "✓ All matching lip files already exist."
+    return 0
+  fi
+
+  rm -f "tmp16khz.wav"
+  echo "✓ Generating lip files done."
+}
+
+generate:xwm () {
+  local f basename filename generated
+
+  generated=0
+
+  echo "⋯ Generating xwm files..."
+
+  for f in *.wav; do
+    if [ -e "$f" ]; then
+      basename="$(basename -- "$f")"
+      filename="${basename%.*}"
+
+      if ! [ -e "$filename.xwm" ]; then
+        echo "↯ Creating $filename.xwm..."
+        "$FUZ_XWMAENCODE" "$basename" "$filename.xwm" || fatal "Unable to generate $filename.xwm"
+        generated=1
+      fi
+    fi
+  done
+
+  if [ "$generated" -eq 0 ]; then
+    echo "✓ All matching lip files already exist."
+    return 0
+  fi
+
+  echo "✓ Generating xwm files done."
+}
+
+generate:fuz () {
+  echo "⋯ Generating fuz files..."
+  mkdir -p dist || fatal "Creating dist directory failed."
+  "$FUZ_LIPFUZER" -d dist --norec || fatal "Generating fuz files failed."
+  echo "✓ Generating fuz files done."
+}
+
+stats () {
+  local fuz xwm
+
+  fuz="$(ls -Uba1 dist | grep '\.fuz$' | wc -l)"
+  xwm="$(ls -Uba1 | grep '\.xwm$' | wc -l)"
+
+  echo "↳ $xwm .xwm ⋯ $fuz .fuz in ./dist/."
+}
+
+generate () {
+  generate:wav || return 1
+  generate:dialogue || return 1
+  generate:lip || return 1
+  generate:xwm || return 1
+  generate:fuz || return 1
+  echo "✓ All done."
+  stats
+}
+
+main () {
+  depends
+
+  case "${1:-}" in
+    generate) generate ;;
+    generate:dialogue) generate:dialogue ;;
+    generate:fuz) generate:fuz ;;
+    generate:lip) generate:lip ;;
+    generate:wav) generate:wav ;;
+    generate:xwm) generate:xwm ;;
+    *) usage; exit 1 ;;
+  esac
+}
+
+case "${1:-}" in
+  -h|--help|help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  *) main "$@" ;;
+esac
