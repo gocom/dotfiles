@@ -241,7 +241,10 @@ generate:fuz () {
 stats () {
   local fuz xwm
 
+  # shellcheck disable=SC2010,SC2126
   fuz="$(ls -Uba1 dist | grep '\.fuz$' | wc -l)"
+
+  # shellcheck disable=SC2010,SC2126
   xwm="$(ls -Uba1 | grep '\.xwm$' | wc -l)"
 
   echo "↳ $xwm .xwm ⋯ $fuz .fuz in ./dist/."
