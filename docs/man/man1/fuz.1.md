@@ -12,8 +12,8 @@ fuz -- Skyrim SE LipGenerator wrapper
 
 # DESCRIPTION
 
-Allows generating fuz dialogue audio files for Skyrim SE from
-loose wav or mp3 files.
+Allows generating fuz dialogue audio files for Skyrim SE from loose wav or
+mp3 files, and extracting audio from fuz files.
 
 # OPTIONS
 
@@ -24,6 +24,10 @@ loose wav or mp3 files.
 : Print version number.
 
 # COMMANDS
+
+`extract`
+: Extracts lip and wav files from the .fuz files found in the current working
+directory.
 
 `generate`
 : Runs all individual generate command in succession, generating

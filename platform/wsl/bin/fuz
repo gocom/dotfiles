@@ -12,8 +12,8 @@ usage () {
   cat <<EOF
 Skyrim SE LipGenerator wrapper.
 
-Allows generating fuz dialogue audio files for Skyrim SE from
-loose wav or mp3 files.
+Allows generating fuz dialogue audio files for Skyrim SE from loose wav or
+mp3 files, and extracting audio from fuz files.
 
 Usage:
   $ $app_name [options] [command]
@@ -23,20 +23,23 @@ Options:
   -v, --version  Print version number
 
 Commands:
+  $ $app_name extract
+  Extracts lip and wav files from the .fuz files found in the current working
+  directory.
+
   $ $app_name generate
-  Runs all individual generate command in succession, generating
-  the final .fuz files from the current working directory contents.
-  Resulting .fuz files are saved to ./dist directory.
+  Runs all individual generate command in succession, generating the final .fuz
+  files from the current working directory contents. Resulting .fuz files are
+  saved to ./dist directory.
 
   $ $app_name generate:dialogue
-  Generates dialogue text files next to wav files found in the current
-  working directory, if the dialogue text file is missing. The dialogue
-  file content defaults to the filename, with underscores (_) replaced
-  with spaces.
+  Generates dialogue text files next to wav files found in the current working
+  directory, if the dialogue text file is missing. The dialogue file content
+  defaults to the filename, with underscores (_) replaced with spaces.
 
   $ $app_name generate:fuz
-  Generates fuz files from matching lip and xwm files found
-  in the current working directory. Results are saved to ./dist/ directory.
+  Generates fuz files from matching lip and xwm files found in the current
+  working directory. Results are saved to ./dist/ directory.
 
   $ $app_name generate:lip
   Generates lip files from matching dialogue .txt files and .wav files found
@@ -112,6 +115,53 @@ line () {
     | sed 's/_$/?/' \
     | sed 's/_/ /g' \
     | sed 's/  / /g'
+}
+
+extract:fuz () {
+  echo "⋯ Extracting fuz files..."
+  mkdir -p output || fatal "Creating output directory failed."
+  "$FUZ_LIPFUZER" -d output --norec -u || fatal "Extracting fuz files failed."
+  echo "✓ Extracting fuz files done."
+}
+
+extract:xwm () {
+  local f basename filename generated
+
+  generated=0
+
+  echo "⋯ Extracting xwm files..."
+
+  for f in *.xwm; do
+    if [ -e "$f" ]; then
+      basename="$(basename -- "$f")"
+      filename="${basename%.*}"
+
+      if ! [ -e "$filename.wav" ]; then
+        echo "↯ Creating $filename.xwm..."
+        "$FUZ_XWMAENCODE" "$basename" "$filename.wav" || fatal "Unable to extract $filename.xwm"
+        generated=1
+      fi
+    fi
+  done
+
+  if [ "$generated" -eq 0 ]; then
+    echo "✓ All matching wav files already exist."
+    return 0
+  fi
+
+  echo "✓ Extracting xwm files done."
+}
+
+extract:clean () {
+  rm -f *.xwm
+}
+
+extract () {
+  extract:fuz || return 1
+  cd output > /dev/null || return 1
+  extract:xwm || return 1
+  extract:clean || return 1
+  echo "✓ All done."
 }
 
 generate:dialogue () {
@@ -224,7 +274,7 @@ generate:xwm () {
   done
 
   if [ "$generated" -eq 0 ]; then
-    echo "✓ All matching lip files already exist."
+    echo "✓ All matching xwm files already exist."
     return 0
   fi
 
@@ -264,6 +314,7 @@ main () {
   depends
 
   case "${1:-}" in
+    extract) extract ;;
     generate) generate ;;
     generate:dialogue) generate:dialogue ;;
     generate:fuz) generate:fuz ;;

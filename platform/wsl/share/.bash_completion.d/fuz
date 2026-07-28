@@ -13,6 +13,6 @@ _fuz () {
   esac
 
   if [ "$cword" -eq 1 ]; then
-    COMPREPLY=($(compgen -W 'generate generate:dialogue generate:fuz generate:lip generate:wav generate:xwm' -- "$cur"))
+    COMPREPLY=($(compgen -W 'extract generate generate:dialogue generate:fuz generate:lip generate:wav generate:xwm' -- "$cur"))
   fi
 } && complete -F _fuz fuz
