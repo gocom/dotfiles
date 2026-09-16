@@ -23,6 +23,11 @@ Commands:
   $ $app_name load <filename>
   Loads passphrases for the given SSH key.
 
+  $ $app_name save [filename]
+  Saves the passphrase for the given SSH key.
+  If no SSH private key file is specified,
+  defaults to the first key found in ~/.ssh.
+
 Options:
   -h, --help     Print this message
   -v, --version  Print version number
@@ -30,13 +35,14 @@ Options:
 Example:
   $ $app_name init
   $ $app_name load "$HOME/.ssh/id_rsa"
+  $ $app_name save "$HOME/.ssh/id_rsa"
 EOF
 }
 
 depends () {
   local name
 
-  for name in "cat" "chmod" "keychain" "pwsh.exe" "rm" "wslpath" "wsl-credential-manager.ps1"; do
+  for name in "cat" "chmod" "keychain" "pwsh.exe" "rm" "wslpath" "wsl-credential-manager-add.ps1" "wsl-credential-manager-read.ps1"; do
     if ! [ "$(command -v "$name")" ]; then
       echo "Dependency missing: $name" >&2
       exit 1
@@ -58,6 +64,56 @@ init () {
   done
 }
 
+default-key () {
+  local file
+
+  for file in "$HOME/.ssh/id_"*; do
+    if [ -f "$file" ] && [ -f "$file.pub" ]; then
+      echo "$file"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+save () {
+  local filename password credential
+
+  depends
+
+  cd || return 1
+
+  filename="$(default-key)"
+  filename="${1:-$filename}"
+
+  if ! [ "$filename" ] || ! [ -f "$filename" ]; then
+    echo "SSH key filename required." >&2
+    return 1
+  fi
+
+  echo "Adding passphrase for '$filename'..."
+
+  read -r -p "Passphrase: " password
+
+  if ! [ "$password" ]; then
+    echo "SSH key password required." >&2
+    return 1
+  fi
+
+  credential="$(credential-path "$filename")"
+
+  wsl-credential-add.ps1 -credential "$credential" -username "$USER" -password "$password" > /dev/null
+}
+
+credential-path () {
+  local credential
+
+  credential="$(wslpath -w "$filename")"
+
+  echo "${credential:2}"
+}
+
 load() {
   local credential status filename script password
 
@@ -73,9 +129,8 @@ load() {
     return 1
   fi
 
-  credential="$(wslpath -w "$filename")"
-  credential="${credential:2}"
-  password="$(wsl-credential-manager.ps1 -credential "$credential" && echo "yes")"
+  credential="$(credential-path "$filename")"
+  password="$(wsl-credential-manager-read.ps1 -credential "$credential" && echo "yes")"
 
   if ! [ "$password" ]; then
     echo "Credential '$credential' not found in Windows Credential Manager for SSH key '$filename'."
@@ -88,7 +143,7 @@ load() {
 
   cat > "$script" <<EOL || return 1
 #!/usr/bin/env bash
-wsl-credential-manager.ps1 -credential "$credential"
+wsl-credential-manager-read.ps1 -credential "$credential"
 EOL
 
   chmod u+x "$script" || return 1
@@ -107,5 +162,7 @@ case "${1:-}" in
   ""|-h|--help) usage ;;
   -v|--version) echo "$app_version" ;;
   init) init ;;
+  load) load "${@:2}" ;;
+  save) save "${@:2}" ;;
   *) load "$@" ;;
 esac

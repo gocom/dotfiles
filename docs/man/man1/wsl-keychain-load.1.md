@@ -1,6 +1,6 @@
 % WSL-KEYCHAIN-LOAD(1)
 % Jukka Svahn
-% June 2024
+% June 2026
 
 # NAME
 
@@ -58,20 +58,34 @@ To automate this, you can do the following to your bash profile:
 : Path to SSH private key to be loaded. The given path should
 be absolute path as seen from Linux, rather than Windows-side mount path.
 
+`save` `[`*filename*`]`
+: Prompts and saves the passphrase for the given SSH private key to Windows
+Credential Manager. The given path should be absolute path to the SSH private
+key as seen from Linux, rather than Windows-side mount path.
+
+If no SSH private key file is specified, defaults to the first key found in
+`~/.ssh` directory.
+
 # FILES
 
 Depends on external programs `bash`, `cat`, `chmod`, `keychain`, `pwsh.exe`,
-`rm`, `wslpath` and `wsl-credential-manager.ps1`.
+`rm`, `wslpath`, `wsl-credential-manager-add.ps1` and
+`wsl-credential-manager-read.ps1`.
 
 Requires that `PowerShell` version >= 7 is installed in Windows, and
-`CredentialManager` module to it. The module can be installed by
-running in PowerShell:
+`CredentialManager` and `TUN.CredentialManager` modules to it. The modules can
+be installed by running the following in PowerShell:
 
     Install-Module -Name CredentialManager
+    Install-Module -Name TUN.CredentialManager
 
 # EXAMPLES
 
-Loads user's `id_rsa` key in Keychain with passphrase from
+Loads the user's `id_rsa` key in Keychain with passphrase from
 Windows Credential Manager:
 
     $ wsl-keychain-load "$HOME/.ssh/id_rsa"
+
+Saves the user's `id_rsa` key's passphrase to  Windows Credential Manager:
+
+    $ wsl-keychain-load save "$HOME/.ssh/id_rsa"

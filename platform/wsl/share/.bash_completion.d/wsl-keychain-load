@@ -5,6 +5,13 @@ _wsl-keychain-load () {
 
   _init_completion || return
 
+  case "$prev" in
+    load|save)
+      _filedir
+      return
+      ;;
+  esac
+
   case "$cur" in
     -*)
       COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
@@ -13,6 +20,6 @@ _wsl-keychain-load () {
   esac
 
   if [ "$cword" -eq 1 ]; then
-    COMPREPLY=($(compgen -W 'init load' -- "$cur"))
+    COMPREPLY=($(compgen -W 'init load save' -- "$cur"))
   fi
 } && complete -F _wsl-keychain-load wsl-keychain-load
