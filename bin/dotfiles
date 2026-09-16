@@ -568,7 +568,7 @@ docs () {
 
   rm -rf share/man/man*/ || return 1
 
-  for f in ./docs/man/*/*.ronn ./docs/man/*/*.md; do
+  for f in ./docs/man/*/*.md; do
     if [ -e "$f" ]; then
       doc "$f" || status=1
     fi
@@ -590,7 +590,7 @@ docs () {
 
 # Generate documentation from the given file.
 #
-# The file can be either a executable binary, or .md/.ronn document.
+# The file can be either a executable binary, or .md document.
 
 doc () {
   local f d b o n format status option
@@ -627,13 +627,8 @@ doc () {
 
   case "$f" in
     *.md) format="pandoc" ;;
-    *.ronn) format="ronn" ;;
     *) format="help2man" ;;
   esac
-
-  if [ "$format" = "ronn" ]; then
-    ronn < "$f" > "$o" || status=1
-  fi
 
   if [ "$format" = "pandoc" ]; then
     pandoc -s -f markdown -t man -o "$o" "$f" || status=1

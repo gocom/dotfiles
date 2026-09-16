@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim
+FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     wget
 
-RUN gem install bashcov ronn \
+RUN gem install bashcov \
      && npm install -g bats
 
 WORKDIR /app
