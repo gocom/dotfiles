@@ -24,9 +24,10 @@ Commands:
   Loads passphrases for the given SSH key.
 
   $ $app_name save [filename]
-  Saves the passphrase for the given SSH key.
-  If no SSH private key file is specified,
-  defaults to the first key found in ~/.ssh.
+  Saves the passphrase for the given SSH key. If no SSH private key file is
+  specified,defaults to the first key file found in ~/.ssh. From the directory,
+  looks for key files that name start with id_ prefix and uses the first one
+  found.
 
 Options:
   -h, --help     Print this message
@@ -94,16 +95,18 @@ save () {
 
   echo "Adding passphrase for '$filename'..."
 
-  read -r -p "Passphrase: " password
+  read -r -s -p "Passphrase: " password
 
   if ! [ "$password" ]; then
-    echo "SSH key password required." >&2
+    echo "Passphrase required." >&2
     return 1
   fi
 
   credential="$(credential-path "$filename")"
 
-  wsl-credential-add.ps1 -credential "$credential" -username "$USER" -password "$password" > /dev/null
+  wsl-credential-manager-add.ps1 -credential "$credential" -username "$USER" -password "$password" > /dev/null || return 1
+
+  echo "Saved passphrase."
 }
 
 credential-path () {

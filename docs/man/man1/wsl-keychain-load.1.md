@@ -64,7 +64,8 @@ Credential Manager. The given path should be absolute path to the SSH private
 key as seen from Linux, rather than Windows-side mount path.
 
 If no SSH private key file is specified, defaults to the first key found in
-`~/.ssh` directory.
+`~/.ssh` directory. From the directory, looks for key files that name start
+with `id_` prefix and uses the first one found.
 
 # FILES
 
