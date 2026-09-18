@@ -74,10 +74,9 @@ Depends on external programs `bash`, `cat`, `chmod`, `keychain`, `pwsh.exe`,
 `wsl-credential-manager-read.ps1`.
 
 Requires that `PowerShell` version >= 7 is installed in Windows, and
-`CredentialManager` and `TUN.CredentialManager` modules to it. The modules can
+`TUN.CredentialManager` module is installed to it. The module can
 be installed by running the following in PowerShell:
 
-    Install-Module -Name CredentialManager
     Install-Module -Name TUN.CredentialManager
 
 # EXAMPLES

@@ -2,7 +2,7 @@
 
 param($credential)
 
-Import-Module -Name CredentialManager
+Import-Module -Name TUN.CredentialManager
 
 $entry = Get-StoredCredential -Target "$credential"
 
