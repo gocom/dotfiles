@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+set -e
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+GPG key helper.
+
+Contains helper tasks for managing GPG keys.
+
+Usage:
+  $ $app_name [options] [command]
+
+Commands:
+  $app_name edit <email>
+  Edits the specified GPG key. Open interactive shell that can be, for
+  instance, be used to set the trust level of the key.
+
+  $app_name export <email>
+  Exports the GPG key for the given email to the current work directory.
+  Expects that the current working directory does not contain
+  public-gpg.key, secret-gpg.key or ownertrust-gpg.txt named
+  files.
+
+  $app_name import <email>
+  Imports secret-gpg.key and ownertrust-gpg.txt files from the current
+  working directory.
+
+  $app_name list <email>
+  Lists available GPG secret keys for the specified email address.
+
+  $app_name reload
+  Reloads GPG agent. This can be used to restart the agent after
+  configuration changes, or if the agent is having issues.
+
+  $app_name trust <email>
+  Try to trust the specified GPG key ultimately.
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Examples:
+  $ $app_name list john.doe@example.tld
+EOF
+}
+
+fatal () {
+  echo "$1" >&2
+  exit 1
+}
+
+export () {
+  if [ "$#" -eq 0 ]; then
+    fatal "Email is required."
+  fi
+
+  if [ -e "public-gpg.key" ]; then
+    fatal "public-gpg.key file already exits in the current working directory."
+  fi
+
+  if [ -e "secret-gpg.key" ]; then
+    fatal "secret-gpg.key file already exits in the current working directory."
+  fi
+
+  if [ -e "ownertrust-gpg.txt" ]; then
+    fatal "ownertrust-gpg.txt file already exits in the current working directory."
+  fi
+
+  gpg -a --export "$1" > public-gpg.key || fatal "Failed to export public key"
+  gpg -a --export-secret-keys "$1" > secret-gpg.key || fatal "Failed to export secret key"
+  gpg --export-ownertrust > ownertrust-gpg.txt || fatal "Failed to export ownertrust"
+}
+
+import () {
+  if ! [ -f "secret-gpg.key" ]; then
+    fatal "secret-gpg.key file does not exist in the current working directory."
+  fi
+
+  gpg --import secret-gpg.key
+
+  if [ -f "ownertrust-gpg.txt" ]; then
+    gpg --import-ownertrust ownertrust-gpg.txt
+  fi
+}
+
+list () {
+  if [ "$#" -eq 0 ]; then
+    fatal "Email is required."
+  fi
+
+  gpg --list-secret-keys --with-keygrip --keyid-format LONG "$@"
+}
+
+edit () {
+  gpg --edit-key "$@"
+}
+
+reload () {
+  gpgconf --kill gpg-agent
+  gpgconf --launch gpg-agent
+}
+
+trust () {
+  gpg --list-keys --fingerprint --with-colons "$@" \
+    | sed -E -n -e 's/^fpr:::::::::([0-9A-F]+):$/\1:6:/p' \
+    | gpg --import-ownertrust
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  edit) edit "$@" ;;
+  export) export "$@" ;;
+  import) import "$@" ;;
+  list) list "$@" ;;
+  reload) reload ;;
+  trust) trust "$@" ;;
+  *) usage; exit 1 ;;
+esac

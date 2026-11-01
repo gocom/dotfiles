@@ -228,3 +228,5 @@
   cmd = meld "$LOCAL" "$REMOTE"
 [init]
   defaultBranch = master
+[gpg]
+  program = gpg

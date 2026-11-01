@@ -1,3 +1,4 @@
+home/.gnupg/gpg-agent.conf
 home/.ssh/config
 home/.bash_completion
 home/.bash_profile
