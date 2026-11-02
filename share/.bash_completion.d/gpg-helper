@@ -13,6 +13,6 @@ _gpg-helper () {
   esac
 
   if [ "$cword" -eq 1 ]; then
-    COMPREPLY=($(compgen -W 'edit export import keygrip list reload trust' -- "$cur"))
+    COMPREPLY=($(compgen -W 'edit export import keygrip list public reload signature trust' -- "$cur"))
   fi
 } && complete -F _gpg-helper gpg-helper

@@ -46,9 +46,17 @@ all available secret keys.
 : Lists available GPG secret keys for the specified email address.
 If no email is given, lists all available secret keys.
 
+`public` `[`*email*`]`
+: Print GPG public key for the specified email address.
+If no email is given, lists all available secret keys.
+
 `reload`
 : Reloads GPG agent. This can be used to restart the agent after
 configuration changes, or if the agent is having issues.
+
+`signature` `[`*email*`]`
+: Print GPG signature for the specified email address.
+If no email is given, lists all available signatures.
 
 `trust` `<`*email*`>`
 : Try to trust the specified GPG key ultimately.

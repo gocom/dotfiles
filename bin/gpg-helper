@@ -37,9 +37,17 @@ Commands:
   Lists available GPG secret keys for the specified email address.
   If no email is given, lists all available secret keys.
 
+  $app_name public [email]
+  Print GPG public key for the specified email address.
+  If no email is given, lists all available public keys.
+
   $app_name reload
   Reloads GPG agent. This can be used to restart the agent after
   configuration changes, or if the agent is having issues.
+
+  $app_name signature [email]
+  Print GPG signature for the specified email address.
+  If no email is given, lists all available signatures.
 
   $app_name trust <email>
   Try to trust the specified GPG key ultimately.
@@ -56,6 +64,10 @@ EOF
 fatal () {
   echo "$1" >&2
   exit 1
+}
+
+edit () {
+  gpg --edit-key "$@"
 }
 
 app-export () {
@@ -101,13 +113,18 @@ list () {
   gpg --list-secret-keys --with-keygrip --keyid-format LONG "$@"
 }
 
-edit () {
-  gpg --edit-key "$@"
+public () {
+  gpg --armor --export "$@"
 }
 
 reload () {
   gpgconf --kill gpg-agent
   gpgconf --launch gpg-agent
+}
+
+signature () {
+  gpg --list-signatures "$@" \
+    | awk '/^sig  / {print $2}'
 }
 
 trust () {
@@ -124,7 +141,9 @@ case "${1:-}" in
   import) import "${@:2}" ;;
   list) list "${@:2}" ;;
   keygrip) keygrip "${@:2}" ;;
+  public) public "${@:2}" ;;
   reload) reload ;;
+  signature) signature "${@:2}" ;;
   trust) trust "${@:2}" ;;
   *) usage; exit 1 ;;
 esac
