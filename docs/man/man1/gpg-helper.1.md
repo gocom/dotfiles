@@ -38,8 +38,13 @@ files.
 : Imports secret-gpg.key and `ownertrust-gpg.txt` files from the current
 working directory.
 
-`list` `<`*email*`>`
+`keygrip` `[`*email*`]`
+: Lists keygrip identifiers. If no email is given, lists keygrips for
+all available secret keys.
+
+`list` `[`*email*`]`
 : Lists available GPG secret keys for the specified email address.
+If no email is given, lists all available secret keys.
 
 `reload`
 : Reloads GPG agent. This can be used to restart the agent after

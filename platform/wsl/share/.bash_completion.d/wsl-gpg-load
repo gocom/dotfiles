@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+_wsl-gpg-load () {
+  local cur prev words cword
+
+  _init_completion || return
+
+  case "$prev" in
+    load|save)
+      _filedir
+      return
+      ;;
+  esac
+
+  case "$cur" in
+    -*)
+      COMPREPLY=($(compgen -W '$( _parse_help "$1" )' -- "$cur"))
+      return
+      ;;
+  esac
+
+  if [ "$cword" -eq 1 ]; then
+    COMPREPLY=($(compgen -W 'init load save' -- "$cur"))
+  fi
+} && complete -F _wsl-gpg-load wsl-gpg-load

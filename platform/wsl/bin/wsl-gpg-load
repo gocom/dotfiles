@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+
+app_name="${0##*/}"
+app_version="0.0.0"
+
+usage () {
+  cat <<EOF
+Loads GPG key passphrases from Windows Credential Manager.
+
+Usage:
+  $ $app_name <command> [options]
+
+Commands:
+  $ $app_name init
+  Loads all GPG key passphrases.
+
+  $ $app_name load <email>
+  Loads passphrases for the given GPG key.
+
+  $ $app_name save <email>
+  Saves the passphrase for the given GPG key.
+
+Options:
+  -h, --help     Print this message
+  -v, --version  Print version number
+
+Example:
+  $ $app_name init
+  $ $app_name load "joe.doe@example.tld"
+  $ $app_name save "joe.doe@example.tld"
+EOF
+}
+
+fatal () {
+  echo "$1" >&2
+  exit 1
+}
+
+depends () {
+  local name
+
+  for name in "cat" "gpg-helper" "gpg-preset-passphrase" "head" "pwsh.exe" "wsl-credential-manager-add.ps1" "wsl-credential-manager-read.ps1"; do
+    if ! [ "$(command -v "$name")" ]; then
+      fatal "Dependency missing: $name"
+    fi
+  done
+}
+
+init () {
+  local keygrips keygrip passphrase
+
+  depends
+
+  keygrips="$(gpg-helper keygrip)"
+
+  for keygrip in $keygrips; do
+    passphrase="$(wsl-credential-manager-read.ps1 -credential "gpg:$keygrip" 2> /dev/null)"
+
+    if [ "$passphrase" ]; then
+      echo "$passphrase" | gpg-preset-passphrase --preset "$passphrase"
+    fi
+  done
+}
+
+save () {
+  local email keygrip passphrase
+
+  depends
+
+  email="${1:-}"
+
+  if ! [ "$email" ]; then
+    fatal "Email is required."
+  fi
+
+  keygrip="$(gpg-helper keygrip "$email" | head -n1)"
+
+  echo "Adding passphrase for $email ($keygrip)..."
+
+  read -r -s -p "Passphrase: " passphrase
+
+  if ! [ "$passphrase" ]; then
+    fatal "Passphrase required."
+  fi
+
+  wsl-credential-manager-add.ps1 -credential "gpg:$keygrip" -username "$email" -password "$passphrase" > /dev/null || return 1
+
+  echo "Saved as 'gpg:$keygrip'."
+}
+
+load() {
+  local email keygrip passphrase
+
+  depends
+
+  email="${1:-}"
+
+  if ! [ "$email" ]; then
+    echo "Email is required." >&2
+    return 1
+  fi
+
+  keygrip="$(gpg-helper keygrip "$email" | head -n1)"
+  passphrase="$(wsl-credential-manager-read.ps1 -credential "gpg:$keygrip")"
+
+  if ! [ "$passphrase" ]; then
+    fatal "Passphrase not found in Windows Credential Manager."
+  fi
+
+  echo "$passphrase" | gpg-preset-passphrase --preset "$passphrase" || return 1
+}
+
+case "${1:-}" in
+  ""|-h|--help) usage ;;
+  -v|--version) echo "$app_version" ;;
+  init) init ;;
+  load) load "${@:2}" ;;
+  save) save "${@:2}" ;;
+  *) load "$@" ;;
+esac

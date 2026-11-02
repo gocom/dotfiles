@@ -25,6 +25,9 @@ if [ "$DOTFILES_WSL" -eq 1 ]; then
     fi
   fi
 
+  # Load keys for GPG agent.
+  wsl-gpg-load init 2> /dev/null
+
   # Forward GUI applications to X server running on Windows.
   export DISPLAY
   DISPLAY="$(ip route | grep default | awk '{print $3; exit;}'):0.0"

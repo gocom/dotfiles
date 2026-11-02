@@ -29,8 +29,13 @@ Commands:
   Imports secret-gpg.key and ownertrust-gpg.txt files from the current
   working directory.
 
-  $app_name list <email>
+  $app_name keygrip [email]
+  Lists keygrip identifiers. If no email is given, lists keygrips for
+  all available secret keys.
+
+  $app_name list [email]
   Lists available GPG secret keys for the specified email address.
+  If no email is given, lists all available secret keys.
 
   $app_name reload
   Reloads GPG agent. This can be used to restart the agent after
@@ -87,11 +92,12 @@ import () {
   fi
 }
 
-list () {
-  if [ "$#" -eq 0 ]; then
-    fatal "Email is required."
-  fi
+keygrip () {
+  gpg --list-keys --with-keygrip --keyid-format LONG "$@" \
+    | awk '/^\s*Keygrip = / {print $3}'
+}
 
+list () {
   gpg --list-secret-keys --with-keygrip --keyid-format LONG "$@"
 }
 
@@ -113,11 +119,12 @@ trust () {
 case "${1:-}" in
   -h|--help) usage ;;
   -v|--version) echo "$app_version" ;;
-  edit) edit "$@" ;;
-  export) app-export "$@" ;;
-  import) import "$@" ;;
-  list) list "$@" ;;
+  edit) edit "${@:2}" ;;
+  export) app-export "${@:2}" ;;
+  import) import "${@:2}" ;;
+  list) list "${@:2}" ;;
+  keygrip) keygrip "${@:2}" ;;
   reload) reload ;;
-  trust) trust "$@" ;;
+  trust) trust "${@:2}" ;;
   *) usage; exit 1 ;;
 esac
