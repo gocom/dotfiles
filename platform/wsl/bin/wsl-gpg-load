@@ -57,7 +57,7 @@ init () {
     passphrase="$(wsl-credential-manager-read.ps1 -credential "gpg:$keygrip" 2> /dev/null)"
 
     if [ "$passphrase" ]; then
-      echo "$passphrase" | gpg-preset-passphrase --preset "$passphrase"
+      echo "$passphrase" | gpg-preset-passphrase --preset "$keygrip"
     fi
   done
 }
@@ -107,7 +107,7 @@ load() {
     fatal "Passphrase not found in Windows Credential Manager."
   fi
 
-  echo "$passphrase" | gpg-preset-passphrase --preset "$passphrase" || return 1
+  echo "$passphrase" | gpg-preset-passphrase --preset "$keygrip" || return 1
 }
 
 case "${1:-}" in
