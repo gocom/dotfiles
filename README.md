@@ -76,9 +76,22 @@ echo 'export EDITOR=/usr/local/bin/atom' >> ~/.bash_config
 Configuring git
 -----
 
-Local git config can be provided with `~/.gitconfig_local`.
+Local git config can be provided with `~/.gitconfig_local`:
 
 ```
 git config --file ~/.gitconfig_local user.email foobar@example.tld
 git config --file ~/.gitconfig_local user.name "Foo Bar"
+```
+
+Git also allows configuring per-remote server or project's parent-directory
+based configurations, such as separate identities and signing keys. You can
+include needed conditional configuration overrides from `~/.gitconfig_local`.
+For example:
+
+```
+[includeIf "hasconfig:remote.*.url:git@github.com:*/**.git"]
+  path = ~/.gitconfig.d/github
+
+[includeIf "gitdir:~/Projects/Bitbucket"]
+  path = ~/.gitconfig.d/bitbucket
 ```
