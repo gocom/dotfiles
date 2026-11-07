@@ -49,7 +49,7 @@ be installed by running the following in PowerShell:
 
 # EXAMPLES
 
-Loads the `joe.does@example.tld ` key passphrase from Windows Credential
+Loads the `joe.does@example.tld` key passphrase from Windows Credential
 Manager:
 
     $ wsl-gpg-load joe.does@example.tld
