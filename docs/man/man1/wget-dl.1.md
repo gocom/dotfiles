@@ -76,7 +76,7 @@ and `wget`.
 
 # EXAMPLES
 
-The following is the simplest use case; Prompts for URLs ands
+The following is the simplest use case; Prompts for URLs and
 starts downloading them to the current working directory:
 
     $ wget-dl

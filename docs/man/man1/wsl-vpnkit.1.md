@@ -18,7 +18,7 @@ no settings changes or admin privileges on the Windows host.
 
 This command is wrapper around wsl-vpnkit toolkit, and offers a way to
 automatically set up its dependencies. The command is designed for Ubuntu
-and Debian, and should only be ran inside WSL 2 VM.
+and Debian, and should only be run inside WSL 2 VM.
 
 # OPTIONS
 
