@@ -39,7 +39,7 @@ fatal () {
 depends () {
   local name
 
-  for name in "cat" "gpg-helper" "gpg-preset-passphrase" "head" "pwsh.exe" "wsl-credential-manager-add.ps1" "wsl-credential-manager-read.ps1"; do
+  for name in "cat" "gpg-helper" "gpg-preset-passphrase" "gpgconf" "head" "pwsh.exe" "wsl-credential-manager-add.ps1" "wsl-credential-manager-read.ps1"; do
     if ! [ "$(command -v "$name")" ]; then
       fatal "Dependency missing: $name"
     fi
@@ -50,6 +50,8 @@ init () {
   local keygrips keygrip passphrase
 
   depends
+
+  gpgconf --launch gpg-agent || return 1
 
   keygrips="$(gpg-helper keygrip)"
 
@@ -106,6 +108,8 @@ load() {
   if ! [ "$passphrase" ]; then
     fatal "Passphrase not found in Windows Credential Manager."
   fi
+
+  gpgconf --launch gpg-agent || return 1
 
   echo "$passphrase" | gpg-preset-passphrase --preset "$keygrip" || return 1
 }

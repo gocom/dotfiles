@@ -38,8 +38,9 @@ Credential Manager.
 
 # FILES
 
-Depends on external programs `bash`, `cat`, `gpg-helper`, `gpg-preset-passphrase`, `pwsh.exe`,
-`wsl-credential-manager-add.ps1` and `wsl-credential-manager-read.ps1`.
+Depends on external programs `bash`, `cat`, `gpg-helper`, `gpg-preset-passphrase`,
+`gpgconf`, `pwsh.exe`, `wsl-credential-manager-add.ps1` and
+`wsl-credential-manager-read.ps1`.
 
 Requires that `PowerShell` version >= 7 is installed in Windows, and
 `TUN.CredentialManager` module is installed to it. The module can
